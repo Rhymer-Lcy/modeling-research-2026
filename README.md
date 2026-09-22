@@ -134,7 +134,7 @@ These are ignored and never pushed:
 
 | Path | Contents |
 | --- | --- |
-| `docs_local/` | Reference material, machine-specific notes, local identity input |
+| `docs_local/` | Reference material and machine-specific local notes |
 | `data_local/` | Input and derived data |
 | `scratch/` | Exploratory work, sweeps, dead ends |
 | `paper/team.tex` | Real author details |
