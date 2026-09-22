@@ -176,12 +176,17 @@ function Test-AbsolutePathViolation {
     param([string]$Content, [string]$RelPath)
     $lines = $Content -split "`r?`n"
     foreach ($line in $lines) {
-        if ($line.Contains($PathExemptionMarker)) {
-            $script:PathExemptions++
-            continue
-        }
+        $exempt = $line.Contains($PathExemptionMarker)
         foreach ($p in $AbsolutePathPatterns) {
             if ([regex]::IsMatch($line, $p.Pattern)) {
+                if ($exempt) {
+                    # Count only exemptions that actually suppressed a finding,
+                    # so the reported number means "findings waived" rather than
+                    # "marker seen". Otherwise the line that defines the marker
+                    # inflates the count and the number stops meaning anything.
+                    $script:PathExemptions++
+                    break
+                }
                 Add-Failure ("Absolute machine path '" + $p.Name + "' in $RelPath")
                 return
             }

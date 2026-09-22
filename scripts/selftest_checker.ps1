@@ -21,10 +21,12 @@
     readme: the gate requires no personal-identity fixture of any kind to pass.
 
     Asserted behaviour:
-      1. fixture containing a fake credential  -> FAIL (exit 1)
-      2. fixture containing an oversized file  -> FAIL (exit 1)
-      3. clean fixture                         -> PASS (exit 0)
-      4. temporary repository is removed
+      1. fixture containing a fake credential      -> FAIL (exit 1)
+      2. fixture containing an oversized file      -> FAIL (exit 1)
+      3. fixture containing an absolute local path -> FAIL (exit 1)
+      4. same path carrying the exemption marker   -> PASS (exit 0)
+      5. clean fixture                             -> PASS (exit 0)
+      6. temporary repository is removed
 #>
 [CmdletBinding()]
 param()
@@ -92,14 +94,30 @@ try {
     $r2 = Invoke-Checker
     Assert-Case -Name 'oversized file is rejected' -Expected 1 -Actual $r2.Exit
 
-    # --- Case 3: clean fixture must PASS ---------------------------------
+    # --- Case 3: absolute machine path must FAIL -------------------------
+    # Assembled at run time for the same reason as the credential: a literal
+    # drive path in this file would be a finding in the real repository.
     New-Sandbox
+    $fakePath = 'C' + ':' + [char]92 + 'Users' + [char]92 + 'someone' + [char]92 + 'data.csv'
+    Set-Content -LiteralPath (Join-Path $sandbox 'hardcoded.txt') -Value ("input: " + $fakePath) -Encoding UTF8
     $r3 = Invoke-Checker
-    Assert-Case -Name 'clean fixture is accepted' -Expected 0 -Actual $r3.Exit
-    if ($r3.Exit -ne 0) {
+    Assert-Case -Name 'absolute machine path is rejected' -Expected 1 -Actual $r3.Exit
+
+    # --- Case 4: the documented exemption marker must waive it -----------
+    New-Sandbox
+    $marker = 'check-public-safe:' + ' allow-path-pattern'
+    Set-Content -LiteralPath (Join-Path $sandbox 'hardcoded.txt') -Value ("input: " + $fakePath + "   " + $marker) -Encoding UTF8
+    $r4 = Invoke-Checker
+    Assert-Case -Name 'exemption marker waives the path finding' -Expected 0 -Actual $r4.Exit
+
+    # --- Case 5: clean fixture must PASS ---------------------------------
+    New-Sandbox
+    $r5 = Invoke-Checker
+    Assert-Case -Name 'clean fixture is accepted' -Expected 0 -Actual $r5.Exit
+    if ($r5.Exit -ne 0) {
         Write-Host ""
         Write-Host "clean-fixture output:"
-        Write-Host $r3.Output
+        Write-Host $r5.Output
     }
 }
 finally {
@@ -115,9 +133,9 @@ if ($removed) { $verdict = 'ok' }
 Write-Host ("  [{0}] sandbox removed" -f $verdict)
 $results += [pscustomobject]@{ Name = 'sandbox removed'; Ok = $removed }
 
-if ($results.Count -lt 4) {
+if ($results.Count -lt 6) {
     Write-Host ""
-    Write-Host ("RESULT: FAIL (expected 4 assertions, ran " + $results.Count + ")")
+    Write-Host ("RESULT: FAIL (expected 6 assertions, ran " + $results.Count + ")")
     exit 1
 }
 
