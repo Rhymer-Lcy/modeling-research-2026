@@ -144,10 +144,18 @@ without rewriting history, so this must be done **before** you commit anything.
 
 4. Confirm the value ends with `@users.noreply.github.com`.
 
-`scripts/check_public_safe.ps1 -Mode PrePush` rejects any author or committer
-address in history that does not end with that suffix. This keeps personal
-mailboxes out of the public record structurally, without the project needing to
-record anyone's personal details.
+`scripts/check_public_safe.ps1 -Mode PrePush` checks every author and committer
+address in reachable history against `configs/git-email-policy.txt` and rejects
+any address that no rule there permits. The GitHub noreply suffix is an
+approved rule, so following the four steps above is always sufficient.
+
+The gate exists to stop an unapproved mailbox from being published by accident,
+not to forbid an address whose owner has deliberately chosen to publish it.
+Publishing any other address therefore requires adding it to that tracked
+policy file in a reviewable commit, so it can never happen silently. Note that
+a squash or rebase merge performed on the GitHub side is authored from the
+account's public profile email and committed by GitHub's web-flow bot, so those
+addresses must be approved in the policy file for server-side merges to pass.
 
 Routing:
 
