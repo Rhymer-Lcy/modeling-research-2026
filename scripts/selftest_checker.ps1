@@ -17,10 +17,14 @@
     literal would place a matchable credential signature into a tracked file and
     the gate would, correctly, reject its own self-test.
 
+    The clean fixture is a bare repository with nothing but the checker and a
+    readme: the gate requires no personal-identity fixture of any kind to pass.
+
     Asserted behaviour:
       1. fixture containing a fake credential  -> FAIL (exit 1)
       2. fixture containing an oversized file  -> FAIL (exit 1)
       3. clean fixture                         -> PASS (exit 0)
+      4. temporary repository is removed
 #>
 [CmdletBinding()]
 param()
@@ -46,21 +50,11 @@ function New-Sandbox {
     if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
     New-Item -ItemType Directory -Path $sandbox -Force | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $sandbox 'scripts') -Force | Out-Null
-    New-Item -ItemType Directory -Path (Join-Path $sandbox 'docs_local') -Force | Out-Null
 
     Copy-Item -LiteralPath $checkerSrc -Destination (Join-Path $sandbox 'scripts\check_public_safe.ps1') -Force
 
-    # Ignore the identity file, exactly as the real repository does, so that the
-    # needle it carries is not itself scanned as public content.
-    Set-Content -LiteralPath (Join-Path $sandbox '.gitignore') -Value 'docs_local/' -Encoding UTF8
-
-    # A needle that is deliberately not anyone's real identity.
-    $needle = 'ZZ' + 'TESTNEEDLE' + 'ZZ'
-    Set-Content -LiteralPath (Join-Path $sandbox 'docs_local\identity.local.txt') `
-        -Value @("name:$needle", 'approved_email:selftest@example.invalid') -Encoding UTF8
-
     & git -C $sandbox init -q
-    & git -C $sandbox config user.email 'selftest@example.invalid'
+    & git -C $sandbox config user.email 'selftest@users.noreply.github.com'
     & git -C $sandbox config user.name  'selftest'
 
     Set-Content -LiteralPath (Join-Path $sandbox 'README.md') -Value 'Clean fixture.' -Encoding UTF8
@@ -82,7 +76,6 @@ function Assert-Case {
 
 try {
     Write-Host "checker mutation self-test"
-    Write-Host ("sandbox: " + $sandbox)
     Write-Host ""
 
     # --- Case 1: fake credential must FAIL -------------------------------

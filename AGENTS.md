@@ -122,9 +122,32 @@ type(scope): lowercase imperative [T-0xx]
 - No `update`, `final`, `misc`, `test123` style subjects, and no committing
   broken unrelated work.
 - Never force-push `main`.
-- Each member sets their repository-local author email to their forge noreply
-  address before their first commit. Author metadata cannot be corrected later
-  without rewriting history.
+
+### Author email: required before your first commit
+
+Git author metadata is permanent and public. It cannot be corrected later
+without rewriting history, so this must be done **before** you commit anything.
+
+1. Obtain your GitHub-provided noreply address from your own GitHub account
+   (Settings, Emails). Do not ask anyone else for it and do not guess it.
+2. Set it for this repository only:
+
+   ```
+   git config --local user.email "<your-github-noreply-address>"
+   ```
+
+3. Verify it:
+
+   ```
+   git config --local --get user.email
+   ```
+
+4. Confirm the value ends with `@users.noreply.github.com`.
+
+`scripts/check_public_safe.ps1 -Mode PrePush` rejects any author or committer
+address in history that does not end with that suffix. This keeps personal
+mailboxes out of the public record structurally, without the project needing to
+record anyone's personal details.
 
 Routing:
 

@@ -107,6 +107,19 @@ Commit subjects are one line, ASCII, at most 72 characters:
 type(scope): lowercase imperative [T-0xx]
 ```
 
+**Before your first commit**, set your GitHub noreply address for this
+repository only, and verify it:
+
+```
+git config --local user.email "<your-github-noreply-address>"
+git config --local --get user.email
+```
+
+The value must end with `@users.noreply.github.com`. Author metadata is
+permanent, so this cannot be fixed afterwards without rewriting history. The
+pre-push check rejects any other address. See `AGENTS.md` for the full
+procedure.
+
 AI assistance is allowed for any task. The human owner of the task remains its
 author and is accountable for validating the output. How the output was
 validated is recorded in the worklog entry.

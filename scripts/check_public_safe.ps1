@@ -13,26 +13,33 @@
     The set of files examined is defined by Git, not by walking the filesystem:
 
         git ls-files --cached                      tracked and staged
+        git diff --cached --name-only              staged against HEAD
         git ls-files --others --exclude-standard   untracked but not ignored
 
-    Local-only areas (docs_local/, data_local/, scratch/, paper/team.tex,
-    paper/template/, paper/build/) are ignored by Git and therefore never enter
-    this set. Their contents are NOT scanned: they are private by design, and
-    scanning them would produce guaranteed findings that train the reader to
-    ignore the tool. They are instead checked from the other direction, by
-    asserting that none of them is tracked.
+    Paths are normalized and deduplicated. Local-only areas are ignored by Git
+    and therefore never enter this set; their contents are NOT scanned. They are
+    checked from the other direction instead, by asserting that none of them is
+    tracked.
 
-    MODES
-    PreCommit  Working tree and index. HEAD may legitimately not exist, so no
-               history check runs. This is the mode for the first commit.
-    PrePush    Requires HEAD, scans all reachable history and Git author and
-               committer metadata, and repeats every working-tree check.
+    SCOPE
+    This gate protects repository boundaries, secrets, machine-specific
+    information and Git metadata. It deliberately does not maintain a database
+    of personal identity data: mailbox privacy is obtained structurally, by
+    requiring every author and committer address to be a GitHub noreply
+    address, rather than by collecting real names to search for.
 
     SEVERITY
-    Only high-confidence credential signatures fail the build. Generic
-    assignments such as `token = "..."` are reported as warnings for manual
-    review: a gate that cries wolf gets bypassed, and a bypassed gate is worse
-    than no gate.
+    Only high-confidence credential signatures fail. Generic assignments such as
+    `token = "..."` are reported as warnings for manual review: a gate that
+    cries wolf gets bypassed, and a bypassed gate is worse than no gate.
+
+    ESCAPE HATCH
+    A line that must legitimately describe a machine-path pattern rather than
+    contain one may carry the marker
+
+        check-public-safe: allow-path-pattern
+
+    Exemptions are counted and reported, so they cannot be used silently.
 
 .PARAMETER Mode
     PreCommit (default) or PrePush.
@@ -46,21 +53,24 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$identityFile = Join-Path (Join-Path $repoRoot 'docs_local') 'identity.local.txt'
 
 $script:Failures = New-Object System.Collections.ArrayList
 $script:Warnings = New-Object System.Collections.ArrayList
 $script:Manual   = New-Object System.Collections.ArrayList
 $script:FilesExamined = 0
 $script:CommitsScanned = 0
+$script:PathExemptions = 0
 
 function Add-Failure { param([string]$m) [void]$script:Failures.Add($m) }
 function Add-Warning { param([string]$m) [void]$script:Warnings.Add($m) }
 function Add-Manual  { param([string]$m) [void]$script:Manual.Add($m) }
 
 # --------------------------------------------------------------------------
-# Patterns
+# Policy
 # --------------------------------------------------------------------------
+
+$RequiredEmailSuffix = '@users.noreply.github.com'
+$PathExemptionMarker = 'check-public-safe: allow-path-pattern'
 
 # High confidence: a match is a credential, not a variable name. These FAIL.
 $HighConfidenceSecrets = @(
@@ -78,10 +88,11 @@ $GenericSecretHints = @(
     @{ Name = 'generic-assignment'; Pattern = '(?i)\b(password|passwd|secret|api[_-]?key|token)\s*=\s*["''][^"'']{8,}["'']' }
 )
 
-# Absolute machine paths. These FAIL.
+# Absolute machine paths. These FAIL unless the line carries the marker.
 $AbsolutePathPatterns = @(
     @{ Name = 'windows-drive-path'; Pattern = '\b[A-Za-z]:[\\/]' },
-    @{ Name = 'msys-user-path';     Pattern = '/[a-z]/Users/' },
+    @{ Name = 'user-home-path';     Pattern = '(?i)Users[\\/][A-Za-z0-9._-]+' },
+    @{ Name = 'msys-drive-path';    Pattern = '/[a-z]/Users/' },
     @{ Name = 'wsl-mount-path';     Pattern = '/mnt/[a-z]/' }
 )
 
@@ -100,14 +111,14 @@ $FailSizeBytes = 10MB
 # Helpers
 # --------------------------------------------------------------------------
 
-function Get-NormalizedVariants {
-    <# Returns a two-element array: whitespace-collapsed and whitespace-removed,
-       both lowercased. A needle hard-wrapped by the text that contains it will
-       not match the collapsed form, so both are compared. #>
-    param([string]$Text)
-    $collapsed = ($Text -replace '\s+', ' ').ToLowerInvariant()
-    $stripped  = ($Text -replace '\s', '').ToLowerInvariant()
-    return , @($collapsed, $stripped)
+function Test-HasHead {
+    <# `git rev-parse --verify HEAD` writes to stderr when there are no commits,
+       and Windows PowerShell turns native stderr into an error record, which
+       under $ErrorActionPreference='Stop' terminates the script. `--quiet`
+       suppresses the message and reports the result through the exit code
+       instead, which is what we actually want. #>
+    & git -C $repoRoot rev-parse --verify --quiet HEAD | Out-Null
+    return ($LASTEXITCODE -eq 0)
 }
 
 function Test-IsBinary {
@@ -127,15 +138,31 @@ function Test-IsBinary {
     catch { return $true }
 }
 
+function Test-IsLocalOnlyPath {
+    param([string]$RelPath)
+    foreach ($bad in $MustNotBeTracked) {
+        if ($bad.EndsWith('/')) { if ($RelPath -like "$bad*") { return $true } }
+        elseif ($RelPath -eq $bad) { return $true }
+    }
+    return $false
+}
+
 function Get-PublicCandidateSet {
-    $tracked   = @(& git -C $repoRoot ls-files --cached)
-    $untracked = @(& git -C $repoRoot ls-files --others --exclude-standard)
-    $all = @($tracked) + @($untracked)
+    $parts = New-Object System.Collections.ArrayList
+
+    foreach ($p in @(& git -C $repoRoot ls-files --cached)) { [void]$parts.Add($p) }
+
+    if (Test-HasHead) {
+        foreach ($p in @(& git -C $repoRoot diff --cached --name-only)) { [void]$parts.Add($p) }
+    }
+
+    foreach ($p in @(& git -C $repoRoot ls-files --others --exclude-standard)) { [void]$parts.Add($p) }
+
     $seen = @{}
     $out = New-Object System.Collections.ArrayList
-    foreach ($p in $all) {
+    foreach ($p in $parts) {
         if ([string]::IsNullOrWhiteSpace($p)) { continue }
-        $norm = $p.Trim()
+        $norm = ($p.Trim() -replace '\\', '/')
         if ($seen.ContainsKey($norm)) { continue }
         $seen[$norm] = $true
         [void]$out.Add($norm)
@@ -143,37 +170,34 @@ function Get-PublicCandidateSet {
     return $out
 }
 
-function Read-IdentityNeedles {
-    if (-not (Test-Path -LiteralPath $identityFile)) {
-        Add-Failure "Identity file docs_local/identity.local.txt is absent. The identity check cannot run, and a check that silently skips is worse than no check. Create it from the template in the repository documentation."
-        return $null
-    }
-    $needles  = New-Object System.Collections.ArrayList
-    $approved = New-Object System.Collections.ArrayList
-    foreach ($line in (Get-Content -LiteralPath $identityFile -Encoding UTF8)) {
-        $t = $line.Trim()
-        if ($t -eq '' -or $t.StartsWith('#')) { continue }
-        $idx = $t.IndexOf(':')
-        if ($idx -lt 1) { continue }
-        $cat = $t.Substring(0, $idx).Trim().ToLowerInvariant()
-        $val = $t.Substring($idx + 1).Trim()
-        if ($val -eq '') { continue }
-        if ($cat -eq 'approved_email') {
-            [void]$approved.Add($val.ToLowerInvariant())
+function Test-AbsolutePathViolation {
+    <# Checks line by line so that an exemption marker applies only to its own
+       line, never to a whole file. #>
+    param([string]$Content, [string]$RelPath)
+    $lines = $Content -split "`r?`n"
+    foreach ($line in $lines) {
+        if ($line.Contains($PathExemptionMarker)) {
+            $script:PathExemptions++
+            continue
         }
-        else {
-            $v = Get-NormalizedVariants $val
-            [void]$needles.Add([pscustomobject]@{
-                Category  = $cat
-                Collapsed = $v[0]
-                Stripped  = $v[1]
-            })
+        foreach ($p in $AbsolutePathPatterns) {
+            if ([regex]::IsMatch($line, $p.Pattern)) {
+                Add-Failure ("Absolute machine path '" + $p.Name + "' in $RelPath")
+                return
+            }
         }
     }
-    # Fingerprint the identity file so a run can be tied to a version of it
-    # without ever revealing its contents.
-    $fp = (Get-FileHash -LiteralPath $identityFile -Algorithm SHA256).Hash.Substring(0, 12)
-    return [pscustomobject]@{ Needles = $needles; Approved = $approved; Fingerprint = $fp }
+}
+
+function Format-MaskedAddress {
+    <# Enough to act on, not enough to publish a mailbox. #>
+    param([string]$Address)
+    $at = $Address.IndexOf('@')
+    if ($at -lt 1) { return '***' }
+    $local = $Address.Substring(0, $at)
+    $domain = $Address.Substring($at)
+    $head = $local.Substring(0, [Math]::Min(2, $local.Length))
+    return ($head + '***' + $domain)
 }
 
 # --------------------------------------------------------------------------
@@ -181,15 +205,11 @@ function Read-IdentityNeedles {
 # --------------------------------------------------------------------------
 
 function Invoke-TrackedIgnoredPathCheck {
-    $tracked = @(& git -C $repoRoot ls-files --cached)
-    foreach ($p in $tracked) {
-        foreach ($bad in $MustNotBeTracked) {
-            if ($bad.EndsWith('/')) {
-                if ($p -like "$bad*") { Add-Failure "Local-only path is tracked: $p" }
-            }
-            elseif ($p -eq $bad) {
-                Add-Failure "Local-only path is tracked: $p"
-            }
+    foreach ($p in @(& git -C $repoRoot ls-files --cached)) {
+        $norm = ($p.Trim() -replace '\\', '/')
+        if ($norm -eq '') { continue }
+        if (Test-IsLocalOnlyPath $norm) {
+            Add-Failure "Local-only path is tracked: $norm"
         }
     }
 }
@@ -203,18 +223,10 @@ function Invoke-NestedRepoCheck {
 }
 
 function Invoke-FileChecks {
-    param($Identity)
-
-    $candidates = Get-PublicCandidateSet
-    foreach ($rel in $candidates) {
+    foreach ($rel in (Get-PublicCandidateSet)) {
 
         # Defence in depth: the Git-derived set should never contain these.
-        $skip = $false
-        foreach ($bad in $MustNotBeTracked) {
-            if ($bad.EndsWith('/')) { if ($rel -like "$bad*") { $skip = $true } }
-            elseif ($rel -eq $bad) { $skip = $true }
-        }
-        if ($skip) { continue }
+        if (Test-IsLocalOnlyPath $rel) { continue }
 
         $full = Join-Path $repoRoot ($rel -replace '/', '\')
         if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
@@ -222,7 +234,6 @@ function Invoke-FileChecks {
         $script:FilesExamined++
         $info = Get-Item -LiteralPath $full
 
-        # Size
         if ($info.Length -gt $FailSizeBytes) {
             Add-Failure ("File exceeds " + ($FailSizeBytes / 1MB) + " MB: $rel (" + [math]::Round($info.Length / 1MB, 2) + " MB)")
         }
@@ -230,12 +241,10 @@ function Invoke-FileChecks {
             Add-Warning ("Large file: $rel (" + [math]::Round($info.Length / 1MB, 2) + " MB)")
         }
 
-        # Extension
         if ($ForbiddenExtensions -contains $info.Extension.ToLowerInvariant()) {
             Add-Failure "Forbidden file type tracked: $rel"
         }
 
-        # Binary files cannot be scanned for text. Surface them for a human.
         if (Test-IsBinary $full) {
             Add-Manual "$rel"
             continue
@@ -253,39 +262,19 @@ function Invoke-FileChecks {
                 Add-Warning ("Possible secret assignment in $rel - review manually")
             }
         }
-        foreach ($p in $AbsolutePathPatterns) {
-            if ([regex]::IsMatch($content, $p.Pattern)) {
-                Add-Failure ("Absolute machine path '" + $p.Name + "' in $rel")
-            }
-        }
 
-        # Notebook outputs
+        Test-AbsolutePathViolation -Content $content -RelPath $rel
+
         if ($info.Extension.ToLowerInvariant() -eq '.ipynb') {
             if ([regex]::IsMatch($content, '"outputs"\s*:\s*\[\s*\{')) {
                 Add-Failure "Notebook has stored outputs: $rel"
-            }
-        }
-
-        # Sensitive identifiers. Report category and path only, never the value.
-        if ($Identity -ne $null) {
-            $v = Get-NormalizedVariants $content
-            foreach ($n in $Identity.Needles) {
-                if ($v[0].Contains($n.Collapsed)) {
-                    Add-Failure ("Sensitive identifier of category '" + $n.Category + "' appears in $rel")
-                }
-                elseif ($v[1].Contains($n.Stripped)) {
-                    Add-Failure ("Sensitive identifier of category '" + $n.Category + "' appears in $rel (matched across a line break)")
-                }
             }
         }
     }
 }
 
 function Invoke-HistoryChecks {
-    param($Identity)
-
-    & git -C $repoRoot rev-parse --verify HEAD 2>$null | Out-Null
-    if ($LASTEXITCODE -ne 0) {
+    if (-not (Test-HasHead)) {
         Add-Failure "PrePush requires HEAD, but the repository has no commits."
         return
     }
@@ -297,19 +286,18 @@ function Invoke-HistoryChecks {
         return
     }
 
-    # Author and committer metadata.
+    # Author and committer metadata. Mailbox privacy is structural: every
+    # address must be a forge noreply address.
     $addresses = @(& git -C $repoRoot log --all --format='%ae%n%ce') |
         ForEach-Object { $_.Trim().ToLowerInvariant() } |
         Where-Object { $_ -ne '' } |
         Sort-Object -Unique
     foreach ($a in $addresses) {
-        if ($Identity -eq $null) { break }
-        if (-not ($Identity.Approved -contains $a)) {
-            Add-Failure "Git history contains a non-approved author or committer address (not shown). Add it to approved_email if it is intended."
+        if (-not $a.EndsWith($RequiredEmailSuffix)) {
+            Add-Failure ("Git history contains an author or committer address that is not a GitHub noreply address: " + (Format-MaskedAddress $a))
         }
     }
 
-    # History content.
     $patch = (& git -C $repoRoot log --all -p) -join "`n"
     foreach ($p in $HighConfidenceSecrets) {
         if ([regex]::IsMatch($patch, $p.Pattern)) {
@@ -321,14 +309,6 @@ function Invoke-HistoryChecks {
             Add-Failure ("Absolute machine path '" + $p.Name + "' found in Git history")
         }
     }
-    if ($Identity -ne $null) {
-        $v = Get-NormalizedVariants $patch
-        foreach ($n in $Identity.Needles) {
-            if ($v[0].Contains($n.Collapsed) -or $v[1].Contains($n.Stripped)) {
-                Add-Failure ("Sensitive identifier of category '" + $n.Category + "' appears in Git history")
-            }
-        }
-    }
 }
 
 # --------------------------------------------------------------------------
@@ -338,34 +318,27 @@ function Invoke-HistoryChecks {
 Write-Host "public-safety check  mode=$Mode"
 Write-Host ""
 
-$identity = Read-IdentityNeedles
-if ($identity -ne $null) {
-    Write-Host ("identity source fingerprint : " + $identity.Fingerprint)
-    Write-Host ("identity needles loaded     : " + $identity.Needles.Count)
-    Write-Host ("approved addresses loaded   : " + $identity.Approved.Count)
-    Write-Host ""
-}
-
 Invoke-TrackedIgnoredPathCheck
 Invoke-NestedRepoCheck
-Invoke-FileChecks -Identity $identity
+Invoke-FileChecks
 
 if ($Mode -eq 'PrePush') {
-    Invoke-HistoryChecks -Identity $identity
+    Invoke-HistoryChecks
 }
 
 # Coverage assertions. A run that examined nothing must never report success.
 if ($script:FilesExamined -le 0) {
-    Add-Failure "Coverage assertion failed: no files were examined."
+    Add-Failure "Coverage assertion failed: no candidate files were examined."
 }
 if ($Mode -eq 'PrePush' -and $script:CommitsScanned -le 0) {
     Add-Failure "Coverage assertion failed: no commits were scanned."
 }
 
-Write-Host ("files examined   : " + $script:FilesExamined)
+Write-Host ("files examined    : " + $script:FilesExamined)
 if ($Mode -eq 'PrePush') {
-    Write-Host ("commits scanned  : " + $script:CommitsScanned)
+    Write-Host ("commits scanned   : " + $script:CommitsScanned)
 }
+Write-Host ("path exemptions   : " + $script:PathExemptions)
 Write-Host ""
 
 if ($script:Manual.Count -gt 0) {
