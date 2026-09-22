@@ -24,9 +24,15 @@
     SCOPE
     This gate protects repository boundaries, secrets, machine-specific
     information and Git metadata. It deliberately does not maintain a database
-    of personal identity data: mailbox privacy is obtained structurally, by
-    requiring every author and committer address to be a GitHub noreply
-    address, rather than by collecting real names to search for.
+    of personal identity data.
+
+    EMAIL POLICY
+    Every author and committer address in reachable history must be explicitly
+    permitted by configs/git-email-policy.txt. The purpose is to stop an
+    UNAPPROVED mailbox from being published by accident, not to forbid an
+    address whose owner has deliberately chosen to publish it. Approving an
+    address is a reviewable edit to that tracked file, so intentional
+    publication leaves a trace while accidental publication stays blocked.
 
     SEVERITY
     Only high-confidence credential signatures fail. Generic assignments such as
@@ -60,6 +66,9 @@ $script:Manual   = New-Object System.Collections.ArrayList
 $script:FilesExamined = 0
 $script:CommitsScanned = 0
 $script:PathExemptions = 0
+$script:EmailsChecked = 0
+$script:EmailsByExact = 0
+$script:EmailsBySuffix = 0
 
 function Add-Failure { param([string]$m) [void]$script:Failures.Add($m) }
 function Add-Warning { param([string]$m) [void]$script:Warnings.Add($m) }
@@ -69,7 +78,7 @@ function Add-Manual  { param([string]$m) [void]$script:Manual.Add($m) }
 # Policy
 # --------------------------------------------------------------------------
 
-$RequiredEmailSuffix = '@users.noreply.github.com'
+$EmailPolicyRelPath  = 'configs/git-email-policy.txt'
 $PathExemptionMarker = 'check-public-safe: allow-path-pattern'
 
 # High confidence: a match is a credential, not a variable name. These FAIL.
@@ -119,6 +128,41 @@ function Test-HasHead {
        instead, which is what we actually want. #>
     & git -C $repoRoot rev-parse --verify --quiet HEAD | Out-Null
     return ($LASTEXITCODE -eq 0)
+}
+
+function Read-EmailPolicy {
+    <# Parses configs/git-email-policy.txt into exact and suffix rules.
+       Returns $null when the file is missing, which callers must treat as a
+       failure: a policy gate that silently passes when its policy is absent is
+       worse than no gate. #>
+    $path = Join-Path $repoRoot ($EmailPolicyRelPath -replace '/', '\')
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $null }
+
+    $exact   = New-Object System.Collections.ArrayList
+    $suffix  = New-Object System.Collections.ArrayList
+    foreach ($line in (Get-Content -LiteralPath $path -Encoding UTF8)) {
+        $t = $line.Trim()
+        if ($t -eq '' -or $t.StartsWith('#')) { continue }
+        $parts = $t -split '\s+', 2
+        if ($parts.Count -lt 2) { continue }
+        $kind  = $parts[0].Trim().ToLowerInvariant()
+        $value = $parts[1].Trim().ToLowerInvariant()
+        if ($value -eq '') { continue }
+        if     ($kind -eq 'exact')  { [void]$exact.Add($value) }
+        elseif ($kind -eq 'suffix') { [void]$suffix.Add($value) }
+    }
+    return [pscustomobject]@{ Exact = $exact; Suffix = $suffix }
+}
+
+function Get-EmailVerdict {
+    <# Returns 'exact', 'suffix' or 'unapproved'. #>
+    param([string]$Address, $Policy)
+    $a = $Address.Trim().ToLowerInvariant()
+    if ($Policy.Exact -contains $a) { return 'exact' }
+    foreach ($s in $Policy.Suffix) {
+        if ($a.EndsWith($s)) { return 'suffix' }
+    }
+    return 'unapproved'
 }
 
 function Test-IsBinary {
@@ -192,17 +236,6 @@ function Test-AbsolutePathViolation {
             }
         }
     }
-}
-
-function Format-MaskedAddress {
-    <# Enough to act on, not enough to publish a mailbox. #>
-    param([string]$Address)
-    $at = $Address.IndexOf('@')
-    if ($at -lt 1) { return '***' }
-    $local = $Address.Substring(0, $at)
-    $domain = $Address.Substring($at)
-    $head = $local.Substring(0, [Math]::Min(2, $local.Length))
-    return ($head + '***' + $domain)
 }
 
 # --------------------------------------------------------------------------
@@ -291,17 +324,37 @@ function Invoke-HistoryChecks {
         return
     }
 
-    # Author and committer metadata. Mailbox privacy is structural: every
-    # address must be a forge noreply address.
+    # Author and committer metadata, checked against the tracked email policy.
+    $policy = Read-EmailPolicy
+    if ($null -eq $policy) {
+        Add-Failure "Email policy $EmailPolicyRelPath is missing, so author and committer addresses cannot be validated."
+        return
+    }
+    if (($policy.Exact.Count + $policy.Suffix.Count) -le 0) {
+        Add-Failure "Email policy $EmailPolicyRelPath contains no rules, so every address would be rejected or nothing would be checked."
+        return
+    }
+
     $addresses = @(& git -C $repoRoot log --all --format='%ae%n%ce') |
         ForEach-Object { $_.Trim().ToLowerInvariant() } |
         Where-Object { $_ -ne '' } |
         Sort-Object -Unique
+
+    $byExact = 0
+    $bySuffix = 0
     foreach ($a in $addresses) {
-        if (-not $a.EndsWith($RequiredEmailSuffix)) {
-            Add-Failure ("Git history contains an author or committer address that is not a GitHub noreply address: " + (Format-MaskedAddress $a))
+        $verdict = Get-EmailVerdict -Address $a -Policy $policy
+        if     ($verdict -eq 'exact')  { $byExact++ }
+        elseif ($verdict -eq 'suffix') { $bySuffix++ }
+        else {
+            # Reporting the address is the point of this failure: it names an
+            # accidental public-history disclosure so it can be dealt with.
+            Add-Failure ("Git history contains an address not permitted by $EmailPolicyRelPath" + ": " + $a)
         }
     }
+    $script:EmailsChecked  = $addresses.Count
+    $script:EmailsByExact  = $byExact
+    $script:EmailsBySuffix = $bySuffix
 
     $patch = (& git -C $repoRoot log --all -p) -join "`n"
     foreach ($p in $HighConfidenceSecrets) {
@@ -342,6 +395,10 @@ if ($Mode -eq 'PrePush' -and $script:CommitsScanned -le 0) {
 Write-Host ("files examined    : " + $script:FilesExamined)
 if ($Mode -eq 'PrePush') {
     Write-Host ("commits scanned   : " + $script:CommitsScanned)
+    # Counts only. A passing run has no reason to print anyone's address.
+    Write-Host ("addresses checked : " + $script:EmailsChecked +
+                " (" + $script:EmailsBySuffix + " by approved suffix, " +
+                $script:EmailsByExact + " by approved exact rule)")
 }
 Write-Host ("path exemptions   : " + $script:PathExemptions)
 Write-Host ""

@@ -1,0 +1,41 @@
+# Approved author and committer addresses for public Git history.
+#
+# This file is TRACKED on purpose. It is not a secret, not a privacy database
+# and not an identity database: it is the reviewable record of which email
+# addresses are allowed to appear in this repository's public history.
+#
+# scripts/check_public_safe.ps1 -Mode PrePush reads this file and checks every
+# author and committer address in all reachable history against it. An address
+# matching no rule fails the gate.
+#
+# The gate exists to stop an UNAPPROVED mailbox from being published by
+# accident. It is not there to forbid an address whose owner has deliberately
+# chosen to publish it. Approving an address is therefore a deliberate,
+# reviewable edit to this file: accidental publication stays blocked, while
+# intentional publication is possible and leaves a trace in the history.
+#
+# Format, one rule per line:
+#
+#   suffix <value>    matches any address ending with <value>
+#   exact  <value>    matches exactly that address
+#
+# Matching is case-insensitive. Blank lines and lines beginning with # are
+# ignored.
+
+# Every contributor's GitHub-provided noreply address. This is the default, and
+# what M2 and M3 should configure before their first commit: it keeps a personal
+# mailbox out of the public record without the project needing to know anything
+# about it.
+suffix @users.noreply.github.com
+
+# GitHub's own server-side committer. A squash or rebase merge performed through
+# the GitHub UI or API is committed by the "web-flow" bot under this address, so
+# it appears whenever a pull request is merged server-side rather than locally.
+exact noreply@github.com
+
+# M1's public profile address, explicitly approved by the repository owner for
+# public history. GitHub's server-side merge authors the squashed commit from
+# the account's public profile email rather than from repository-local Git
+# configuration, so this address appears on such merge commits. It is already
+# public on that account's profile.
+exact 1014917866@qq.com

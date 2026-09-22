@@ -11,7 +11,7 @@ both reproducible and auditable.
 | `paper/` | LaTeX manuscript. `main.tex` is wiring only; prose lives in `paper/sections/`. |
 | `src/` | Importable modules. No side effects on import. |
 | `scripts/` | Command-line entry points that produce artifacts. |
-| `configs/` | Seeds and shared constants. |
+| `configs/` | Seeds, shared constants, and the approved-email policy. |
 | `results/` | Small, regenerable figures and tables that the manuscript cites. |
 | `worklog/` | One append-only log per member. |
 | `TASKS.md` | Task register and the record of who currently owns what. |
@@ -115,10 +115,15 @@ git config --local user.email "<your-github-noreply-address>"
 git config --local --get user.email
 ```
 
-The value must end with `@users.noreply.github.com`. Author metadata is
-permanent, so this cannot be fixed afterwards without rewriting history. The
-pre-push check rejects any other address. See `AGENTS.md` for the full
-procedure.
+Use your GitHub noreply address by default; the value should normally end with
+`@users.noreply.github.com`. Author metadata is permanent, so this cannot be
+fixed afterwards without rewriting history.
+
+The pre-push gate rejects any author or committer address that is not
+explicitly allowed by `configs/git-email-policy.txt`. A public non-noreply
+address is permitted only when it has been deliberately approved in that file,
+which is a reviewable change — so an unapproved mailbox cannot be published by
+accident. See `AGENTS.md` for the full procedure.
 
 AI assistance is allowed for any task. The human owner of the task remains its
 author and is accountable for validating the output. How the output was
