@@ -1,0 +1,19 @@
+# Shared configuration.
+#
+# Values that affect a reported result belong here rather than as literals in
+# code, so that a figure or table can always be traced back to the settings
+# that produced it. Scripts should print the seed they used.
+
+# Global random seed. Any script that draws random numbers must set this.
+seed: 42
+
+# Numeric output conventions.
+float_format: "%.6g"
+
+# Figure defaults. Figures are written to results/figures/ and are read from
+# there by the manuscript; they are never copied into paper/.
+figure:
+  format: pdf
+  dpi: 300
+  width_in: 6.0
+  height_in: 4.0

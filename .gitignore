@@ -1,0 +1,64 @@
+# Local-only working areas; never pushed
+docs_local/
+data_local/
+scratch/
+
+# Local identity and secrets
+paper/team.tex
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+*secret*.yaml
+
+# Third-party LaTeX class; redistribution rights unresolved
+# Provisioned locally by scripts/setup_template.ps1 at a pinned revision
+paper/template/
+
+# LaTeX build output
+paper/build/
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+*.xdv
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# MATLAB
+*.asv
+*.mexw32
+*.mexw64
+slprj/
+
+# Editors and operating system
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# File types with no legitimate use in this repository
+*.exe
+*.dll
+*.rar
+*.7z
+*.mp4

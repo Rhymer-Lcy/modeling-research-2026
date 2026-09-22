@@ -1,0 +1,17 @@
+name: modeling-research-2026
+
+channels:
+  - conda-forge
+  - nodefaults
+
+dependencies:
+  - python=3.11
+  - pip
+
+# This file is the single canonical dependency definition for the project.
+# There is deliberately no requirements.txt: two hand-edited dependency files
+# drift apart. If a pip-format export is ever needed it must be generated and
+# marked as a generated file.
+#
+# Packages are added only when a task actually needs them, in that task's own
+# commit, so that every dependency has a traceable reason for being here.
