@@ -146,6 +146,12 @@ These are ignored and never pushed:
 | `paper/template/` | Provisioned third-party document class |
 | `paper/build/` | Build output |
 
+Problem-F material supplied by the organizer is local-only and lives under
+`docs_local/problem-f/` (the problem statement, the data description and the
+audit record) and `data_local/problem-f/raw/` (the attachment package, treated
+as read-only). None of it is redistributed here. A transitional intake
+directory is ignored as well, so a re-delivery cannot be staged by accident.
+
 ## Never commit
 
 Credentials, tokens or keys; real author or institutional identifiers; absolute
