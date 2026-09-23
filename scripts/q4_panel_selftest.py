@@ -26,8 +26,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pandas as pd  # noqa: E402
 
-from src.panel.c4_link import link_c4  # noqa: E402
-from src.panel.leaderboard import _normalise  # noqa: E402
+from src.panel.c4_link import link_c4, link_summary  # noqa: E402
+from src.panel.detail import (  # noqa: E402
+    QUARANTINED_DIMENSIONS,
+    RECONCILED_DIMENSIONS,
+    extract_subtasks,
+)
+from src.panel.leaderboard import GPQA_BASELINE, ModelRecord, _gpqa, _normalise  # noqa: E402
 from src.panel.matching import normalize  # noqa: E402
 from src.panel.panel import build_panel  # noqa: E402
 from src.panel.sources import load_c4  # noqa: E402
@@ -70,6 +75,14 @@ expect_true("perfect generative score is 100",
 expect_true("monotonic in the raw score",
             lambda: _normalise(0.6, 0.25) > _normalise(0.5, 0.25))
 
+print(" GPQA pooled aggregation rule")
+expect_true("GPQA uses the pooled raw score against the fixed baseline",
+            lambda: _gpqa({"leaderboard_gpqa": {"acc_norm,none": 0.40}})
+            == _normalise(0.40, GPQA_BASELINE))
+expect_true("GPQA pooled rule is not the unweighted child average",
+            lambda: _normalise(0.40, GPQA_BASELINE)
+            != (2 * _normalise(0.20, GPQA_BASELINE) + _normalise(0.60, GPQA_BASELINE)) / 3)
+
 print(" stratum mapping")
 expect_true("base maps to A", lambda: stratum_from_coarse("base") == "A")
 expect_true("chat maps to B", lambda: stratum_from_coarse("chat") == "B")
@@ -106,6 +119,63 @@ def typo_does_not_link() -> bool:
 
 expect_true("a mutated name does not link (exact join)", typo_does_not_link)
 
+
+def duplicated_c4_key_does_not_link() -> bool:
+    # Two C4 rows whose normalised name collapses to the same key: the name tier
+    # is ambiguous, so a leaderboard row carrying that name must stay unlinked.
+    duplicate = pd.DataFrame({
+        "c4_model": ["Apollo 7B", "Apollo-7B"],
+        "c4_org": ["Meta AI", "Meta AI"],
+        "c4_hf_id": ["", ""],
+    })
+    probe = link_c4(pd.DataFrame({"model": ["x/apollo-7b"]}), duplicate)
+    return probe.iloc[0]["link_method"] == "unlinked"
+
+
+expect_true("an ambiguous C4 name key stays unlinked", duplicated_c4_key_does_not_link)
+
+print(" C4 candidate audit")
+panel_probe = build_panel()
+audit = link_summary(panel_probe, c4)
+expect_true("the sequential audit accounts for every panel row",
+            lambda: sum(value for key, value in audit.items() if key.startswith("audit_"))
+            == len(panel_probe))
+
+print(" detailed-task quarantine")
+expect_true("MATH Lvl 5 is the only quarantined dimension",
+            lambda: QUARANTINED_DIMENSIONS == frozenset({"MATH Lvl 5"}))
+expect_true("reconciled dimensions exclude the quarantined one",
+            lambda: not (RECONCILED_DIMENSIONS & QUARANTINED_DIMENSIONS))
+
+_fixture_payload = {
+    "results": {
+        "leaderboard_bbh_boolean_expressions": {"acc_norm,none": 0.5},
+        "leaderboard_math_algebra_hard": {"exact_match,none": 0.0},
+    },
+    "configs": {},
+    "group_subtasks": {
+        "leaderboard_bbh": ["leaderboard_bbh_boolean_expressions"],
+        "leaderboard_math_hard": ["leaderboard_math_algebra_hard"],
+    },
+}
+_fixture_record = ModelRecord(model_name="fixture/one", directory="fixture/one",
+                              source_file="results.json", scores={})
+
+
+def primary_excludes_math() -> bool:
+    frame = extract_subtasks([_fixture_record], {"fixture/one": _fixture_payload})
+    return set(frame["dimension"].unique()) == {"BBH"}
+
+
+def diagnostic_includes_math() -> bool:
+    frame = extract_subtasks([_fixture_record], {"fixture/one": _fixture_payload},
+                             include_quarantined=True)
+    return set(frame["dimension"].unique()) == {"BBH", "MATH Lvl 5"}
+
+
+expect_true("primary detailed extraction excludes quarantined MATH", primary_excludes_math)
+expect_true("explicit diagnostic extraction still exposes MATH", diagnostic_includes_math)
+
 print(" panel invariants")
 panel = build_panel()
 expect_true("one row per model",
@@ -121,7 +191,7 @@ expect_true("every date_confidence is primary/fallback/none",
 
 print()
 failed = [name for name, ok in RESULTS if not ok]
-EXPECTED = 20
+EXPECTED = 28
 if len(RESULTS) != EXPECTED:
     print(f"RESULT: FAIL (expected {EXPECTED} assertions, ran {len(RESULTS)})")
     sys.exit(1)
