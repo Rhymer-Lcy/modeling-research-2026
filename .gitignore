@@ -3,6 +3,12 @@ docs_local/
 data_local/
 scratch/
 
+# Organizer-supplied Problem-F material and locally staged audit evidence.
+# Transitional intake directory: T-006 migrates its contents into data_local/
+# and docs_local/ and then removes it. The rule stays afterwards so that a
+# re-delivery into the same location can never be staged by accident.
+F题/
+
 # Local identity and secrets
 paper/team.tex
 .env
