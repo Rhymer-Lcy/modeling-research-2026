@@ -22,3 +22,31 @@
 | T-002 | M1 | public release finalization | 字体回退对照、检查器改为结构化邮箱校验、文档同步 | done | 2026-09-22 |
 | T-003 | M1 | final audit cleanup | README.md · worklog/M1.md · main 分支保护配置 | done | 2026-09-22 |
 | T-004 | M1 | refine Git email safety policy | configs/git-email-policy.txt · scripts/ · README.md · AGENTS.md · worklog/M1.md | done | 2026-09-22 |
+| T-005 | M1 | Problem-F intake guard and public-safety checker repair | .gitignore · scripts/check_public_safe.ps1 · scripts/selftest_checker.ps1 · README.md · TASKS.md · worklog/M1.md | wip | 2026-09-23 |
+| T-006 | M2 | Problem-F local archive migration, integrity closure, audit import | docs_local/problem-f/ · data_local/problem-f/ · worklog/M2.md | todo | 2026-09-23 |
+| T-007 | M2 | Q1 quality/conflict/domain-mixture modeling | src/quality/ · src/mixture/ · scripts/q1_* · results/ · worklog/M2.md | todo | 2026-09-23 |
+| T-008 | M1 | Q2 generalized scaling law | src/scaling/ · scripts/q2_* · results/ · worklog/M1.md | todo | 2026-09-23 |
+| T-009 | M3 | Q4 panel/eligibility/C8 pipeline | src/panel/ · scripts/q4_panel_* · results/ · worklog/M3.md | todo | 2026-09-23 |
+| T-010 | M2 | Q3 compute-constrained resource optimization | src/alloc/ · scripts/q3_* · results/ · worklog/M2.md | todo | 2026-09-23 |
+| T-011 | M3 | Q4 decomposition/bridge/frontier forecast | src/evolution/ · scripts/q4_* · results/ · worklog/M3.md | todo | 2026-09-23 |
+| T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · worklog/M1.md | todo | 2026-09-23 |
+
+## Problem-F dependency graph
+
+前一问的输出是后一问的输入，任务依赖如下（箭头表示「必须先完成」）：
+
+```
+T-005 -> 仓库可安全操作
+T-006 -> 所有建模任务可依赖规范本地路径
+T-007 -> T-008
+T-008 -> T-010
+T-008 + T-009 -> T-011
+T-010 + T-011 -> T-012
+```
+
+说明：
+
+- T-008 的经典 N-D 基线在 T-006 交付规范 B 数据路径后即可开始，但在消费 T-007
+  的接口（IF1/IF2）之前不得关闭。
+- T-010 的求解器可先对解析夹具开发；在 T-008 交付 IF3 之前不产出任何 Q3 科学结论。
+- 接口契约 IF1-IF4 由 M1 负责其模式定义，由各自实现者负责其数值内容。
