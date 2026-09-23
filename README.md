@@ -13,7 +13,9 @@ both reproducible and auditable.
 | `scripts/` | Command-line entry points that produce artifacts. |
 | `configs/` | Seeds, shared constants, and the approved-email policy. |
 | `results/` | Small, regenerable figures and tables that the manuscript cites. |
+| `reviews/` | Task review packages: a concise evidence surface per task, pointing at tracked code, artifacts and commands. |
 | `worklog/` | One append-only log per member. |
+| `worklog/specs/` | Canonical execution specifications for formal task stages, maintained by M1. |
 | `TASKS.md` | Task register and the record of who currently owns what. |
 | `AGENTS.md` | Operating contract for AI agents and for anyone automating work here. |
 
@@ -132,6 +134,26 @@ validated is recorded in the worklog entry.
 Effort is recorded as approximate active time at half-hour granularity. Hours,
 commit counts, lines changed, and prompt or token counts are not contribution
 scores and are not used as such.
+
+### Review packages and execution specifications
+
+`reviews/T-0xx/HANDOVER.md` summarises a task for review: what was done, which
+tracked artifacts and commands support it, and what it does not establish. It
+points at evidence rather than reproducing it, so a result that already exists
+under `results/` is cited, not pasted. A reviewer reads the repository, not a
+report that the work is finished.
+
+Review packages do **not** replace the local-only directories. `docs_local/`,
+`data_local/` and `scratch/` stay ignored and stay local; nothing is copied out
+of them into a review package, and a local input is referred to only by its
+repository-relative convention such as `data_local/problem-f/raw/...`.
+
+`worklog/specs/` holds the canonical specification of formal task stages, so a
+result can be audited against the instruction that produced it. Only M1 writes
+there.
+
+When a package is required, who owns it, what may never go in it, and the
+L1/L2/L3 archiving policy are all defined in `AGENTS.md`.
 
 ## Local-only directories
 

@@ -35,6 +35,8 @@ Read `README.md` for what the project is, this file for how to work in it, and
 - `paper/team.tex` and anything under `docs_local/`, `data_local/`, `scratch/`.
   These are local and private to each working copy.
 - `paper/template/` — provisioned third-party material, not project source.
+- `worklog/specs/` — canonical execution specifications, written only by M1
+  and append-only once executed. See section 8.
 - `paper/main.tex`, `.gitignore`, `.gitattributes`, `environment.yml`, this
   file, and shared interfaces in `src/` are high-impact surfaces: propose a
   change through a pull request rather than editing directly.
@@ -96,7 +98,92 @@ weaken the check to obtain a pass.
 Verify the manuscript by looking at rendered pages. Text extracted from the
 built PDF is unreliable for Chinese characters.
 
-## 8. Worklog
+## 8. Review packages and execution specifications
+
+### Completion is judged on repository evidence
+
+A task is not `done` because an assistant reported success. The reviewer
+evaluates what is committed and what the stated commands actually produce, not
+a claim that the work is finished.
+
+Formal completion normally means: implementation, a reproducible artifact where
+one is meaningful, validation that was actually run, a current review package,
+and the relevant interface objects where the task produces one. A task whose
+output is documentation needs none of the artifacts that would be meaningless
+for it — do not manufacture them to satisfy a checklist.
+
+### Review packages
+
+`reviews/T-0xx/HANDOVER.md` is a task's tracked evidence surface: a concise
+synthesis that points at repository-relative code, artifacts and commands. It
+exists so a reviewer never has to read a chat transcript, open an ignored
+directory, or trust an assistant's summary.
+
+A task's review directory is owned by that task's **current active owner**, by
+the same rule as any other path in section 2. A package is required when
+requesting formal review, before a task moves to `review` or to `done`, and at a
+checkpoint that materially changes a downstream interface or a scientific
+conclusion. It is not required for routine commits.
+
+Update a package in place; Git history preserves earlier versions, so
+timestamped duplicates are not created. Conventions and the template are in
+`reviews/README.md`.
+
+### Execution specifications: L1, L2, L3
+
+When a task stage is handed to an assistant, the instruction that defined it is
+part of how the result came about. Three levels:
+
+- **L1**, local operational prompts — debugging, explaining an error, a local
+  test, formatting, plotting, narrow code questions. **Not archived.**
+- **L2**, formal task-stage execution — experiment design, implementing a
+  substantial stage, model comparison, producing an interface, a task
+  checkpoint. **Archived.**
+- **L3**, project-level decisions — changing the mathematical architecture,
+  data interpretation, task dependencies or an interface; crossing another
+  member's owned paths; changing a major scientific conclusion. **Archived,
+  and controlled by M1.**
+
+The test is not prompt length. It is whether a later audit would need the
+instruction to understand why the result looks as it does.
+
+**Only M1 writes under `worklog/specs/`.** A task owner does not rewrite the
+canonical specification after executing it; if execution showed the
+specification was wrong, that goes in the handover under Deviations and M1
+issues a new version block. Files are append-only, one per scientific task.
+Archiving is prospective: a specification reconstructed from memory after the
+fact is worse than none, because it looks authoritative and is not.
+
+### Raw assistant output is never a repository artifact
+
+Conversation dumps and an assistant's private reasoning do not belong in
+`reviews/`, `worklog/`, or anywhere else in this repository. What belongs is
+the specification that was issued, the code, the artifacts, and the validation.
+
+The same exclusions apply to both directories as to the rest of the repository:
+no dataset copies, no content from ignored directories, no secrets or account
+identifiers, no provider names, quotas or balances, no real identities, and no
+absolute machine paths — a local input is named only by its repository-relative
+convention, such as `data_local/problem-f/raw/...`.
+
+### The loop
+
+```
+M1 defines the objective
+  -> canonical L2/L3 specification, where one is required
+  -> the task owner executes, with the tool of their choice
+  -> code + regenerable results + validation
+  -> reviews/T-0xx/HANDOVER.md
+  -> commit or pull request
+  -> supervisory review
+  -> pass, or a new delta specification
+```
+
+No specific commercial tool is mandatory for anyone, and this contract stays
+vendor-neutral. Whichever tool produced the output, the human owner of the task
+validates it and is accountable for it.
+
+## 9. Worklog
 
 Append one block to your member's file in `worklog/` for each task you advance.
 Do not edit another member's file. The schema is at the top of each file.
@@ -108,7 +195,7 @@ When a task used AI assistance, record which tool and, in the same line, how the
 output was validated. The validation clause is the part that matters: the human
 owner of the task remains its author and is accountable for the result.
 
-## 9. Git discipline
+## 10. Git discipline
 
 Commit subject, one line, ASCII, at most 72 characters including the task ID:
 
@@ -167,13 +254,13 @@ Routing:
 
 Branch names, when a branch is used: `type/m<n>-T0xx-short-slug`.
 
-## 10. Time
+## 11. Time
 
 Project dates and timestamps use UTC+8 (`Asia/Shanghai`). Write a date as
 `YYYY-MM-DD` and a timestamp as ISO 8601 with an explicit offset. Do not trust a
 machine's local clock to be in the project's zone; convert explicitly.
 
-## 11. Scope
+## 12. Scope
 
 Do the task you were given. If you find a real problem outside your task's
 paths, report it in your worklog and in `TASKS.md` rather than fixing it
