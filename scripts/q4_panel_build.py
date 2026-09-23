@@ -46,6 +46,15 @@ def schema_report(c1, c2, c3, c4, panel) -> Path:
     rel = relationship(c1, c2, c3)
     shape = panel_shape(panel)
     linked = int((panel["link_method"] != "unlinked").sum())
+    c3_key = c3[["model", "year", "source"]].astype(str).agg("|".join, axis=1)
+    c3_dup_key_rows = int(c3_key.duplicated().sum())
+    c3_dup_key_groups = int(c3_key[c3_key.duplicated(keep=False)].nunique())
+    c3_duplicate_models = int(c3["model"].duplicated().sum())
+    c3_duplicate_score_vectors = int(
+        c3[c3["model"].duplicated(keep=False)].groupby("model")[
+            ["score_ifeval", "score_bbh", "score_math_lvl5", "score_gpqa", "score_musr", "score_mmlu_pro"]
+        ].nunique().max(axis=1).gt(1).sum()
+    )
 
     cols_by_source = [
         ("leaderboard (C1/C2)", ["model", "params_b", "submission_date", "hub_license",
@@ -79,11 +88,17 @@ def schema_report(c1, c2, c3, c4, panel) -> Path:
         f"C3 models absent from C1: {len(rel['c3_models_absent_from_c1'])}",
         f"- C1/C3 shared leaderboard models: {rel['c1_c3_shared_models']:,}, score "
         f"comparisons {rel['c1_c3_score_comparisons']:,}, mismatches {rel['c1_c3_score_mismatches']}",
+        f"- C3 stable key (`model|year|source`) duplicate rows: {c3_dup_key_rows:,}; duplicate key groups: {c3_dup_key_groups:,}",
+        f"- C3 duplicate model rows: {c3_duplicate_models:,}; duplicate-model groups with distinct score vectors: {c3_duplicate_score_vectors:,}",
+        f"- C3 source counts: {c3['source'].value_counts().to_dict()}",
+        f"- C3 year counts: {c3['year'].value_counts().sort_index().to_dict()}",
         "",
         "C2 is C1 with three Epoch AI columns appended (same rows, same order); the",
         "numeric deltas are floating-point rounding noise. C3 re-expresses the",
-        "leaderboard as a timeseries with mixed historical provenance, so it is",
-        "reported here but not folded into the leaderboard panel.",
+        "leaderboard as a timeseries with mixed historical provenance. Its repeated",
+        "model paths have distinct score vectors and no unique evaluation timestamp",
+        "in the supplied schema, so C3 is reported as an auxiliary source and is not",
+        "folded into the one-row-per-model leaderboard panel.",
         "",
         "## Panel schema",
         "",
@@ -115,7 +130,7 @@ def schema_report(c1, c2, c3, c4, panel) -> Path:
 
 
 def coverage_report(panel) -> Path:
-    summary = link_summary(panel)
+    summary = link_summary(panel, load_c4())
     total = len(panel)
     by_stratum: List[str] = []
     for code in sorted(STRATUM_LABELS):
@@ -133,8 +148,8 @@ def coverage_report(panel) -> Path:
         "",
         "How many leaderboard models link to Epoch AI metadata (C4), and through",
         "which tier. The linkage is deliberately conservative: only deterministic",
-        "name matches are used, so a low number is a real property of the two",
-        "tables' naming schemes, not a missed opportunity.",
+        "keys are used; ambiguous candidates remain unlinked rather than choosing",
+        "an arbitrary C4 row.",
         "",
         "## Overall",
         "",
@@ -147,6 +162,29 @@ def coverage_report(panel) -> Path:
             lines.append(f"- via `{method}`: {summary[method]:,}")
     lines.append(f"- unlinked: {summary.get('unlinked', 0):,}")
     lines += [
+        "",
+        "## Deterministic candidate audit",
+        "",
+        "The audit applies the same priority ladder to all leaderboard rows and",
+        "counts candidates that are ambiguous in C4 or on the leaderboard. It does",
+        "not promote an ambiguous candidate into a match.",
+        "",
+        "| Audit outcome | Rows |",
+        "| --- | ---: |",
+    ]
+    for outcome in (
+        "audit_hf_id", "audit_org", "audit_name", "audit_ambiguous_hf_id",
+        "audit_ambiguous_org", "audit_ambiguous_name_c4",
+        "audit_ambiguous_name_leaderboard", "audit_unmatched",
+    ):
+        if outcome in summary:
+            lines.append(f"| `{outcome.removeprefix('audit_')}` | {summary[outcome]:,} |")
+    lines += [
+        "",
+        "The linked rows are not missing-at-random: linkage is concentrated in",
+        "foundation/base models and sparse in fine-tunes and merges. C4-derived",
+        "compute or scale analyses must therefore report the linked subset and",
+        "must not interpret it as representative of all 4,497 leaderboard models.",
         "",
         "## By stratum",
         "",
@@ -178,15 +216,30 @@ def strata_report(panel) -> Path:
         "name-keyword inference exists only as a fallback for rows with no",
         "organizer `Type`, and every leaderboard row here carries one.",
         "",
-        "| Stratum | Label | Models | % of panel | Params known | Date known | Score known |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Stratum | Label | Models | % of panel | Params known | Date known | Scores known | C4-linked |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for code in sorted(cov):
         r = cov[code]
+        sub = panel[panel["stratum"] == code]
+        c4_linked = int((sub["link_method"] != "unlinked").sum())
         lines.append(
             f"| {code} | {r['label']} | {r['count']:,} | {r['pct_of_panel']:.1f}% | "
-            f"{r['params_known']:,} | {r['date_known']:,} | {r['score_known']:,} |"
+            f"{r['params_known']:,} | {r['date_known']:,} | {r['score_known']:,} | {c4_linked:,} |"
         )
+    lines += [
+        "",
+        "## Raw organizer Type distribution",
+        "",
+        "The A-E strata come only from the organizer's own `Type` labels below;",
+        "stratum D is exactly the `base merges and moerges` class, not keyword",
+        "inference from model names.",
+        "",
+        "| Raw organizer Type | Models |",
+        "| --- | ---: |",
+    ]
+    for label, count in panel["type"].value_counts(dropna=False).items():
+        lines.append(f"| {label} | {count:,} |")
     lines += [
         "",
         "The strata are: A = pretrained / continuously pretrained; B = chat /",
@@ -203,6 +256,10 @@ def strata_report(panel) -> Path:
 
 def date_report(panel) -> Path:
     cov = date_coverage(panel)
+    none_rows = panel[panel["date_confidence"] == "none"]
+    none_is_source_missing = bool(
+        none_rows[["submission_date", "pub_date", "c4_pub_date"]].isna().all().all()
+    ) if len(none_rows) else True
     lines = [
         "# Q4 date convention coverage",
         "",
@@ -211,12 +268,29 @@ def date_report(panel) -> Path:
         "The analysis date is the Epoch AI publication date when available (C2, then",
         "C4), and the leaderboard submission date otherwise. Every row records",
         "which source its date came from, so the proxy is never mistaken for the",
-        "release.",
+        "release. The submission date is reported as a fallback *proxy*; it is",
+        "never silently relabelled as the release date.",
         "",
         f"- primary (Epoch publication date): {cov['primary_count']:,} ({cov['primary_fraction']:.1%})",
         f"- fallback (submission date): {cov['fallback_count']:,} ({cov['fallback_fraction']:.1%})",
         f"- none: {cov['none_count']:,} ({cov['none_fraction']:.1%})",
         "",
+        "## The no-date rows are source missingness, not join loss",
+        "",
+        "Every `none` row has NaN `submission_date`, `pub_date` and `c4_pub_date`",
+        f"together: {none_is_source_missing}. The source C1/C2 table carries 12 rows",
+        "with a blank submission date (11 unique models after de-duplication), so",
+        "these rows are genuine absent data in the organizer's table, not a",
+        "pipeline failure. No date is fabricated for them.",
+        "",
+    ]
+    if len(none_rows):
+        lines.append("| Model |")
+        lines.append("| --- |")
+        for model in none_rows["model"]:
+            lines.append(f"| `{model}` |")
+        lines.append("")
+    lines += [
         "## By stratum",
         "",
         "| Stratum | Primary | Fallback | None | Primary % |",

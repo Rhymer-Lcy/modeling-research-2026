@@ -15,11 +15,17 @@ an independent observation of another.
 - C1 vs C2 on shared numeric columns: 2101 rows differ, max |delta| 3.55e-15
 - C1 models absent from C3: 3; C3 models absent from C1: 26
 - C1/C3 shared leaderboard models: 4,494, score comparisons 26,964, mismatches 0
+- C3 stable key (`model|year|source`) duplicate rows: 79; duplicate key groups: 79
+- C3 duplicate model rows: 79; duplicate-model groups with distinct score vectors: 79
+- C3 source counts: {'Open LLM Leaderboard': 4573, 'Historical (papers/reports)': 26}
+- C3 year counts: {2019: 1, 2020: 1, 2021: 2, 2022: 7, 2023: 13, 2024: 2673, 2025: 1902}
 
 C2 is C1 with three Epoch AI columns appended (same rows, same order); the
 numeric deltas are floating-point rounding noise. C3 re-expresses the
-leaderboard as a timeseries with mixed historical provenance, so it is
-reported here but not folded into the leaderboard panel.
+leaderboard as a timeseries with mixed historical provenance. Its repeated
+model paths have distinct score vectors and no unique evaluation timestamp
+in the supplied schema, so C3 is reported as an auxiliary source and is not
+folded into the one-row-per-model leaderboard panel.
 
 ## Panel schema
 

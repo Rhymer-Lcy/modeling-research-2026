@@ -8,13 +8,29 @@ A-E axis). The raw `Type` is preserved verbatim in a separate column; the
 name-keyword inference exists only as a fallback for rows with no
 organizer `Type`, and every leaderboard row here carries one.
 
-| Stratum | Label | Models | % of panel | Params known | Date known | Score known |
-| --- | --- | ---: | ---: | ---: | ---: | ---: |
-| A | pretrained / continuously pretrained | 324 | 7.2% | 324 | 321 | 324 |
-| B | chat / instruction-tuned | 695 | 15.4% | 694 | 693 | 695 |
-| C | fine-tuned | 1,752 | 39.0% | 1,750 | 1,752 | 1,752 |
-| D | model merges | 1,712 | 38.1% | 1,712 | 1,712 | 1,712 |
-| E | other / multimodal | 14 | 0.3% | 14 | 8 | 14 |
+| Stratum | Label | Models | % of panel | Params known | Date known | Scores known | C4-linked |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| A | pretrained / continuously pretrained | 324 | 7.2% | 324 | 321 | 324 | 64 |
+| B | chat / instruction-tuned | 695 | 15.4% | 694 | 693 | 695 | 8 |
+| C | fine-tuned | 1,752 | 39.0% | 1,750 | 1,752 | 1,752 | 19 |
+| D | model merges | 1,712 | 38.1% | 1,712 | 1,712 | 1,712 | 2 |
+| E | other / multimodal | 14 | 0.3% | 14 | 8 | 14 | 1 |
+
+## Raw organizer Type distribution
+
+The A-E strata come only from the organizer's own `Type` labels below;
+stratum D is exactly the `base merges and moerges` class, not keyword
+inference from model names.
+
+| Raw organizer Type | Models |
+| --- | ---: |
+| 🔶 fine-tuned on domain-specific datasets | 1,752 |
+| 🤝 base merges and moerges | 1,712 |
+| 💬 chat models (RLHF, DPO, IFT, ...) | 695 |
+| 🟢 pretrained | 268 |
+| 🟩 continuously pretrained | 56 |
+| 🌸 multimodal | 7 |
+| ❓ other | 7 |
 
 The strata are: A = pretrained / continuously pretrained; B = chat /
 instruction-tuned; C = fine-tuned; D = model merges; E = other /

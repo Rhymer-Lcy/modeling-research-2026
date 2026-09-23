@@ -64,6 +64,59 @@ def _unique(values: pd.Series) -> "set[str]":
     return {key for key, n in counts.items() if n == 1}
 
 
+def _positions(values: List[str]) -> Dict[str, List[int]]:
+    """Map each non-blank normalised key to all C4 positions that carry it."""
+    out: Dict[str, List[int]] = {}
+    for pos, key in enumerate(values):
+        if key:
+            out.setdefault(key, []).append(pos)
+    return out
+
+
+def _unique_positions(values: List[str]) -> Dict[str, int]:
+    """Map only one-to-one C4 keys to their sole position.
+
+    A repeated C4 identity is not a reason to select the first row. It is an
+    ambiguity that must be surfaced by the caller and left unlinked.
+    """
+    positions = _positions(values)
+    return {key: matches[0] for key, matches in positions.items() if len(matches) == 1}
+
+
+def _candidate_audit(leaderboard: pd.DataFrame, c4: pd.DataFrame) -> Dict[str, int]:
+    """Sequentially count linkable, ambiguous and unmatched deterministic keys."""
+    lb_full = [full_key(m) for m in leaderboard["model"]]
+    lb_name = [name_key(m) for m in leaderboard["model"]]
+    hf = c4[_HF_ID].fillna("").astype(str)
+    c4_model = c4[_C4_MODEL].fillna("").astype(str)
+    c4_org = c4[_C4_ORG].fillna("").astype(str)
+    by_hf = _positions([normalize(f"{h}/{m}") for h, m in zip(hf, c4_model)])
+    by_org = _positions([normalize(f"{o}/{m}") for o, m in zip(c4_org, c4_model)])
+    by_name = _positions([normalize(m) for m in c4_model])
+    lb_name_counts: Dict[str, int] = {}
+    for key in lb_name:
+        if key:
+            lb_name_counts[key] = lb_name_counts.get(key, 0) + 1
+
+    counts: Dict[str, int] = {}
+    for full, name in zip(lb_full, lb_name):
+        if full in by_hf:
+            status = "hf_id" if len(by_hf[full]) == 1 else "ambiguous_hf_id"
+        elif full in by_org:
+            status = "org" if len(by_org[full]) == 1 else "ambiguous_org"
+        elif name in by_name:
+            if len(by_name[name]) != 1:
+                status = "ambiguous_name_c4"
+            elif lb_name_counts.get(name, 0) != 1:
+                status = "ambiguous_name_leaderboard"
+            else:
+                status = "name"
+        else:
+            status = "unmatched"
+        counts[status] = counts.get(status, 0) + 1
+    return counts
+
+
 def link_c4(leaderboard: pd.DataFrame, c4: pd.DataFrame) -> pd.DataFrame:
     """Return the leaderboard frame with C4 metadata joined, plus ``link_method``.
 
@@ -90,17 +143,11 @@ def link_c4(leaderboard: pd.DataFrame, c4: pd.DataFrame) -> pd.DataFrame:
     c4_name = [normalize(m) for m in c4_model]
     c4_org_norm = [normalize(o) for o in c4_org]
 
-    # First position in C4 for each key (first match wins within a tier).
-    idx_hf: Dict[str, int] = {}
-    idx_org: Dict[str, int] = {}
-    idx_name: Dict[str, int] = {}
-    for pos in range(len(c4)):
-        if c4_full_hf[pos] and c4_full_hf[pos] not in idx_hf:
-            idx_hf[c4_full_hf[pos]] = pos
-        if c4_full_org[pos] and c4_full_org[pos] not in idx_org:
-            idx_org[c4_full_org[pos]] = pos
-        if c4_name[pos] and c4_name[pos] not in idx_name:
-            idx_name[c4_name[pos]] = pos
+    # Only unambiguous identity keys can resolve a row. The raw key-position
+    # maps are retained separately by ``_candidate_audit`` for coverage reports.
+    idx_hf = _unique_positions(c4_full_hf)
+    idx_org = _unique_positions(c4_full_org)
+    idx_name = _unique_positions(c4_name)
 
     # Alias tier: name -> C4 position whose organisation equals the aliased org.
     idx_alias: Dict[str, int] = {}
@@ -137,10 +184,14 @@ def link_c4(leaderboard: pd.DataFrame, c4: pd.DataFrame) -> pd.DataFrame:
     return base
 
 
-def link_summary(linked: pd.DataFrame) -> Dict[str, int]:
-    """Count of leaderboard rows by link tier, including the unlinked majority."""
-    counts = linked["link_method"].value_counts(dropna=False).to_dict()
-    return {str(k): int(v) for k, v in counts.items()}
+def link_summary(linked: pd.DataFrame, c4: Optional[pd.DataFrame] = None) -> Dict[str, int]:
+    """Count linkage tiers; include sequential ambiguity audit when C4 is given."""
+    counts = {str(k): int(v) for k, v in linked["link_method"].value_counts(dropna=False).to_dict().items()}
+    if c4 is not None:
+        audit = _candidate_audit(linked[["model"]], c4)
+        for key, value in audit.items():
+            counts[f"audit_{key}"] = value
+    return counts
 
 
 __all__ = ["C4_ALIASES", "link_c4", "link_summary"]
