@@ -7,6 +7,13 @@ channels:
 dependencies:
   - python=3.11
   - pip
+  # Q2 scaling-law estimation (T-008): a Huber objective optimised with
+  # L-BFGS-B, attachment tables read as data frames, and the shared seed and
+  # constants read from configs/.
+  - numpy
+  - scipy
+  - pandas
+  - pyyaml
 
 # This file is the single canonical dependency definition for the project.
 # There is deliberately no requirements.txt: two hand-edited dependency files
