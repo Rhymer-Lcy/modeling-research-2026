@@ -7,8 +7,8 @@
 | Status | review |
 | Timestamp | 2026-09-23T14:20:00+08:00 |
 | Base | `345bf97` (main) |
-| HEAD | `b00c963` |
-| Branch / PR | `chore/m1-T014-format-conformance` |
+| HEAD | commit range `345bf97..` branch tip; this file and the worklog entry are the last two commits |
+| Branch / PR | `chore/m1-T014-format-conformance` / PR #7 |
 
 ## Scope
 
