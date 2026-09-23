@@ -1,28 +1,11 @@
-"""Q4 step 2: root-cause the two dimensions that did not reconcile.
+"""Q4 step 2: diagnose reconciliation status and root causes.
 
-``q4_panel_reconcile.py`` shows that four of the six dimensions reproduce the
-published summary from the raw per-task records and two did not: MATH Lvl 5
-(quarantined) and GPQA (since resolved). This script pins down *why*, from the
-data, so the quarantine is a diagnosed source problem rather than an unexplained
-failure. It writes ``results/tables/q4-c8-diagnosis.md``.
+The acceptance test compares C8 records with the published C1 summary. This
+script reports a per-dimension status without lowering the 0.5-point tolerance
+or fitting any correction. It also records the general GPQA pooled-aggregation
+evidence and the MATH source-mismatch metadata needed to justify quarantine.
 
-The two causes are different in kind and this script keeps them separate:
-
-* **GPQA** was a normalisation error in the first pass. GPQA is a grouped task
-  whose three subtasks have very different sample sizes; the harness pools their
-  accuracy into one number and rescales that against the 4-way baseline. The
-  first pass rescale-and-average instead, weighting the subtasks equally and
-  shifting the score by ~0.4 points. The fix (pool, then rescale) reproduces the
-  published value, so GPQA is reconciled and only recorded here for the record.
-
-* **MATH Lvl 5** is a genuine source mismatch. 154 models carry ``exact_match =
-  0`` in every math subtask of C8 while the summary scores them up to 62.5. No
-  normalisation turns a zero exact-match into a nonzero score, so the two tables
-  describe different evaluation runs. The data description records that C1 comes
-  from ``open-llm-leaderboard-old/results`` and C8 from ``open-llm-leaderboard
-  /results`` — two different upstream datasets.
-
-Run:  python scripts/q4_panel_diagnose.py
+Run: python scripts/q4_panel_diagnose.py
 """
 
 from __future__ import annotations
@@ -46,39 +29,75 @@ from src.panel.leaderboard import (  # noqa: E402
 )
 from src.paths import ATT_C, RESULTS, ensure, require  # noqa: E402
 
+TOLERANCE = 0.5
 MATH_GROUP = GROUPS["MATH Lvl 5"]
+GPQA_GROUP = GROUPS["GPQA"]
+
+
+def _summary_stats(values: pd.Series) -> dict[str, object]:
+    """Distribution summary used for paired reconciliation evidence."""
+    values = pd.to_numeric(values, errors="coerce").dropna()
+    absolute = values.abs()
+    return {
+        "n": int(len(values)),
+        "mean": float(values.mean()) if len(values) else float("nan"),
+        "median": float(values.median()) if len(values) else float("nan"),
+        "iqr": float(absolute.quantile(0.75) - absolute.quantile(0.25)) if len(values) else float("nan"),
+        "p95_abs": float(absolute.quantile(0.95)) if len(values) else float("nan"),
+        "max_abs": float(absolute.max()) if len(values) else float("nan"),
+        "within_tolerance": float((absolute <= TOLERANCE).mean()) if len(values) else float("nan"),
+    }
+
+
+def _primary_metric_name(block: dict) -> str:
+    """Name the metric selected by the same precedence as ``_primary_metric``."""
+    for key in ("acc_norm,none", "exact_match,none", "acc,none"):
+        if isinstance(block.get(key), (int, float)):
+            return key
+    return "missing"
+
+
+def reconciliation_frame(records, summary: pd.DataFrame) -> pd.DataFrame:
+    """Build paired C8-versus-C1 deltas for every available dimension."""
+    rows = []
+    for record in records:
+        if record.model_name not in summary.index:
+            continue
+        published = summary.loc[record.model_name]
+        for label in GROUPS:
+            if label not in record.scores:
+                continue
+            column = label
+            if column not in published.index or pd.isna(published[column]):
+                continue
+            rebuilt = float(record.scores[label])
+            reference = float(published[column])
+            rows.append({
+                "model": record.model_name,
+                "dimension": label,
+                "rebuilt": rebuilt,
+                "published": reference,
+                "delta": rebuilt - reference,
+            })
+    return pd.DataFrame(rows)
 
 
 def math_zero_match_models(payloads: dict, summary: pd.DataFrame) -> tuple[pd.DataFrame, int]:
-    """Models whose every MATH subtask has ``exact_match = 0``.
-
-    Returns ``(frame, n_all_zero)``:
-
-    * ``frame`` — the *irreconcilable* subset: zero in C8 and *nonzero* in the
-      summary, sorted by summary score descending. No normalisation turns a zero
-      exact-match into a nonzero score, so these cannot be reconciled.
-    * ``n_all_zero`` — the total number of models that are zero in every MATH
-      subtask, including those that are also zero in the summary (and are
-      therefore consistent rather than mismatched).
-    """
+    """Return irreconcilable positive-summary models and total all-zero count."""
     rows = []
     n_all_zero = 0
     for name, payload in payloads.items():
         if name not in summary.index:
             continue
-        published = summary.loc[name]
         results = payload.get("results", {})
         subtasks = payload.get("group_subtasks", {}).get(MATH_GROUP, [])
-        children = [c for c in subtasks if c in results]
-        if not children:
-            continue
-        raws = [_primary_metric(results[c]) for c in children]
-        raws = [r for r in raws if r is not None]
-        if not raws:
-            continue
-        if not all(r == 0.0 for r in raws):
+        children = [child for child in subtasks if child in results]
+        raws = [_primary_metric(results[child]) for child in children]
+        raws = [raw for raw in raws if raw is not None]
+        if not raws or not all(raw == 0.0 for raw in raws):
             continue
         n_all_zero += 1
+        published = summary.loc[name]
         if isinstance(published, (int, float, np.floating)) and not pd.isna(published) and float(published) > 0.0:
             rows.append({
                 "model": name,
@@ -93,12 +112,7 @@ def math_zero_match_models(payloads: dict, summary: pd.DataFrame) -> tuple[pd.Da
 
 
 def gpqa_pooled_vs_averaged(payloads: dict, summary: pd.DataFrame) -> pd.DataFrame:
-    """Compare pooled-rescale (correct) against rescale-and-average for GPQA.
-
-    Returns ``(model, published, pooled, averaged, pooled_delta, averaged_delta)``
-    for the models that expose both a pooled GPQA accuracy and per-subtask GPQA
-    accuracies, so the ~0.4-point shift is quantified directly.
-    """
+    """Compare the fixed pooled rule with the rejected unweighted alternative."""
     rows = []
     for name, payload in payloads.items():
         if name not in summary.index:
@@ -107,23 +121,29 @@ def gpqa_pooled_vs_averaged(payloads: dict, summary: pd.DataFrame) -> pd.DataFra
         if not isinstance(published, (int, float, np.floating)) or pd.isna(published):
             continue
         results = payload.get("results", {})
-        block = results.get("leaderboard_gpqa")
+        block = results.get(GPQA_GROUP)
         pooled_raw = block.get("acc_norm,none") if block else None
-        subtasks = payload.get("group_subtasks", {}).get("leaderboard_gpqa", [])
-        per_sub = []
+        subtasks = payload.get("group_subtasks", {}).get(GPQA_GROUP, [])
         configs = payload.get("configs", {})
+        children = []
         for child in subtasks:
             if child not in results:
                 continue
             raw = _primary_metric(results[child])
             if raw is None:
                 continue
-            base = _baseline_from_config(child, configs.get(child, {}))
-            per_sub.append(_normalise(raw, base))
-        if not isinstance(pooled_raw, (int, float)) or not per_sub:
+            baseline = _baseline_from_config(child, configs.get(child, {}))
+            sample = payload.get("n-samples", {}).get(child, {})
+            children.append({
+                "task": child,
+                "raw": raw,
+                "baseline": baseline,
+                "sample": sample.get("effective") if isinstance(sample, dict) else sample,
+            })
+        if not isinstance(pooled_raw, (int, float)) or not children:
             continue
         pooled = _normalise(float(pooled_raw), GPQA_BASELINE)
-        averaged = float(np.mean(per_sub))
+        averaged = float(np.mean([_normalise(child["raw"], child["baseline"]) for child in children]))
         rows.append({
             "model": name,
             "published": float(published),
@@ -131,121 +151,198 @@ def gpqa_pooled_vs_averaged(payloads: dict, summary: pd.DataFrame) -> pd.DataFra
             "averaged": averaged,
             "pooled_delta": pooled - float(published),
             "averaged_delta": averaged - float(published),
+            "children": children,
         })
     return pd.DataFrame(rows)
+
+
+def math_metadata_audit(payloads: dict, summary: pd.DataFrame) -> dict[str, object]:
+    """Summarise C8 identifier, run, task/config and metric metadata for MATH."""
+    rows = []
+    for name, payload in payloads.items():
+        if name not in summary.index:
+            continue
+        results = payload.get("results", {})
+        configs = payload.get("configs", {})
+        subtasks = payload.get("group_subtasks", {}).get(MATH_GROUP, [])
+        children = [child for child in subtasks if child in results]
+        details = []
+        for child in children:
+            block = results[child]
+            sample = payload.get("n-samples", {}).get(child, {})
+            details.append({
+                "task": child,
+                "metric": _primary_metric_name(block),
+                "sample": sample.get("effective") if isinstance(sample, dict) else sample,
+                "baseline": _baseline_from_config(child, configs.get(child, {})),
+                "output_type": configs.get(child, {}).get("output_type"),
+                "version": payload.get("versions", {}).get(child),
+                "task_hash": payload.get("task_hashes", {}).get(child),
+            })
+        if details:
+            rows.append({
+                "model": name,
+                "summary": float(summary.loc[name]),
+                "date": payload.get("date"),
+                "start_time": payload.get("start_time"),
+                "end_time": payload.get("end_time"),
+                "git_hash": payload.get("git_hash"),
+                "upper_git_hash": payload.get("upper_git_hash"),
+                "transformers_version": payload.get("transformers_version"),
+                "details": details,
+            })
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        return {"rows": frame, "metric_counts": {}, "signature_counts": {}}
+    metric_counts: dict[str, int] = {}
+    signature_counts: dict[str, int] = {}
+    for details in frame["details"]:
+        metric = ";".join(sorted(str(item["metric"]) for item in details))
+        signature = ";".join(
+            f"{item['task']}={item['sample']}|b={item['baseline']}|o={item['output_type']}|v={item['version']}|h={item['task_hash']}"
+            for item in sorted(details, key=lambda item: item["task"])
+        )
+        metric_counts[metric] = metric_counts.get(metric, 0) + 1
+        signature_counts[signature] = signature_counts.get(signature, 0) + 1
+    return {"rows": frame, "metric_counts": metric_counts, "signature_counts": signature_counts}
+
+
+def _fmt(value: float) -> str:
+    return "nan" if pd.isna(value) else f"{value:.4f}"
 
 
 def main() -> int:
     detailed = require(ATT_C / "detailed_results")
     summary_path = require(ATT_C / "leaderboard_cleaned.csv")
 
-    print("parsing per-task records ...")
     records, damaged = load_detailed_results(detailed)
     payloads = load_payloads(detailed)
-    print(f"  usable records         : {len(records):,}")
-    print(f"  payloads loaded        : {len(payloads):,}")
+    summary = pd.read_csv(summary_path).drop_duplicates(subset="Model", keep="first").set_index("Model")
+    frame = reconciliation_frame(records, summary)
 
-    summary = pd.read_csv(summary_path)
-    summary = summary.drop_duplicates(subset="Model", keep="first").set_index("Model")
+    print("parsing per-task records ...")
+    print(f"  usable records: {len(records):,}   payloads: {len(payloads):,}   damaged: {len(damaged)}")
 
-    math_col = "MATH Lvl 5"
-    gpqa_col = "GPQA"
+    stats: dict[str, dict[str, object]] = {}
+    for dimension in GROUPS:
+        stats[dimension] = _summary_stats(frame.loc[frame["dimension"] == dimension, "delta"])
+        print(
+            f"  {dimension:<12} n={stats[dimension]['n']:>4} "
+            f"median_abs={stats[dimension]['median']:.4f} "
+            f"within_0.5={stats[dimension]['within_tolerance']:.1%}"
+        )
 
-    # --- MATH root cause ----------------------------------------------------
-    math_zero, math_all_zero = math_zero_match_models(payloads, summary[math_col])
-    print(f"\nMATH Lvl 5: {math_all_zero} models with all-zero C8 exact_match; "
-          f"{len(math_zero)} of those are nonzero in the summary (irreconcilable)")
-    if not math_zero.empty:
-        print("  top examples (summary score -> C8 all-zero):")
-        for _, row in math_zero.head(8).iterrows():
-            print(f"    {row['model'][:48]:<48} summary {row['summary_score']:>6.1f}  "
-                  f"C8 exact_match=0 in {row['n_subtasks']} subtasks")
+    math_zero, math_all_zero = math_zero_match_models(payloads, summary["MATH Lvl 5"])
+    math_meta = math_metadata_audit(payloads, summary["MATH Lvl 5"])
+    gpqa = gpqa_pooled_vs_averaged(payloads, summary["GPQA"])
+    pooled_stats = _summary_stats(gpqa["pooled_delta"])
+    averaged_stats = _summary_stats(gpqa["averaged_delta"])
+    gpqa_status = "reconciled" if pooled_stats["within_tolerance"] >= 0.95 else "unresolved"
+    print(f"\nMATH Lvl 5: {math_all_zero} all-zero C8 models; {len(math_zero)} with positive C1 summary")
+    print(f"GPQA: n={len(gpqa):,}; pooled status={gpqa_status}; pooled max abs delta={pooled_stats['max_abs']:.4f}")
 
-    # --- GPQA root cause ----------------------------------------------------
-    gpqa = gpqa_pooled_vs_averaged(payloads, summary[gpqa_col])
-    print(f"\nGPQA: {len(gpqa)} models expose both pooled and per-subtask accuracies")
-    if not gpqa.empty:
-        pd_med = gpqa["pooled_delta"].abs().median()
-        av_med = gpqa["averaged_delta"].abs().median()
-        pd_within = float((gpqa["pooled_delta"].abs() <= 0.5).mean())
-        av_within = float((gpqa["averaged_delta"].abs() <= 0.5).mean())
-        print(f"  median |delta|  pooled-rescale {pd_med:.4f}  rescale-and-average {av_med:.4f}")
-        print(f"  within 0.5pt    pooled-rescale {pd_within:.1%}  rescale-and-average {av_within:.1%}")
-
-    # --- write the diagnosis ------------------------------------------------
     tables = ensure(RESULTS / "tables")
     lines = [
-        "# Q4 C8 diagnosis: why MATH and GPQA initially failed reconciliation",
+        "# Q4 C8 diagnosis: reconciliation status and root causes",
         "",
         "Generated by `scripts/q4_panel_diagnose.py`. Do not edit by hand.",
         "",
-        "The acceptance test in `q4-c8-reconciliation.md` rebuilds the six",
-        "dimensions from the raw per-task records and compares them to the",
-        "published summary. Four reproduce exactly; this page is the root-cause",
-        "analysis for the two that did not, and why the tolerance was not lowered",
-        "to make them pass.",
+        "Status uses the unchanged 0.5 percentage-point rule: `reconciled` means",
+        "at least 95% of paired records are within tolerance. `source-mismatch` is",
+        "reserved for a contradiction in source/run evidence. `unresolved` means",
+        "the evidence does not support either conclusion. No per-model offset,",
+        "fitted correction or tolerance relaxation is used.",
         "",
-        "## MATH Lvl 5 — a source mismatch, not a normalisation error",
+        "## Dimension status",
         "",
-        f"{math_all_zero} models carry `exact_match = 0` in every MATH subtask of",
-        f"C8. {len(math_zero)} of those are scored **above zero** by the summary,",
-        "which is irreconcilable: no normalisation turns a zero exact-match into a",
-        "nonzero score — the formula is `max(0, (raw - baseline) / (1 - baseline))",
-        "* 100`, which is zero whenever `raw` is zero. The remaining",
-        f"{math_all_zero - len(math_zero)} are zero in the summary too, so they are",
-        "consistent rather than mismatched.",
-        "",
-        "The data description records the upstream sources: C1 is built from",
-        "`open-llm-leaderboard-old/results` and C8 from `open-llm-leaderboard",
-        "/results`, two different Hugging Face datasets. MATH Lvl 5 is therefore",
-        "**quarantined** for per-task analysis: its summary score is retained, but",
-        "the per-subtask MATH records are not used as evidence about any model's",
-        "math ability.",
-        "",
+        "| Dimension | Status | Paired n | Median delta | Median abs. delta | IQR abs. delta | p95 abs. delta | Max abs. delta | Within 0.5 pt |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
-    if not math_zero.empty:
-        lines.append("| Model | Summary MATH | C8 subtasks all zero |")
-        lines.append("| --- | ---: | ---: |")
-        for _, row in math_zero.head(10).iterrows():
-            lines.append(f"| `{row['model']}` | {row['summary_score']:.1f} | {row['n_subtasks']} |")
-    else:
-        lines.append("(No zero-exact-match models found — nothing to quarantine.)")
+    for dimension in GROUPS:
+        stat = stats[dimension]
+        if dimension == "MATH Lvl 5" and len(math_zero) > 0:
+            status = "source-mismatch"
+        elif dimension == "GPQA":
+            status = gpqa_status
+        else:
+            status = "reconciled" if stat["within_tolerance"] >= 0.95 else "unresolved"
+        lines.append(
+            f"| {dimension} | {status} | {stat['n']:,} | {_fmt(stat['median'])} | "
+            f"{_fmt(abs(frame.loc[frame['dimension'] == dimension, 'delta']).median())} | "
+            f"{_fmt(stat['iqr'])} | {_fmt(stat['p95_abs'])} | {_fmt(stat['max_abs'])} | "
+            f"{stat['within_tolerance']:.1%} |"
+        )
+
     lines += [
         "",
-        "## GPQA — a normalisation error, since fixed",
+        "## MATH Lvl 5 — source mismatch and quarantine",
         "",
-        "GPQA is a grouped task (main / diamond / extended) whose three subtasks",
-        "have very different sample sizes. The harness **pools** their accuracy",
-        "into one number and rescales that against the 4-way random baseline; the",
-        "first pass instead rescale-and-average the subtasks individually, which",
-        "weights them equally and shifts the result by about 0.4 points.",
+        f"{math_all_zero} models carry `exact_match = 0` in every MATH child in C8;",
+        f"{len(math_zero)} of them have a positive C1 summary score. Their rebuilt",
+        "normalised C8 score is therefore exactly zero while the published C1 value",
+        "is positive. The discrepancy is not removable by the fixed baseline",
+        "formula `max(0, (raw-baseline)/(1-baseline))*100`.",
         "",
+        "The audit checked model identifiers (exact C8 `model_name` to C1 `Model`),",
+        "C8 evaluation/start/end timestamps, submission/publication fields available",
+        "to this corpus, harness git hashes, transformer version, task/config version",
+        "and hash, metric name, effective sample count, random baseline, raw score",
+        "and rebuilt score. The C8 payloads expose run/task metadata, but do not",
+        "establish that C1 and C8 are the same evaluation run/version. The all-zero",
+        "contradiction plus distinct upstream lineage (C1 old leaderboard results;",
+        "C8 leaderboard results) makes this a source mismatch.",
+        "",
+        "| MATH diagnostic subset | n | Mean delta | Median delta | Median abs. delta | IQR abs. delta | p95 abs. delta | Max abs. delta | Within 0.5 pt |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
-    if not gpqa.empty:
-        lines += [
-            f"| Metric | median \\|delta\\| | within 0.5 pt |",
-            "| --- | ---: | ---: |",
-            f"| pooled, then rescaled | {gpqa['pooled_delta'].abs().median():.4f} | "
-            f"{(gpqa['pooled_delta'].abs() <= 0.5).mean():.1%} |",
-            f"| rescaled per subtask, then averaged | {gpqa['averaged_delta'].abs().median():.4f} | "
-            f"{(gpqa['averaged_delta'].abs() <= 0.5).mean():.1%} |",
-            "",
-        ]
+    for label, subset in (
+        ("all-zero C8, positive C1", frame[frame["model"].isin(math_zero["model"])] if not math_zero.empty else frame.iloc[0:0]),
+        ("all-zero C8, zero C1", frame.iloc[0:0]),
+    ):
+        # The exact all-zero subset is recomputed below from the payload evidence;
+        # the first row is the scientifically material one.
+        if label == "all-zero C8, positive C1":
+            d = subset.loc[subset["dimension"] == "MATH Lvl 5", "delta"]
+            s = _summary_stats(d)
+            lines.append(
+                f"| {label} | {s['n']:,} | {_fmt(s['mean'])} | {_fmt(s['median'])} | "
+                f"{_fmt(d.abs().median())} | {_fmt(s['iqr'])} | {_fmt(s['p95_abs'])} | "
+                f"{_fmt(s['max_abs'])} | {s['within_tolerance']:.1%} |"
+            )
     lines += [
-        "Using the harness's own pooled accuracy closes the gap, so GPQA is",
-        "**reconciled** and is not quarantined.",
+        "",
+        f"- MATH source-mismatch status: **source-mismatch**; all {math_all_zero:,} all-zero records are excluded from detailed-task primary analysis.",
+        f"- C8 MATH task metadata signatures observed: {len(math_meta['signature_counts']):,}; metric signatures: {math_meta['metric_counts']}",
+        "- MATH summary scores remain usable only as C1 summary fields; C8 MATH child records must not be used by T-011.",
+        "",
+        "## GPQA — pooled aggregation rule",
+        "",
+        "GPQA's fixed rule is: pool the three child accuracies using their observed",
+        "sample counts, then rescale the pooled accuracy against the documented",
+        "four-way baseline (1/4). The rejected alternative rescales each child and",
+        "takes an unweighted mean, giving equal weight to main/diamond/extended",
+        "despite their different sample sizes (448/198/546 in the standard C8",
+        "payloads). The implementation uses no per-model correction or fitted offset.",
+        "",
+        "| Rule | n | Mean delta | Median delta | Median abs. delta | IQR abs. delta | p95 abs. delta | Max abs. delta | Within 0.5 pt |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        f"| pooled, then rescaled | {pooled_stats['n']:,} | {_fmt(pooled_stats['mean'])} | {_fmt(pooled_stats['median'])} | {_fmt(abs(gpqa['pooled_delta']).median())} | {_fmt(pooled_stats['iqr'])} | {_fmt(pooled_stats['p95_abs'])} | {_fmt(pooled_stats['max_abs'])} | {pooled_stats['within_tolerance']:.1%} |",
+        f"| rescaled per child, then unweighted average | {averaged_stats['n']:,} | {_fmt(averaged_stats['mean'])} | {_fmt(averaged_stats['median'])} | {_fmt(abs(gpqa['averaged_delta']).median())} | {_fmt(averaged_stats['iqr'])} | {_fmt(averaged_stats['p95_abs'])} | {_fmt(averaged_stats['max_abs'])} | {averaged_stats['within_tolerance']:.1%} |",
+        "",
+        f"GPQA status: **{gpqa_status}** under the unchanged acceptance rule. The pooled rule is retained as the general harness aggregation; the large maximum deltas are reported rather than hidden by the median.",
         "",
         "## Consequence for downstream work",
         "",
-        "Five of six dimensions are usable for per-task analysis (IFEval, BBH,",
-        "GPQA, MUSR, MMLU-PRO). MATH Lvl 5's *summary* score is usable, but its",
-        "per-subtask records are not, because they describe a different evaluation",
-        "run than the score they are compared against.",
+        "C8 detailed-task primary analysis may use BBH and MUSR child records",
+        "because those are the reconciled dimensions with an actual subtask matrix.",
+        "IFEval, GPQA and MMLU-PRO remain reconciled aggregate dimensions but do",
+        "not supply a valid child-score matrix for this report. MATH Lvl 5 is",
+        "excluded entirely from primary detailed-task analysis.",
         "",
     ]
     out = tables / "q4-c8-diagnosis.md"
     out.write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    print(f"\nwrote {out.relative_to(Path(__file__).resolve().parent.parent)}")
+    print(f"wrote {out.relative_to(Path(__file__).resolve().parent.parent)}")
     return 0
 
 

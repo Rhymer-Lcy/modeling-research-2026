@@ -51,14 +51,14 @@ dimensions are not usable for per-task analysis until their cause is
 resolved. The tolerance is left where it is rather than lowered to
 obtain a pass.
 
-Diagnosis: MATH carries raw `exact_match = 0` in every math subtask
-for 154 models the summary scores up to 62.5 (e.g. Qwen2.5-32B-Instruct,
-summary 62.5, raw 0.0). No normalisation turns a zero exact-match into a
-nonzero score, so the two tables describe different evaluation
-runs/versions for these models — a source mismatch, not a normalisation
-error. GPQA is reconciled by rescaling the harness's pooled accuracy
-against the 4-way baseline instead of averaging per-subtask rescaled
-scores. The full diagnosis is in `results/tables/q4-c8-diagnosis.md`.
+Diagnosis: MATH carries raw `exact_match = 0` in every math subtask for
+154 models; 119 of those are scored above zero by the summary (e.g.
+Qwen2.5-32B-Instruct, summary 62.5, raw 0.0), which no normalisation can
+reproduce — the two tables describe different evaluation runs, a source
+mismatch, not a normalisation error. GPQA is reconciled by rescaling the
+harness's pooled accuracy against the 4-way baseline instead of averaging
+per-subtask rescaled scores. The full diagnosis is in
+`results/tables/q4-c8-diagnosis.md`.
 
 ## Unparsable files
 
