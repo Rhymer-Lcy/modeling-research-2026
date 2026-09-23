@@ -1,20 +1,18 @@
 """Detailed-task analysis of the C8 per-task evaluation records.
 
-The reconciliation script proves that the six summary dimensions are reproduced
-from the raw records; this module goes one level deeper. For each grouped
-dimension that actually records per-subtask results (BBH, MATH Lvl 5, MUSR) it
-keeps the per-subtask normalised score instead of averaging it away, and then
-asks a single, well-posed question of that matrix: how much of the variance in a
-subtask score is *between models* (a model's overall standing) versus *within a
-model* (that model's unevenness across the subtasks of one benchmark)?
+The reconciliation script determines which C8 dimensions are safe to use below
+the published summary-table level.  This module keeps the per-subtask scores for
+those *reconciled* dimensions rather than averaging them away, then separates
+variation that is between models from variation that is within a model across
+subtasks.
 
-That decomposition is the one genuinely detailed task-level aggregation the task
-requires. It is a one-way variance decomposition (model is the grouping factor),
-reported as the fraction of variance explained by the model identity — the
-intraclass correlation. A dimension whose ICC is high is one where a model's
-average subtask score predicts its individual subtask scores; a low ICC is a
-benchmark whose subtasks are so heterogeneous that they measure different
-things.
+MATH Lvl 5 is intentionally absent from the primary extraction: its C8 records
+are source-mismatched with the C1 summary (see ``q4-c8-diagnosis.md``).  A
+caller must explicitly opt into diagnostic extraction to obtain it, which makes
+it impossible for a downstream analysis to consume quarantined MATH subtasks by
+accident.  GPQA child scores are retained descriptively only after its pooled
+aggregation rule has reconciled: the published GPQA dimension is still computed
+from the harness's pooled accuracy, not by averaging these children.
 """
 
 from __future__ import annotations
@@ -26,22 +24,39 @@ from typing import Dict, List, Tuple
 import numpy as np
 import pandas as pd
 
-from src.panel.leaderboard import ModelRecord, load_detailed_results, subtask_scores, _open_text
+from src.panel.leaderboard import ModelRecord, subtask_scores, _open_text
+
+#: Dimensions whose C8 records have cleared the reconciliation acceptance test.
+#: GPQA is included because its pooled harness rule is reconciled, even though
+#: it cannot supply a valid child-score average for the detailed table.
+RECONCILED_DIMENSIONS = frozenset({"IFEval", "BBH", "GPQA", "MUSR", "MMLU-PRO"})
+#: C8 MATH subtask records describe a different source/run from the C1 summary.
+QUARANTINED_DIMENSIONS = frozenset({"MATH Lvl 5"})
 
 
-def extract_subtasks(records: List[ModelRecord], payloads: Dict[str, dict]) -> pd.DataFrame:
+def extract_subtasks(
+    records: List[ModelRecord],
+    payloads: Dict[str, dict],
+    *,
+    include_quarantined: bool = False,
+) -> pd.DataFrame:
     """Long-form ``[model, dimension, subtask, raw, baseline, normalised]``.
 
-    ``records`` are the parsed model records and ``payloads`` maps a model name
-    to its raw JSON payload, so the per-subtask breakdown can be re-read without
-    re-parsing the corpus.
+    The primary default includes only dimensions whose C8 records reconciled to
+    C1.  ``include_quarantined=True`` is reserved for a clearly-labelled source
+    diagnostic; it must never be used to produce a downstream task-level result.
+    ``records`` are parsed model records and ``payloads`` maps model names to raw
+    JSON payloads, so the breakdown can be re-read without another corpus scan.
     """
+    allowed = RECONCILED_DIMENSIONS | (QUARANTINED_DIMENSIONS if include_quarantined else frozenset())
     rows: List[Dict[str, object]] = []
     for record in records:
         payload = payloads.get(record.model_name)
         if not payload:
             continue
         for dimension, subtasks in subtask_scores(payload).items():
+            if dimension not in allowed:
+                continue
             for subtask, raw, baseline, normalised in subtasks:
                 rows.append({
                     "model": record.model_name,
@@ -51,6 +66,54 @@ def extract_subtasks(records: List[ModelRecord], payloads: Dict[str, dict]) -> p
                     "baseline": baseline,
                     "normalised": normalised,
                 })
+    return pd.DataFrame(rows)
+
+
+def subtask_profile(frame: pd.DataFrame, expected_models: int) -> pd.DataFrame:
+    """Describe score availability and dispersion for each retained subtask.
+
+    Missingness is relative to the parsed C8 record corpus, not the C1 panel;
+    that denominator makes absent task results visible.  The variance and SD are
+    across models, while median/IQR describe the subtask's normalised-score
+    distribution without assuming it is Gaussian.
+    """
+    rows: List[Dict[str, object]] = []
+    for (dimension, subtask), sub in frame.groupby(["dimension", "subtask"], sort=True):
+        values = sub["normalised"].dropna()
+        observed = int(values.shape[0])
+        missing = max(0, expected_models - observed)
+        rows.append({
+            "dimension": dimension,
+            "subtask": subtask,
+            "n_models": observed,
+            "missing_models": missing,
+            "missing_rate": missing / expected_models if expected_models else float("nan"),
+            "median": float(values.median()),
+            "q1": float(values.quantile(0.25)),
+            "q3": float(values.quantile(0.75)),
+            "iqr": float(values.quantile(0.75) - values.quantile(0.25)),
+            "variance": float(values.var(ddof=1)) if observed > 1 else float("nan"),
+            "sd": float(values.std(ddof=1)) if observed > 1 else float("nan"),
+        })
+    return pd.DataFrame(rows)
+
+
+def within_model_imbalance(frame: pd.DataFrame) -> pd.DataFrame:
+    """Per-dimension distribution of model-level subtask standard deviations."""
+    rows: List[Dict[str, object]] = []
+    for dimension, sub in frame.groupby("dimension", sort=True):
+        per_model = sub.groupby("model")["normalised"].agg(["count", "std"])
+        values = per_model.loc[per_model["count"] >= 2, "std"].dropna()
+        if values.empty:
+            continue
+        rows.append({
+            "dimension": dimension,
+            "n_models": int(values.shape[0]),
+            "median_within_sd": float(values.median()),
+            "q1_within_sd": float(values.quantile(0.25)),
+            "q3_within_sd": float(values.quantile(0.75)),
+            "iqr_within_sd": float(values.quantile(0.75) - values.quantile(0.25)),
+        })
     return pd.DataFrame(rows)
 
 
@@ -134,4 +197,12 @@ def load_payloads(root: Path) -> Dict[str, dict]:
     return payloads
 
 
-__all__ = ["extract_subtasks", "variance_decomposition", "load_payloads"]
+__all__ = [
+    "RECONCILED_DIMENSIONS",
+    "QUARANTINED_DIMENSIONS",
+    "extract_subtasks",
+    "subtask_profile",
+    "within_model_imbalance",
+    "variance_decomposition",
+    "load_payloads",
+]
