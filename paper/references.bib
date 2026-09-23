@@ -1,7 +1,23 @@
+% Bibliography.
+%
+% The organizer's 2026 specification prescribes the reference formats:
+%   book    [n] author, title, place: publisher, page range, year.
+%   journal [n] author, title, journal, volume(issue): page range, year.
+%   web     [n] author, resource title, URL, access date (y-m-d).
+%
+% A book entry must carry a page range: the specification requires a book
+% citation to state its pages. Keep the `pages` field populated for every
+% book entry, or the rendered reference list silently drops it.
+%
+% Note: BibTeX has no comment syntax. It scans for an entry wherever it sees
+% an at-sign, including inside a line that starts with a percent sign, so an
+% at-sign must never appear in these notes.
+
 @book{boyd2004convex,
   author    = {Boyd, Stephen and Vandenberghe, Lieven},
   title     = {Convex Optimization},
   publisher = {Cambridge University Press},
   address   = {Cambridge},
+  pages     = {127--134},
   year      = {2004}
 }
