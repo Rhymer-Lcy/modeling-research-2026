@@ -21,6 +21,23 @@
     checked from the other direction instead, by asserting that none of them is
     tracked.
 
+    NON-ASCII PATHS
+    Git quotes a path containing non-ASCII bytes, wrapping it in double quotes
+    and octal-escaping each byte. Passing that literal string to the filesystem
+    fails, because the embedded quote is not a legal path character. A gate that
+    merely skips such a path reports success for a file it never opened, so a
+    non-ASCII name would silently bypass the size and secret checks.
+
+    Two defences are combined. Git is invoked with core.quotePath=false so that
+    paths arrive verbatim, and the console encoding is pinned to UTF-8 for the
+    duration so that those bytes decode correctly rather than becoming mojibake
+    under whatever code page the host happens to use. Git still quotes a path
+    containing a quote, a backslash or a control character even in that mode, so
+    any residual quoting is decoded explicitly by ConvertFrom-GitQuotedPath.
+
+    A path that still cannot be interpreted after both defences is a FAILURE,
+    never a skip: this gate fails closed.
+
     SCOPE
     This gate protects repository boundaries, secrets, machine-specific
     information and Git metadata. It deliberately does not maintain a database
@@ -69,6 +86,8 @@ $script:PathExemptions = 0
 $script:EmailsChecked = 0
 $script:EmailsByExact = 0
 $script:EmailsBySuffix = 0
+$script:PathsDecoded = 0
+$script:PathsUninterpretable = 0
 
 function Add-Failure { param([string]$m) [void]$script:Failures.Add($m) }
 function Add-Warning { param([string]$m) [void]$script:Warnings.Add($m) }
@@ -119,6 +138,132 @@ $FailSizeBytes = 10MB
 # --------------------------------------------------------------------------
 # Helpers
 # --------------------------------------------------------------------------
+
+function ConvertFrom-GitQuotedPath {
+    <# Decodes Git's C-style path quoting: the path is wrapped in double quotes
+       and each non-printable or non-ASCII byte appears as a three-digit octal
+       escape. The escaped bytes form a UTF-8 sequence, so they are collected as
+       bytes and decoded once at the end rather than character by character.
+
+       An unrecognised or truncated escape throws. The caller turns that into a
+       failure, because a path this function cannot decode is a path the gate
+       cannot scan. #>
+    param([string]$Raw)
+
+    if ($null -eq $Raw) { return '' }
+    if ($Raw.Length -lt 2) { return $Raw }
+    if (-not ($Raw.StartsWith('"') -and $Raw.EndsWith('"'))) { return $Raw }
+
+    $backslash = [char]92
+    $simple = @{ 'a' = 7; 'b' = 8; 'f' = 12; 'n' = 10; 'r' = 13; 't' = 9; 'v' = 11 }
+
+    $body  = $Raw.Substring(1, $Raw.Length - 2)
+    $bytes = New-Object System.Collections.Generic.List[byte]
+    $i = 0
+
+    while ($i -lt $body.Length) {
+        $c = $body[$i]
+
+        if ($c -ne $backslash) {
+            foreach ($b in [System.Text.Encoding]::UTF8.GetBytes([string]$c)) { $bytes.Add($b) }
+            $i++
+            continue
+        }
+
+        if ($i + 1 -ge $body.Length) { throw 'Truncated escape in Git-quoted path.' }
+        $n = $body[$i + 1]
+
+        if ($n -ge '0' -and $n -le '7') {
+            if ($i + 3 -ge $body.Length) { throw 'Truncated octal escape in Git-quoted path.' }
+            $oct = $body.Substring($i + 1, 3)
+            $bytes.Add([byte][Convert]::ToInt32($oct, 8))
+            $i += 4
+        }
+        elseif ($simple.ContainsKey([string]$n)) {
+            $bytes.Add([byte]$simple[[string]$n])
+            $i += 2
+        }
+        elseif ($n -eq '"' -or $n -eq $backslash) {
+            $bytes.Add([byte][int][char]$n)
+            $i += 2
+        }
+        else {
+            throw ('Unrecognised escape in Git-quoted path near offset ' + $i + '.')
+        }
+    }
+
+    $script:PathsDecoded++
+    return [System.Text.Encoding]::UTF8.GetString($bytes.ToArray())
+}
+
+function Invoke-GitLines {
+    <# Runs git in the repository and returns stdout as lines, with paths
+       readable rather than octal-escaped.
+
+       Preferred mode pins the console to UTF-8 and asks Git for verbatim paths
+       (core.quotePath=false). If the console encoding cannot be pinned, that
+       mode would decode Git's UTF-8 bytes under the host code page and produce
+       mojibake silently, so the fallback keeps Git's default quoting instead:
+       that form is pure ASCII and therefore encoding-independent, and
+       ConvertFrom-GitQuotedPath turns it back into the real path.
+
+       Residual quoting is possible in both modes, because Git quotes a path
+       containing a quote, a backslash or a control character even when
+       quotePath is false. The caller decodes unconditionally.
+
+       Arguments are passed as one explicit array rather than as remaining
+       arguments. PowerShell binds a bare `-p` to the common parameter
+       -PipelineVariable by prefix match, which swallowed the argument and made
+       the PrePush history scan fail to run at all. #>
+    param([Parameter(Mandatory = $true)][string[]]$GitArgs)
+
+    $previous = $null
+    $pinned = $false
+    try {
+        $previous = [Console]::OutputEncoding
+        [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
+        $pinned = $true
+    }
+    catch {
+        $pinned = $false
+    }
+
+    try {
+        if ($pinned) {
+            $out = & git -C $repoRoot -c core.quotePath=false @GitArgs
+        }
+        else {
+            $out = & git -C $repoRoot @GitArgs
+        }
+    }
+    finally {
+        if ($pinned -and $null -ne $previous) {
+            try { [Console]::OutputEncoding = $previous } catch { }
+        }
+    }
+
+    if ($null -eq $out) { return @() }
+    return @($out)
+}
+
+function Resolve-CandidateFullPath {
+    <# Turns a repository-relative candidate path into a full filesystem path.
+       Throws when the path cannot be represented on this filesystem, which the
+       caller reports as a failure rather than skipping. #>
+    param([string]$RelPath)
+
+    if ([string]::IsNullOrWhiteSpace($RelPath)) { throw 'Empty candidate path.' }
+    if ($RelPath.Contains('"')) { throw 'Candidate path still carries Git quoting after decoding.' }
+
+    foreach ($ch in [System.IO.Path]::GetInvalidPathChars()) {
+        if ($RelPath.IndexOf($ch) -ge 0) {
+            throw ('Candidate path contains a character that is not legal in a path (U+' +
+                   ('{0:X4}' -f [int]$ch) + ').')
+        }
+    }
+
+    return (Join-Path $repoRoot ($RelPath -replace '/', [string][char]92))
+}
 
 function Test-HasHead {
     <# `git rev-parse --verify HEAD` writes to stderr when there are no commits,
@@ -194,19 +339,35 @@ function Test-IsLocalOnlyPath {
 function Get-PublicCandidateSet {
     $parts = New-Object System.Collections.ArrayList
 
-    foreach ($p in @(& git -C $repoRoot ls-files --cached)) { [void]$parts.Add($p) }
+    foreach ($p in (Invoke-GitLines @('ls-files','--cached'))) { [void]$parts.Add($p) }
 
     if (Test-HasHead) {
-        foreach ($p in @(& git -C $repoRoot diff --cached --name-only)) { [void]$parts.Add($p) }
+        foreach ($p in (Invoke-GitLines @('diff','--cached','--name-only'))) { [void]$parts.Add($p) }
     }
 
-    foreach ($p in @(& git -C $repoRoot ls-files --others --exclude-standard)) { [void]$parts.Add($p) }
+    foreach ($p in (Invoke-GitLines @('ls-files','--others','--exclude-standard'))) { [void]$parts.Add($p) }
 
     $seen = @{}
     $out = New-Object System.Collections.ArrayList
     foreach ($p in $parts) {
         if ([string]::IsNullOrWhiteSpace($p)) { continue }
-        $norm = ($p.Trim() -replace '\\', '/')
+
+        # Decode before normalizing: an octal-escaped path still looks like an
+        # ordinary string, so normalizing first would carry the escapes through.
+        try {
+            $decoded = ConvertFrom-GitQuotedPath $p.Trim()
+        }
+        catch {
+            # Fail closed. A path that cannot be decoded is a path that cannot
+            # be scanned, and silently dropping it is how a non-ASCII name would
+            # bypass every content check.
+            $script:PathsUninterpretable++
+            Add-Failure ("Undecodable Git path, cannot be scanned: " + $p.Trim() +
+                         " - " + $_.Exception.Message)
+            continue
+        }
+
+        $norm = ($decoded -replace [regex]::Escape([string][char]92), '/')
         if ($seen.ContainsKey($norm)) { continue }
         $seen[$norm] = $true
         [void]$out.Add($norm)
@@ -243,8 +404,17 @@ function Test-AbsolutePathViolation {
 # --------------------------------------------------------------------------
 
 function Invoke-TrackedIgnoredPathCheck {
-    foreach ($p in @(& git -C $repoRoot ls-files --cached)) {
-        $norm = ($p.Trim() -replace '\\', '/')
+    foreach ($p in (Invoke-GitLines @('ls-files','--cached'))) {
+        if ([string]::IsNullOrWhiteSpace($p)) { continue }
+        try {
+            $decoded = ConvertFrom-GitQuotedPath $p.Trim()
+        }
+        catch {
+            $script:PathsUninterpretable++
+            Add-Failure ("Undecodable tracked Git path: " + $p.Trim() + " - " + $_.Exception.Message)
+            continue
+        }
+        $norm = ($decoded -replace [regex]::Escape([string][char]92), '/')
         if ($norm -eq '') { continue }
         if (Test-IsLocalOnlyPath $norm) {
             Add-Failure "Local-only path is tracked: $norm"
@@ -266,8 +436,31 @@ function Invoke-FileChecks {
         # Defence in depth: the Git-derived set should never contain these.
         if (Test-IsLocalOnlyPath $rel) { continue }
 
-        $full = Join-Path $repoRoot ($rel -replace '/', '\')
-        if (-not (Test-Path -LiteralPath $full -PathType Leaf)) { continue }
+        # Fail closed on a path this gate cannot interpret. The only skip
+        # allowed here is the legitimate one: a candidate that Git lists but
+        # that is genuinely absent from the working tree, such as a staged
+        # deletion. Anything else - a path the filesystem rejects, or one that
+        # raises while being tested - is reported, because a file that was
+        # never opened must not be counted as a file that passed.
+        try {
+            $full = Resolve-CandidateFullPath $rel
+        }
+        catch {
+            $script:PathsUninterpretable++
+            Add-Failure ("Uninterpretable public-candidate path: $rel - " + $_.Exception.Message)
+            continue
+        }
+
+        try {
+            $exists = Test-Path -LiteralPath $full -PathType Leaf
+        }
+        catch {
+            $script:PathsUninterpretable++
+            Add-Failure ("Public-candidate path could not be tested: $rel - " + $_.Exception.Message)
+            continue
+        }
+
+        if (-not $exists) { continue }
 
         $script:FilesExamined++
         $info = Get-Item -LiteralPath $full
@@ -335,7 +528,7 @@ function Invoke-HistoryChecks {
         return
     }
 
-    $addresses = @(& git -C $repoRoot log --all --format='%ae%n%ce') |
+    $addresses = (Invoke-GitLines @('log','--all','--format=%ae%n%ce')) |
         ForEach-Object { $_.Trim().ToLowerInvariant() } |
         Where-Object { $_ -ne '' } |
         Sort-Object -Unique
@@ -356,7 +549,7 @@ function Invoke-HistoryChecks {
     $script:EmailsByExact  = $byExact
     $script:EmailsBySuffix = $bySuffix
 
-    $patch = (& git -C $repoRoot log --all -p) -join "`n"
+    $patch = (Invoke-GitLines @('log','--all','-p')) -join "`n"
     foreach ($p in $HighConfidenceSecrets) {
         if ([regex]::IsMatch($patch, $p.Pattern)) {
             Add-Failure ("Credential signature '" + $p.Name + "' found in Git history")
@@ -401,6 +594,8 @@ if ($Mode -eq 'PrePush') {
                 $script:EmailsByExact + " by approved exact rule)")
 }
 Write-Host ("path exemptions   : " + $script:PathExemptions)
+Write-Host ("quoted paths      : " + $script:PathsDecoded + " decoded, " +
+            $script:PathsUninterpretable + " uninterpretable")
 Write-Host ""
 
 if ($script:Manual.Count -gt 0) {
