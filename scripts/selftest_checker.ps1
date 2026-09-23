@@ -31,7 +31,19 @@
       6. fixture containing an oversized file       -> FAIL (exit 1)
       7. fixture containing an absolute local path  -> FAIL (exit 1)
       8. clean fixture                              -> PASS (exit 0)
-      9. temporary repository is removed
+      9. oversized file under a NON-ASCII directory -> FAIL (exit 1)
+     10. clean small file under a NON-ASCII path    -> PASS (exit 0)
+     11. temporary repository is removed
+
+    Cases 9 and 10 exist because Git quotes non-ASCII paths, and a gate that
+    cannot decode that quoting skips the file instead of scanning it. A skip
+    reports success for a file that was never opened, so the defect is invisible
+    from the exit code alone. Case 9 is therefore the discriminating test: the
+    oversize finding can only be produced by a checker that actually resolved
+    and measured the file through its non-ASCII path. Case 10 guards the other
+    direction, that decoding did not turn a clean non-ASCII path into a false
+    positive. Both assert on the checker's reported counters as well as on its
+    exit code, so neither can be satisfied by a checker that silently skips.
 #>
 [CmdletBinding()]
 param()
@@ -96,16 +108,39 @@ function Invoke-Checker {
 }
 
 function Assert-Case {
-    param([string]$Name, [int]$Expected, [int]$Actual, [string]$Output = '')
+    param(
+        [string]$Name,
+        [int]$Expected,
+        [int]$Actual,
+        [string]$Output = '',
+        [string[]]$MustContain = @()
+    )
     $ok = ($Expected -eq $Actual)
+    $missing = @()
+    foreach ($needle in $MustContain) {
+        # Normalize whitespace on both sides: the checker wraps its lines, so a
+        # needle of more than a few words would otherwise never match.
+        $hay = ($Output -split '\s+') -join ' '
+        $ndl = ($needle -split '\s+') -join ' '
+        if ($hay -notlike ('*' + $ndl + '*')) { $missing += $needle }
+    }
+    if ($missing.Count -gt 0) { $ok = $false }
+
     $verdict = 'FAIL'
     if ($ok) { $verdict = 'ok' }
     Write-Host ("  [{0}] {1}  expected exit {2}, got {3}" -f $verdict, $Name, $Expected, $Actual)
+    foreach ($m in $missing) { Write-Host ("      missing from output: " + $m) }
     if (-not $ok -and $Output -ne '') {
         Write-Host "      ---- checker output ----"
         Write-Host $Output
     }
     $script:results += [pscustomobject]@{ Name = $Name; Ok = $ok }
+}
+
+function New-NonAsciiDirName {
+    # Built from code points so this script stays ASCII on disk and cannot be
+    # corrupted by a host that rewrites the file in another encoding.
+    return ([string][char]0x6570 + [char]0x636E)   # two CJK characters
 }
 
 try {
@@ -161,6 +196,37 @@ try {
     New-Sandbox
     $r8 = Invoke-Checker
     Assert-Case -Name 'clean fixture is accepted' -Expected 0 -Actual $r8.Exit -Output $r8.Output
+
+    # --- Case 9: oversized file under a NON-ASCII directory -> FAIL ------
+    # The discriminating test. A checker that cannot decode Git's quoting for
+    # this path skips the file, never measures it, and exits 0. Asserting on
+    # the size message as well as the exit code means the case can only pass
+    # if the file was genuinely resolved and opened.
+    New-Sandbox
+    $cjkDir = Join-Path $sandbox (New-NonAsciiDirName)
+    New-Item -ItemType Directory -Path $cjkDir -Force | Out-Null
+    $big9 = New-Object byte[] (12 * 1024 * 1024)
+    [System.IO.File]::WriteAllBytes((Join-Path $cjkDir 'big.dat'), $big9)
+    $r9 = Invoke-Checker
+    Assert-Case -Name 'oversized file under non-ascii path is rejected' `
+                -Expected 1 -Actual $r9.Exit -Output $r9.Output `
+                -MustContain @('File exceeds 10 MB', '0 uninterpretable')
+
+    # --- Case 10: clean small file under a NON-ASCII path -> PASS --------
+    # Guards the opposite direction: decoding must not manufacture a finding.
+    # The counter assertions prove the path was examined rather than skipped.
+    New-Sandbox
+    $cjkDir2 = Join-Path $sandbox (New-NonAsciiDirName)
+    New-Item -ItemType Directory -Path $cjkDir2 -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path $cjkDir2 'notes.txt') -Value 'Clean non-ascii fixture.' -Encoding UTF8
+    # The sandbox otherwise holds exactly three candidate files (README.md,
+    # scripts/check_public_safe.ps1, configs/git-email-policy.txt). Requiring
+    # four proves the non-ascii file was counted rather than skipped, which is
+    # the whole point: a skipping checker also exits 0 here.
+    $r10 = Invoke-Checker
+    Assert-Case -Name 'clean non-ascii path is examined without false positive' `
+                -Expected 0 -Actual $r10.Exit -Output $r10.Output `
+                -MustContain @('files examined : 4', '0 uninterpretable')
 }
 finally {
     if (Test-Path -LiteralPath $sandbox) {
@@ -175,9 +241,9 @@ if ($removed) { $verdict = 'ok' }
 Write-Host ("  [{0}] sandbox removed" -f $verdict)
 $results += [pscustomobject]@{ Name = 'sandbox removed'; Ok = $removed }
 
-if ($results.Count -lt 9) {
+if ($results.Count -lt 11) {
     Write-Host ""
-    Write-Host ("RESULT: FAIL (expected 9 assertions, ran " + $results.Count + ")")
+    Write-Host ("RESULT: FAIL (expected 11 assertions, ran " + $results.Count + ")")
     exit 1
 }
 
