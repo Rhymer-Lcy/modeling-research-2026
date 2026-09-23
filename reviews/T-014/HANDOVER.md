@@ -4,7 +4,7 @@
 | --- | --- |
 | Task | T-014 |
 | Owner | M1 |
-| Status | review |
+| Status | done (merged to `main` via PR #7) |
 | Timestamp | 2026-09-23T14:20:00+08:00 |
 | Base | `345bf97` (main) |
 | HEAD | commit range `345bf97..` branch tip; this file and the worklog entry are the last two commits |
