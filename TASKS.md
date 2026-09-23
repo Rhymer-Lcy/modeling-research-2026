@@ -23,10 +23,10 @@
 | T-003 | M1 | final audit cleanup | README.md · worklog/M1.md · main 分支保护配置 | done | 2026-09-22 |
 | T-004 | M1 | refine Git email safety policy | configs/git-email-policy.txt · scripts/ · README.md · AGENTS.md · worklog/M1.md | done | 2026-09-22 |
 | T-005 | M1 | Problem-F intake guard and public-safety checker repair | .gitignore · scripts/check_public_safe.ps1 · scripts/selftest_checker.ps1 · README.md · TASKS.md · worklog/M1.md | done | 2026-09-23 |
-| T-006 | M2 | Problem-F local archive migration, integrity closure, audit import | docs_local/problem-f/ · data_local/problem-f/ · worklog/M2.md | wip | 2026-09-23 |
-| T-007 | M2 | Q1 quality/conflict/domain-mixture modeling | src/quality/ · src/mixture/ · scripts/q1_* · results/ · worklog/M2.md | todo | 2026-09-23 |
-| T-008 | M1 | Q2 generalized scaling law | src/scaling/ · scripts/q2_* · results/ · worklog/M1.md | todo | 2026-09-23 |
-| T-009 | M3 | Q4 panel/eligibility/C8 pipeline | src/panel/ · scripts/q4_panel_* · results/ · worklog/M3.md | todo | 2026-09-23 |
+| T-006 | M2 | Problem-F local archive migration, integrity closure, audit import | docs_local/problem-f/ · data_local/problem-f/ · worklog/M2.md | done | 2026-09-23 |
+| T-007 | M2 | Q1 quality/conflict/domain-mixture modeling | src/quality/ · src/mixture/ · scripts/q1_* · results/ · worklog/M2.md | wip | 2026-09-23 |
+| T-008 | M1 | Q2 generalized scaling law | src/scaling/ · scripts/q2_* · results/ · worklog/M1.md | wip | 2026-09-23 |
+| T-009 | M3 | Q4 panel/eligibility/C8 pipeline | src/panel/ · scripts/q4_panel_* · results/ · worklog/M3.md | wip | 2026-09-23 |
 | T-010 | M2 | Q3 compute-constrained resource optimization | src/alloc/ · scripts/q3_* · results/ · worklog/M2.md | todo | 2026-09-23 |
 | T-011 | M3 | Q4 decomposition/bridge/frontier forecast | src/evolution/ · scripts/q4_* · results/ · worklog/M3.md | todo | 2026-09-23 |
 | T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · worklog/M1.md | todo | 2026-09-23 |
