@@ -93,11 +93,12 @@ Fifteen conventions audited. Three findings worth a reviewer's attention:
    higher-is-better scale. `IF1.indicator_directions` records the native
    direction. Reading it as "all higher-is-better" would invert four indicators
    with nothing downstream looking wrong.
-3. **Three conventions are ambiguous and were deliberately NOT resolved**: the
-   time basis (publication vs evaluation date), the context-length unit and
-   regime, and whether the declared benchmark score scale is higher-is-better.
-   Each is assigned to the task that first needs it. Resolving any of them here
-   would be a scientific decision taken inside an integration-planning task.
+3. **Three declarations are outstanding and were deliberately NOT resolved
+   here**: the time basis (publication vs evaluation date); the context-length
+   **analysis scope** — its unit is settled as tokens, see the v2 delta below;
+   and whether the declared benchmark score scale is higher-is-better. Each is
+   assigned to the task that first needs it. Resolving any of them here would
+   be a scientific decision taken inside an integration-planning task.
 
 ## Final acceptance gate status
 
@@ -152,6 +153,74 @@ asserted: the compute convention `kappa = 6.0`, the `1e9` unit conversion in
 the fit script, both validity-box ranges, the panel rescaling formula and the
 15/4/3 direction totals were each read back from `src/` or from the accepted
 tables.
+
+## v2 supervisory delta (2026-09-24)
+
+Documentation and integration-governance only. No scientific modelling; no
+unreviewed branch result consumed. v1 sections above are unchanged except where
+this delta corrects them, and the v1 specification block is preserved untouched.
+
+### 1. Q4 readiness corrected — was wrong in v1
+
+v1 recorded "Detailed-task reconciliation" as **READY**. That was incorrect.
+Accepted `main` carries a **partial** reconciliation: 4 of 6 dimensions
+reproduce (BBH, IFEval, MMLU-PRO, MUSR) and **GPQA and MATH Lvl 5 are
+quarantined there**. The artifact's own verdict is `PARTIAL`.
+
+The map now splits the claim:
+
+| Claim | State |
+| --- | --- |
+| C8/C1 scale convention — raw accuracy and baseline-rescaled score are distinct quantities requiring explicit rescaling | **READY** (retained; independent of which dimensions reconcile) |
+| Detailed-task reconciliation, overall | **PENDING REVIEW** (gate G4) |
+
+Figure inventory item **T4** moved from READY to PENDING REVIEW, gains
+dependency G4, is marked *partial (4/6)*, and must show which dimensions are
+quarantined. Section 04's eligibility narrowed from "T1 and T4" to **T1 only**.
+
+A later GPQA correction is understood to exist **only on the unreviewed T-009
+branch**. It is **not** adopted, not reproduced, and not counted toward
+readiness here.
+
+### 2. Context-length convention corrected
+
+v1 filed this as an ambiguous *unit*. The unit is not ambiguous: it is
+**tokens**, and that is retained as canonical in both documents.
+
+What is genuinely open is the **analysis scope** — the feasible C7-supported
+range, the representative regimes, and the sensitivity grid used for the Q3
+critical-context analysis. The risk is not a wrong unit; it is reporting a
+critical context length without saying over which range it was searched, which
+turns a grid endpoint into a discovered threshold. Owner M2 (T-010), gate G3.
+
+### 3. G2 strengthened — new unit-regime conditions (G2-U)
+
+The Q2 unit-regime hazard was recorded in v1's audit but no gate defended
+against it. G2 now requires **G2-U**, four conditions on any final or
+generalized IF3:
+
+| # | Condition |
+| --: | --- |
+| U1 | Externally emitted IF3 uses one canonical convention consistent with the classic IF3: **raw parameter count, raw token count** |
+| U2 | An internal fit may use billions for conditioning, but parameters **and** validity box must be transformed consistently before emission |
+| U3 | An executable **unit-equivalence check**: prediction at the same physical `(N, D, Q)` point must be invariant across internal-billions vs external-raw representation, to a stated tolerance |
+| U4 | An IF3 whose parameter units and validity-box units disagree is **rejected**, not repaired at the consumer |
+
+U3 is deliberately an invariance check on a *prediction* rather than an
+assertion about parameters: a scale factor applied consistently to `N` and `D`
+is absorbed into `A` and `B` by the functional form, so emitted parameter values
+alone cannot reveal which regime produced them.
+
+Scope: U3 describes a check to be written at T-008 closure; it does not exist
+yet and is not claimed to. **`src/interfaces.py` is not changed** — U1–U4 are
+review-time acceptance conditions, not new schema fields.
+
+### Validation of the delta
+
+`selftest_interfaces.py` 21 assertions pass; `git diff --check` clean;
+public-safety gate passes. T-012 remains `todo`; the dependency graph is
+unchanged; PR #9 remains draft and unmerged. No scientific code, numerical
+artifact, `TASKS.md` entry, another member's path, or PR #8 was touched.
 
 ## Next action — exact trigger for resuming T-012
 

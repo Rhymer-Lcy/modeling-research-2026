@@ -234,7 +234,7 @@ Where evidence does not exist the required text is
 | Fixed-Q analytical benchmark | T-010 | Level B, conditional on the adopted form | **NOT STARTED** |
 | Optimized Q | T-010 + reviewed IF1 | **BLOCKED - DO NOT WRITE AS A RESULT** | **BLOCKED** |
 | Quality budget share | T-010 | depends on an assumed quality-cost function | **BLOCKED** |
-| Critical context length | T-010 | units: tokens; must state the regime | **NOT STARTED** |
+| Critical context length | T-010 | unit is **tokens** and is settled; the claim must additionally state the feasible C7-supported range, the representative regimes and the sensitivity grid it was searched over, so a grid endpoint is not read as a discovered threshold | **NOT STARTED** |
 | Structural transitions | T-010 | a transition in a model is not an observed transition | **NOT STARTED** |
 | Comparison of quality-cost functions | T-010 | sensitivity analysis, not a measurement | **NOT STARTED** |
 
@@ -242,7 +242,8 @@ Where evidence does not exist the required text is
 
 | Claim | Minimum supporting artifact | Mandatory caveat | State |
 | --- | --- | --- | --- |
-| Detailed-task reconciliation | `results/tables/q4-c8-reconciliation.md` (on main) | raw vs rescaled scales differ; baseline read per subtask | **READY** |
+| C8/C1 scale convention: raw accuracy and baseline-rescaled score are distinct quantities requiring explicit rescaling | `results/tables/q4-c8-reconciliation.md` (on main) | rescaling is `max(0,(raw-baseline)/(1-baseline))*100`, baseline read from each subtask's own configuration | **READY** |
+| Detailed-task reconciliation (overall) | `results/tables/q4-c8-reconciliation.md` (on main) | accepted `main` reconciles **4 of 6** dimensions (BBH, IFEval, MMLU-PRO, MUSR) and **quarantines GPQA and MATH Lvl 5**; the artifact's own verdict is **PARTIAL** | **PENDING REVIEW** |
 | Panel population | T-009 | eligibility rules and exclusions must be stated | PENDING REVIEW |
 | Model-type strata | T-009 | strata are not interchangeable | PENDING REVIEW |
 | Loss / benchmark bridge | IF4 (T-011) | prediction error mandatory | **NOT STARTED** |
@@ -250,6 +251,24 @@ Where evidence does not exist the required text is
 | Historical technical progress | T-011 | publication date is not evaluation date | **NOT STARTED** |
 | 12-month frontier forecast | T-011 + IF4 | **BLOCKED - DO NOT WRITE AS A RESULT** | **BLOCKED** |
 | 24-month stress forecast | T-011 + IF4 | Level D; band must include bridge error | **BLOCKED** |
+
+### Note on the C8 reconciliation state
+
+Accepted `main` carries a **partial** reconciliation: 4 of 6 dimensions
+reproduce, and **GPQA and MATH Lvl 5 are quarantined there**. The artifact's own
+verdict is `PARTIAL`, with MATH diagnosed as carrying raw `exact_match = 0` in
+the per-task records and GPQA showing a small systematic offset.
+
+A later GPQA correction is understood to exist **only on the unreviewed T-009
+branch**. That correction is
+**UNREVIEWED / NON-AUTHORITATIVE / NOT FOR MANUSCRIPT CLAIMS** and is **not**
+adopted here, not reproduced here, and not counted toward readiness. The
+overall reconciliation claim therefore sits at `PENDING REVIEW` until G4.
+
+What *is* established and separable is the **scale convention** — that C8 raw
+accuracy and C1 baseline-rescaled score are distinct quantities requiring
+explicit rescaling. That is retained at `READY` because it does not depend on
+which dimensions reconcile.
 
 ## Cross-cutting
 
@@ -303,7 +322,7 @@ requirements are fixed here so a later figure cannot quietly drop them.
 | F6 | Q3 | Optimal allocation vs compute budget | T-010 | T-010 | G2, G3 | model-conditional | **yes** | 05-3 | NOT STARTED |
 | F7 | Q3 | Budget share / transition diagram | T-010 | T-010 | G3 | model-conditional | **yes** | 05-3 | NOT STARTED |
 | F8 | Q3 | Sensitivity across quality-cost functions | T-010 | T-010 | G3 | sensitivity | **yes** | 05-3 / 06 | NOT STARTED |
-| T4 | Q4 | Detailed-task reconciliation | T-009 | `q4-c8-reconciliation.md` | none | observed | no | 04 / 08 | **READY** |
+| T4 | Q4 | Detailed-task reconciliation | T-009 | `q4-c8-reconciliation.md` | G4 | observed, **partial (4/6)** | must show which dimensions are quarantined | 04 / 08 | PENDING REVIEW |
 | F9 | Q4 | Historical benchmark frontier | T-011 | T-011 | G4, G5 | observed | **yes** | 05-4 | NOT STARTED |
 | F10 | Q4 | Scale / non-scale decomposition | T-011 | T-011 | G5 | model-conditional | **yes** | 05-4 | NOT STARTED |
 | F11 | Q4 | Forecast band | T-011 | IF4 | G5 | Level D | **yes, incl. bridge error** | 05-4 | **BLOCKED** |
@@ -324,7 +343,7 @@ Classification of every section as it stands on accepted `main`.
 | 01 restatement | STRUCTURAL PLACEHOLDER | M1 | any time; no scientific evidence needed |
 | 02 analysis | STRUCTURAL PLACEHOLDER | M1 | after all four approaches are fixed |
 | 03 assumptions | STRUCTURAL PLACEHOLDER | M1 | assumptions may be drafted early, finalized with the models |
-| 04 preprocessing | STRUCTURAL PLACEHOLDER | M2 (Q1 contract), M3 (panel) | partially eligible now: T1 and T4 are accepted |
+| 04 preprocessing | STRUCTURAL PLACEHOLDER | M2 (Q1 contract), M3 (panel) | partially eligible now: **T1 only**. T4 needs G4 — its reconciliation is partial on `main` |
 | 05-1 Q1 | STRUCTURAL PLACEHOLDER | M2 | **after T-007 review (G1)** |
 | 05-2 Q2 | STRUCTURAL PLACEHOLDER | M1 | classic content after G2 review; generalized content only if a law is adopted |
 | 05-3 Q3 | STRUCTURAL PLACEHOLDER | M2 | **after T-010 (G3)**, which needs final IF3 |
@@ -361,7 +380,7 @@ Final integration must not begin or close until every applicable gate passes.
 | Gate | Requirement | Owner | Evidence | Pass condition | Current state |
 | --- | --- | --- | --- | --- | --- |
 | **G1** | T-007 accepted | M2, reviewed by M1 | `reviews/T-007/HANDOVER.md`; IF1 + IF2 | both objects `.validate()`; review accepted | **NOT MET** — T-007 `wip` |
-| **G2** | T-008 closed | M1 | `reviews/T-008/HANDOVER.md`; final IF3 or a justified alternative | explicit decision on the generalized law recorded | **NOT MET** — T-008 `wip`, draft PR open |
+| **G2** | T-008 closed **and unit-consistent** | M1 | `reviews/T-008/HANDOVER.md`; final IF3 or a justified alternative; unit-equivalence check | explicit decision on the generalized law recorded **and G2-U below satisfied** | **NOT MET** — T-008 `wip`, draft PR open |
 | **G3** | T-010 accepted | M2 | Q3 optimizer + sensitivity evidence | review accepted; consumes final IF3 | **NOT MET** — `todo` |
 | **G4** | T-009 accepted | M3 | panel foundation + reconciliation limits | review accepted | **NOT MET** — `wip` |
 | **G5** | T-011 accepted | M3 | decomposition, IF4, forecast, uncertainty | review accepted; IF4 validates | **NOT MET** — `todo` |
@@ -376,6 +395,33 @@ Final integration must not begin or close until every applicable gate passes.
 G10 and G12 deserve emphasis: both currently pass or would pass on an empty
 manuscript, which proves nothing about the finished one. They must be re-run
 after content exists.
+
+## G2-U — unit-regime acceptance conditions for the final IF3
+
+Added because of the hazard recorded as row 3 of the readiness audit: within Q2
+the classic law is fitted in **raw** parameters and tokens while the
+quality-bearing tables are handled in **billions**. Both are internally
+consistent, so a mix-up survives every existing check and still yields finite,
+plausible numbers. These conditions close that path before an IF3 is emitted.
+
+A final or generalized IF3 is **not accepted** unless all four hold.
+
+| # | Condition |
+| --: | --- |
+| **U1** | Any **externally emitted** IF3 uses **one canonical N/D convention, consistent with the classic IF3: raw parameter count and raw token count.** No exceptions, including for a generalized object. |
+| **U2** | An **internal** fit may use billions for numerical conditioning, but its fitted parameters **and** its validity box must be transformed consistently **before emission**. Transforming one and not the other is the specific failure this condition names. |
+| **U3** | A **unit-equivalence check** must exist and pass as executable code: prediction at the same *physical* `(N, D, Q)` point must be **invariant** under the internal-billions representation versus the external-raw representation, to a stated numerical tolerance. |
+| **U4** | An IF3 whose **parameter units and validity-box units disagree** must be rejected, not repaired at the consumer. |
+
+Notes on scope: U3 describes a check to be written at T-008 closure; it does
+not exist yet and is not claimed to. `src/interfaces.py` is **not** changed by
+this stage — U1-U4 are acceptance conditions applied at review, not new schema
+fields.
+
+Why U3 is phrased as invariance rather than as a unit assertion: a scale factor
+applied consistently to `N` and `D` is absorbed by `A` and `B` in the fitted
+form, so the *parameters alone* cannot reveal which regime produced them. The
+prediction at a fixed physical point can.
 
 ---
 

@@ -29,19 +29,21 @@ must not do.
 | 10 | **Benchmark score** | Scale declared by `score_scale`; direction not fixed by the contract | `IF4LossBenchmarkBridge.score_scale` | Accepted panel artifact rescales raw accuracy as `max(0, (raw - baseline)/(1 - baseline)) * 100`, baseline read per subtask | **Two scales exist**: raw accuracy and baseline-rescaled score. Reproducing one from the other is the panel acceptance test, not an identity | `score_scale` states which scale, and whether higher is better |
 | 11 | **Compute** | FLOPs | `supplementary_large_models.csv` (`FLOPs` column) | `compute_optimal` in `src/scaling/law.py` uses `kappa = 6.0` as the C ~ kappa*N*D convention | A different kappa silently rescales every budget | Any compute claim names its kappa |
 | 12 | **Time** | Calendar date | `publication_date` in the large-model table | **No conversion exists** to evaluation or submission date | **AMBIGUOUS — NOT RESOLVED HERE.** Publication date is not evaluation date; a frontier-over-time claim depends on which is meant | T-011 must declare which date defines its time axis before any forecast |
-| 13 | **Context length** | Tokens | not fixed by any current contract | none | **AMBIGUOUS — NOT RESOLVED HERE.** No accepted artifact on `main` fixes a context-length convention | T-010 must declare the unit and regime with its critical-length claim |
+| 13 | **Context length** | **Tokens** — the unit is settled, not ambiguous | C7 attachment semantics | none; a context length is a token count | Risk is **not** the unit. It is reporting a critical context length without saying over which range it was searched, which turns a grid endpoint into a discovered threshold | T-010 states the feasible C7-supported range, the representative regimes and the sensitivity grid alongside any critical-length value |
 | 14 | **Uncertainty type** | Named per estimate | `IF3` bootstrap block; `IF1` per-domain interval; `IF4` prediction error | none — the types are not interchangeable | Confidence interval, prediction interval and model-sensitivity range presented as one quantity | Every headline estimate names its type; `IF3` rejects any bootstrap unit other than `model` |
 | 15 | **Validity box** | Per-dimension `[lo, hi]` for N, D, Q | `IF3ScalingLaw.validate()` requires all three keys | none | Evaluation outside the box reported as interpolation | Classic IF3 pins **Q = [1,1]**, so any Q-dependent use of it is out of box by construction |
 
 ## Rows needing a decision before final integration
 
-Three rows are not defects in `main`; they are conventions no accepted contract
-fixes yet. Each is owned by the task that will first need it.
+Three rows need a declaration before final integration. None is a defect in
+`main`. Rows 12 and 10 are conventions no accepted contract fixes yet; row 13
+is different — **its unit is settled (tokens)** and what is open is the
+analysis scope. Each is owned by the task that will first need it.
 
 | Row | Quantity | Decision needed | Owner | Gate |
 | --: | --- | --- | --- | --- |
 | 12 | Time basis | publication vs evaluation/submission date for the time axis | M3 (T-011) | G5 |
-| 13 | Context length | unit and regime for a critical-context-length claim | M2 (T-010) | G3 |
+| 13 | Context length **analysis scope** (the unit, tokens, is already settled) | the feasible C7-supported range, the representative regimes, and the sensitivity grid used for the Q3 critical-context analysis | M2 (T-010) | G3 |
 | 10 | Benchmark direction | whether the declared score scale is higher-is-better | M3 (T-011) | G5 |
 
 ## Unit-regime warning
@@ -55,3 +57,17 @@ finite, plausible-looking numbers.
 
 Any artifact combining the two must state its regime in the same table as the
 numbers.
+
+This hazard is now closed at review time by **gate G2-U** in
+`paper/INTEGRATION_PLAN.md`: an externally emitted IF3 must use the canonical
+raw-parameter / raw-token convention; an internal fit may use billions but must
+transform its parameters **and** its validity box consistently before emission;
+an executable unit-equivalence check must show that prediction at the same
+physical `(N, D, Q)` point is invariant across the two representations; and an
+IF3 whose parameter units and validity-box units disagree is rejected rather
+than repaired downstream.
+
+Worth stating explicitly, because it is why G2-U checks a *prediction* and not
+the parameters: a scale factor applied consistently to `N` and `D` is absorbed
+into `A` and `B` by the functional form, so the emitted parameter values alone
+cannot reveal which regime produced them.
