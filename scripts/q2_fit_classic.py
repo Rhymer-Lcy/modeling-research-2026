@@ -337,12 +337,32 @@ def main() -> int:
             ),
         ),
         provenance=ifc.Provenance(
+            # The organizer's own category for B1 is kept. Downgrading it here
+            # would misreport the source; the distinction below belongs in the
+            # notes, where a consumer reads it together with the numbers.
             trust="observed",
             sources=["B1 pythia_training_log_existing.csv"],
             notes=(
-                "Validated against B5 and against B4 with the Pythia rows removed. "
-                "B2 is semi-synthetic and B10 is model output, so neither is "
-                "treated as independent validation."
+                "ORGANIZER LABEL: B1 is described as observed Pythia "
+                "training-log data. "
+                "NUMERICAL FINGERPRINT: its val_loss column is consistent with "
+                "a deterministic evaluation of the published Chinchilla law "
+                "down to approximately the storage precision of the file "
+                "(median absolute relative residual against the published "
+                "constants sits at the rounding quantum, while the same test on "
+                "the semi-synthetic control misses by four orders of "
+                "magnitude). "
+                "CONSEQUENCE: these fitted parameters support estimator and "
+                "generator recovery, NOT precise empirical knowledge of how "
+                "real models scale, and the very narrow bootstrap intervals "
+                "must not be read as such. "
+                "EMPIRICAL EXTERNAL SUPPORT comes from B4 with the overlapping "
+                "Pythia rows excluded, and from B5 literature values. B2 is "
+                "semi-synthetic and B10 is model output, so neither is "
+                "independent validation. "
+                "See results/tables/q2-classic-fit.md for the diagnostic and "
+                "results/tables/q2-uncertainty-robustness.md for the interval "
+                "families."
             ),
         ),
     )
