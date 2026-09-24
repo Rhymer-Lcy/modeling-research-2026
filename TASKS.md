@@ -24,7 +24,7 @@
 | T-004 | M1 | refine Git email safety policy | configs/git-email-policy.txt · scripts/ · README.md · AGENTS.md · worklog/M1.md | done | 2026-09-22 |
 | T-005 | M1 | Problem-F intake guard and public-safety checker repair | .gitignore · scripts/check_public_safe.ps1 · scripts/selftest_checker.ps1 · README.md · TASKS.md · worklog/M1.md | done | 2026-09-23 |
 | T-006 | M2 | Problem-F local archive migration, integrity closure, audit import | docs_local/problem-f/ · data_local/problem-f/ · worklog/M2.md | done | 2026-09-23 |
-| T-007 | M2 | Q1 quality/conflict/domain-mixture modeling | src/quality/ · src/mixture/ · scripts/q1_* · results/ · reviews/T-007/ · worklog/M2.md | wip | 2026-09-23 |
+| T-007 | M2 | Q1 quality/conflict/domain-mixture modeling | src/quality/ · src/mixture/ · scripts/q1_* · results/ · reviews/T-007/ · worklog/M2.md | done | 2026-09-24 |
 | T-008 | M1 | Q2 generalized scaling law | src/scaling/ · scripts/q2_* · results/ · reviews/T-008/ · worklog/M1.md | wip | 2026-09-23 |
 | T-009 | M3 | Q4 panel/eligibility/C8 pipeline | src/panel/ · scripts/q4_panel_* · results/ · reviews/T-009/ · worklog/M3.md | done | 2026-09-24 |
 | T-010 | M2 | Q3 compute-constrained resource optimization | src/alloc/ · scripts/q3_* · results/ · reviews/T-010/ · worklog/M2.md | todo | 2026-09-23 |
