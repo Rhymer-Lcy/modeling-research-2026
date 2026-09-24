@@ -4,7 +4,8 @@
 | --- | --- |
 | Task | T-012 |
 | Owner | M1 |
-| Status | **pre-integration readiness complete; final T-012 remains dependency-blocked** |
+| Status | **PRE-INTEGRATION CHECKPOINT REVIEWED — ACCEPTED FOR MERGE**; final T-012 remains dependency-blocked |
+| Disposition | Supervisory review passed at `36abefc`. See "Final disposition" below. |
 | Timestamp | 2026-09-24T11:30:00+08:00 |
 | Base | `87fbce3` (accepted `main`) |
 | Branch / PR | `chore/m1-T012-preintegration` / draft PR |
@@ -221,6 +222,23 @@ review-time acceptance conditions, not new schema fields.
 public-safety gate passes. T-012 remains `todo`; the dependency graph is
 unchanged; PR #9 remains draft and unmerged. No scientific code, numerical
 artifact, `TASKS.md` entry, another member's path, or PR #8 was touched.
+
+## Final disposition
+
+**PRE-INTEGRATION CHECKPOINT REVIEWED — ACCEPTED FOR MERGE.**
+
+Supervisory review of the checkpoint passed at `36abefc`. The checkpoint is
+merged as **integration governance**. What that does and does not mean, stated
+explicitly so the merge cannot later be read as more than it is:
+
+* **Merging this checkpoint does NOT start final T-012 integration.**
+* **T-012 remains `todo`** in `TASKS.md`, which is unchanged by this closeout.
+* **G1-G5 remain unmet** exactly as recorded above: T-007 `wip`, T-008 `wip`
+  with a draft PR open, T-010 `todo`, T-009 `wip`, T-011 `todo`.
+* **Final T-012 still requires T-010 + T-011.** The dependency
+  `T-010 + T-011 -> T-012` is unchanged and remains authoritative.
+* No scientific content, readiness conclusion, evidence state or gate state was
+  altered by this closeout. It records a disposition only.
 
 ## Next action — exact trigger for resuming T-012
 
