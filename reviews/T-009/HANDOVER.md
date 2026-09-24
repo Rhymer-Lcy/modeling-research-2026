@@ -5,10 +5,10 @@
 | Task | T-009 |
 | Owner | M3 |
 | Status | wip |
-| Timestamp | 2026-09-24T02:00:00+08:00 |
-| Base | `d9ded87` |
-| HEAD | `bbef60f` |
-| Branch / PR | `exp/m3-T009-q4-panel` (no PR: push blocked, see Known limitations) |
+| Timestamp | 2026-09-24T13:27:02+08:00 |
+| Base | `3da3b1a` (accepted `main`; synchronized in by merge `bc48abd`) |
+| HEAD | `bc48abd` (synchronization merge; this handover is its child) |
+| Branch / PR | `exp/m3-T009-q4-panel` -> Draft PR #10 (https://github.com/Rhymer-Lcy/modeling-research-2026/pull/10) |
 
 ## Scope
 
@@ -93,7 +93,8 @@ python scripts/q4_panel_build.py         # writes the six panel artifacts + CSV
 python scripts/q4_panel_detail.py        # writes q4-detailed-task-analysis.md (BBH/MUSR only)
 python scripts/q4_panel_selftest.py      # PASS (28 assertions)
 python scripts/selftest_interfaces.py    # PASS (21 assertions)
-powershell -File scripts/check_public_safe.ps1 -Mode PreCommit   # PASS (75 files)
+powershell -File scripts/check_public_safe.ps1 -Mode PreCommit   # PASS (86 files)
+powershell -File scripts/check_public_safe.ps1 -Mode PrePush     # PASS (86 files, 29 commits, 4 addresses)
 git diff --check                         # clean
 ```
 
@@ -146,10 +147,18 @@ git diff --check                         # clean
   failed during development (wrong `_gpqa` call signature in the test itself)
   and was fixed — the checks demonstrably can fail.
 - `scripts/selftest_interfaces.py` — 21 assertions, PASS.
-- `scripts/check_public_safe.ps1 -Mode PreCommit` — PASS, 75 files.
-- `git diff --check` — clean.
-- All nine tracked result artifacts regenerate from their scripts; no value is
+- `scripts/check_public_safe.ps1 -Mode PreCommit` — PASS, 86 files.
+- `scripts/check_public_safe.ps1 -Mode PrePush` — PASS, 86 files, 29 commits,
+  4 addresses (2 by approved suffix, 2 by approved exact rule).
+- `git diff --check` — clean. Its only output is Git's CRLF-normalisation
+  notice under `core.autocrlf=true`; there is no whitespace error.
+- All nine tracked result artifacts regenerate from their scripts and are
+  **byte-identical** to the committed blobs (verified with `git hash-object`
+  against `HEAD:<path>` for each of the seven the scripts rewrite); no value is
   hand-edited into an artifact.
+- This whole surface was re-run on the synchronized branch (base `3da3b1a`,
+  merge `bc48abd`) and every count above is unchanged from the pre-sync run:
+  the main merge moved no T-009 number.
 
 ## Interfaces and downstream impact
 
@@ -175,10 +184,15 @@ rows (duplicate keys, distinct score vectors); the training-compute field
 
 - The original execution specified a branch+push+PR; the work landed on
   `main` locally first (two commits `28cf330`, `25febc5`). The corrective
-  round moved the review surface to branch `exp/m3-T009-q4-panel` (now at
-  `bbef60f`) and made all further commits there. Local `main` still points at
-  `25febc5` and has **not** been reset or force-pushed; M1 decides whether to
-  move it.
+  round moved the review surface to branch `exp/m3-T009-q4-panel` and made all
+  further commits there. Local `main` still points at `25febc5` and has **not**
+  been reset or force-pushed; M1 decides whether to move it.
+- The accepted `main` (`3da3b1a`) was newer than this branch, so at operational
+  closeout it was synchronized in by a **merge** commit (`bc48abd`): no rebase,
+  no force-push, no conflict. Nothing on the branch was overwritten by stale
+  main content. The merge brought in `TASKS.md`, the `paper/` format and
+  integration files, `reviews/T-012`, `reviews/T-014`, and the
+  `worklog/specs/` T-007/T-009/T-012/T-014 specifications.
 
 ## Negative results and rejected alternatives
 
@@ -211,16 +225,17 @@ rows (duplicate keys, distinct score vectors); the training-compute field
 - `src/panel/detail.py` hard-codes the quarantine as module constants
   (`QUARANTINED_DIMENSIONS`); if the MATH source issue is later resolved, those
   constants and the selftest must change in the same commit.
-- **Push is blocked**: `origin` is the read-only `gitclone.com` mirror
-  (`https://gitclone.com/github.com/Rhymer-Lcy/modeling-research-2026.git`),
-  which returns 502/504 on push; a direct `github.com` connection resets and
-  SSH is blocked. All five commits exist only locally on
-  `exp/m3-T009-q4-panel`; no PR can be opened until a writable remote is
-  available.
+- ~~Push is blocked~~ — **resolved**. The writable remote is `m3write`
+  (`https://github.com/Rhymer-Lcy/modeling-research-2026.git`); `origin` is
+  still the read-only `gitclone.com` mirror and must not be pushed to.
+  `exp/m3-T009-q4-panel` is published on `m3write` and Draft PR #10 is open, so
+  the earlier statements here and in `worklog/M3.md` that push was blocked, that
+  the commits existed only locally, or that no PR could be opened are **stale
+  and no longer true**.
 
 ## Next action
 
-Provide a writable upstream (or a proxy) for `github.com/Rhymer-Lcy/
-modeling-research-2026` so `exp/m3-T009-q4-panel` can be pushed and a Draft PR
-opened; then M3 moves to T-011 with the panel and the BBH/MUSR task-level
-evidence as input.
+Await M1's review of Draft PR #10 (`exp/m3-T009-q4-panel` -> `main`); M3 does
+**not** merge it. No writable-remote blocker remains. After M1 accepts, M3
+moves to T-011 with the panel and the BBH/MUSR task-level evidence as input.
+**T-011 has not been started.**
