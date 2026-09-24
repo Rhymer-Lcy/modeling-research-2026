@@ -20,7 +20,7 @@ numbers of choices reach a common scale before being combined.
 - model directories: 1,863
 - usable records: 1,860
 - unparsable files: 4 (listed below, skipped and counted)
-- records carrying all six dimensions: 1,856
+- records carrying all six dimensions: 1,854
 - exact-join matches against the summary: 1,858
 
 The join is exact on the model identifier both sides already carry. No
@@ -35,14 +35,14 @@ Tolerance 0.5 percentage points.
 | IFEval | 1,854 | 0.0000 | 0.0000 | 50.8157 | 97.6% |
 | BBH | 1,858 | 0.0000 | 0.0000 | 13.7534 | 98.3% |
 | MATH Lvl 5 | 1,855 | 1.9294 | 18.2854 | 62.5378 | 15.4% |
-| GPQA | 1,854 | 0.3952 | 1.3042 | 17.4155 | 59.1% |
+| GPQA | 1,852 | 0.0000 | 0.0000 | 17.8971 | 98.0% |
 | MUSR | 1,854 | 0.0000 | 0.0000 | 9.6083 | 98.1% |
 | MMLU-PRO | 1,854 | 0.0000 | 0.0000 | 14.9970 | 98.3% |
 
-Overall within tolerance: 8,658/11,129 = 77.80%
+Overall within tolerance: 9,378/11,127 = 84.28%
 
-- Reconciled (4/6): BBH, IFEval, MMLU-PRO, MUSR
-- Quarantined (2/6): GPQA, MATH Lvl 5
+- Reconciled (5/6): BBH, GPQA, IFEval, MMLU-PRO, MUSR
+- Quarantined (1/6): MATH Lvl 5
 
 Verdict: **PARTIAL**. The reconciled dimensions are reproduced from
 the raw records to the published value, confirming the parsing, the
@@ -51,12 +51,14 @@ dimensions are not usable for per-task analysis until their cause is
 resolved. The tolerance is left where it is rather than lowered to
 obtain a pass.
 
-Diagnosis: MATH carries raw `exact_match = 0` in the per-task records
-for models the summary scores in the 60s, which is a difference in the
-underlying numbers rather than in normalisation and is consistent with
-the two tables being drawn from different leaderboard result
-repositories. GPQA shows a small systematic offset of about 0.4 points,
-the shape of a run-to-run difference rather than a scaling error.
+Diagnosis: MATH carries raw `exact_match = 0` in every math subtask for
+154 models; 119 of those are scored above zero by the summary (e.g.
+Qwen2.5-32B-Instruct, summary 62.5, raw 0.0), which no normalisation can
+reproduce — the two tables describe different evaluation runs, a source
+mismatch, not a normalisation error. GPQA is reconciled by rescaling the
+harness's pooled accuracy against the 4-way baseline instead of averaging
+per-subtask rescaled scores. The full diagnosis is in
+`results/tables/q4-c8-diagnosis.md`.
 
 ## Unparsable files
 

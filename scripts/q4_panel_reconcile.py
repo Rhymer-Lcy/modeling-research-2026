@@ -129,14 +129,16 @@ def main() -> int:
         print("where it is rather than lowered to obtain a pass.")
         print()
         print("  Diagnosis so far:")
-        print("   - MATH Lvl 5: the per-task records carry raw exact_match = 0 for")
-        print("     models the summary scores in the 60s. This is a difference in")
-        print("     the underlying numbers, not in normalisation, and is consistent")
-        print("     with the two tables being drawn from different leaderboard")
-        print("     result repositories.")
-        print("   - GPQA: a small systematic offset (median 0.40 points) with the")
-        print("     same shape as a run-to-run difference rather than a scaling")
-        print("     error; the normalisation reproduces the right magnitude.")
+        print("   - MATH Lvl 5: 154 models carry raw exact_match = 0 in every math")
+        print("     subtask; 119 of those are scored above zero by the summary (e.g.")
+        print("     Qwen2.5-32B-Instruct: summary 62.5, raw 0.0), which no")
+        print("     normalisation can reproduce. The two tables describe different")
+        print("     evaluation runs/versions for these models.")
+        print("     See results/tables/q4-c8-diagnosis.md.")
+        print("   - GPQA: reconciled by rescaling the harness's pooled accuracy")
+        print("     against the 4-way baseline instead of averaging per-subtask")
+        print("     rescaled scores (the three subtasks have very different sample")
+        print("     sizes, so the average weighted them wrongly by ~0.4 points).")
     print()
 
     worst = frame.reindex(frame["delta"].abs().sort_values(ascending=False).index).head(5)
@@ -208,12 +210,14 @@ def main() -> int:
         "resolved. The tolerance is left where it is rather than lowered to",
         "obtain a pass.",
         "",
-        "Diagnosis: MATH carries raw `exact_match = 0` in the per-task records",
-        "for models the summary scores in the 60s, which is a difference in the",
-        "underlying numbers rather than in normalisation and is consistent with",
-        "the two tables being drawn from different leaderboard result",
-        "repositories. GPQA shows a small systematic offset of about 0.4 points,",
-        "the shape of a run-to-run difference rather than a scaling error.",
+        "Diagnosis: MATH carries raw `exact_match = 0` in every math subtask for",
+        "154 models; 119 of those are scored above zero by the summary (e.g.",
+        "Qwen2.5-32B-Instruct, summary 62.5, raw 0.0), which no normalisation can",
+        "reproduce — the two tables describe different evaluation runs, a source",
+        "mismatch, not a normalisation error. GPQA is reconciled by rescaling the",
+        "harness's pooled accuracy against the 4-way baseline instead of averaging",
+        "per-subtask rescaled scores. The full diagnosis is in",
+        "`results/tables/q4-c8-diagnosis.md`.",
         "",
         "## Unparsable files",
         "",
