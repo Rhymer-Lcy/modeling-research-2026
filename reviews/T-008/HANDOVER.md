@@ -22,7 +22,7 @@ nothing; it reaches a stronger negative conclusion than that, described below.
 - Quality-aware law implemented as a tested callable, with marginal effects,
   elasticities, iso-loss substitution, and the two distinct capacity
   transforms: `src/scaling/quality.py`.
-- 25 executable assertions over the load-bearing mathematics, including a
+- 47 executable assertions over the load-bearing mathematics, including a
   deliberately invalid fixture: `scripts/selftest_quality.py`.
 - Structural and provenance audit of every quality-bearing and large-model
   table, run **before** any quality law was believed:
@@ -61,7 +61,7 @@ python scripts/selftest_interfaces.py
 powershell -File scripts/check_public_safe.ps1 -Mode PreCommit
 ```
 
-`selftest_quality.py` reports PASS 25 / FAIL 0. The three `q2_*` scripts each
+`selftest_quality.py` reports PASS 47 / FAIL 0. The three `q2_*` scripts each
 write the table named above. The classic baseline and the interface self-test
 still reproduce unchanged.
 
@@ -97,9 +97,9 @@ refuses to fit B8.
 
 **B8 is excluded from quality-law estimation until its column semantics are
 resolved.** The three tables do not share a meaning for a column with the same
-name. This is a provenance question — B8's `Q_score` may be a corruption or
-noise fraction, a differently-normalised score, or another quantity entirely —
-and it is recorded rather than guessed.
+name. What `Q_score` measures in B8 **remains unresolved by the available
+provenance**: the official materials do not settle it, and no candidate reading
+is asserted here. The fact is recorded rather than guessed.
 
 ### 3. B8 is clamped
 
@@ -161,9 +161,10 @@ iso-loss slope `dN/dQ < 0` and that moving along it holds loss constant to first
 order; verifies both substitution transforms exactly restore the loss they
 claim to; requires the equivalent-capacity boundary to raise
 `InfeasibleEquivalent` rather than return NaN; and finally feeds a law with
-negative gamma to confirm the sign checks actually flip. PASS 25 / FAIL 0.
+negative gamma to confirm the sign checks actually flip. PASS 47 / FAIL 0.
 
-Three defects were caught during development and fixed rather than papered over:
+Three defects were caught during the v1 stage and fixed rather than papered
+over (the v2 delta records its own separately):
 
 - The first audit run fitted B8 and reported a gamma of 0.001 — the optimiser
   bound — as though it were an estimate. Inspecting the data directly showed the
@@ -184,10 +185,18 @@ Three defects were caught during development and fixed rather than papered over:
 
 ## Interfaces and downstream impact
 
-Consumes nothing new. Produces no new interface object yet: the classic IF3 is
-untouched, and **no generalized IF3 is emitted**, because its `q_term` would
-rest on a form that does not reproduce its own source table to storage
-precision, fitted to one unreplicated grid.
+Consumes nothing new. Produces no new interface object: **no generalized IF3 is
+emitted**, because its `q_term` would rest on a form that does not reproduce its
+own source table to storage precision, fitted to one unreplicated grid.
+
+The classic IF3's **functional form, fitted parameters, schema version and
+validity box are unchanged**. Its **provenance notes were strengthened** by the
+v2 delta to carry the organizer's label for B1, the numerical fingerprint
+finding, the consequence that the fitted parameters support estimator and
+generator recovery rather than precise empirical knowledge of real scaling, and
+the statement that empirical external support comes from B4 with the
+overlapping Pythia rows excluded and from B5. The organizer's `trust` category
+remains `observed`. `validate()` passes.
 
 Downstream tasks may rely on the mathematics being correct and sign-tested, and
 on the provenance findings above. They must **not** rely on a numerical quality
