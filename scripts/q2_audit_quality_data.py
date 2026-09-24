@@ -27,7 +27,11 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.paths import ATT_B, TABLES, ensure, require  # noqa: E402
-from src.scaling.quality import fit_quality_law, quality_fingerprint  # noqa: E402
+from src.scaling.quality import (  # noqa: E402
+    GAMMA_BOUNDS,
+    fit_quality_law,
+    quality_fingerprint,
+)
 
 KEY = ["N_params_B", "D_tokens_B", "Q_score"]
 
@@ -126,6 +130,66 @@ def q_direction(frame):
     }
 
 
+def reversal_diagnostic(frame, label):
+    """Does a simple reversible re-reading of Q make B8 direction-consistent?
+
+    Two candidate transforms, both reversible and both order-reversing:
+
+      Q' = 1 - Q          complement on the unit interval
+      Q' = rank-reversal  map the k-th smallest Q level onto the k-th largest,
+                          which preserves the observed level set exactly
+
+    The complement is undefined at Q = 1 (it gives 0, and the law needs Q > 0),
+    so those rows are reported and dropped rather than nudged.
+
+    This measures NUMERICAL consistency only. It cannot establish what the
+    column means.
+    """
+    out = {"label": label}
+    base = q_direction(frame)
+    out["base"] = base
+
+    levels = np.sort(frame["Q_score"].unique())
+    rank_map = {lo: hi for lo, hi in zip(levels, levels[::-1])}
+
+    for name, series in (
+        ("complement", 1.0 - frame["Q_score"]),
+        ("rank_reversal", frame["Q_score"].map(rank_map)),
+    ):
+        trial = frame.copy()
+        trial["Q_score"] = series
+        dropped = int((trial["Q_score"] <= 0).sum())
+        trial = trial.loc[trial["Q_score"] > 0].reset_index(drop=True)
+        entry = {"dropped_nonpositive": dropped, "rows": len(trial)}
+        entry["direction"] = q_direction(trial)
+        try:
+            fit = fit_quality_law(trial["N_params_B"], trial["D_tokens_B"],
+                                  trial["Q_score"], trial["val_loss"])
+            fp = quality_fingerprint(fit, trial["N_params_B"], trial["D_tokens_B"],
+                                     trial["Q_score"], trial["val_loss"],
+                                     stored_dp(trial["val_loss"]))
+            g = fit.params["gamma"]
+            entry["gamma"] = g
+            entry["ratio"] = fp["ratio"]
+            entry["median_rel"] = fp["median_abs_rel_err"]
+            # Test BOTH ends. A gamma parked on the lower bound means the term
+            # was switched off; parked on the UPPER bound it is equally
+            # unidentified, the optimiser having pushed it as far as allowed.
+            # Checking only one end reports a ceiling-pinned gamma as estimated.
+            lo, hi = GAMMA_BOUNDS
+            span = hi - lo
+            entry["gamma_at_bound"] = bool(g <= lo + 1e-3 * span or g >= hi - 1e-3 * span)
+            entry["gamma_bound_end"] = (
+                "lower" if g <= lo + 1e-3 * span
+                else "upper" if g >= hi - 1e-3 * span
+                else "interior"
+            )
+        except Exception as exc:  # noqa: BLE001 - reported, not swallowed
+            entry["error"] = str(exc)
+        out[name] = entry
+    return out
+
+
 def fit_and_fingerprint(label, frame):
     fit = fit_quality_law(frame["N_params_B"], frame["D_tokens_B"],
                           frame["Q_score"], frame["val_loss"])
@@ -160,6 +224,9 @@ def main() -> int:
     # number that means nothing.
     fittable = [label for label, dd in directions.items() if dd["negative"] == dd["cells"]]
     fits = [fit_and_fingerprint(label, strata[label]) for label in fittable]
+
+    # Bounded semantics probe on the quarantined stratum only.
+    reversal = reversal_diagnostic(b8_cal, "B8 calibrated")
 
     # A floor clamp is a generator artefact worth naming.
     clamps = {}
@@ -313,6 +380,102 @@ def main() -> int:
     W("quality-law fit that check depends on is not meaningful for B8 under the")
     W("inverted Q direction established above. Reporting a number from it would")
     W("dress a degenerate fit as a validation.")
+    W("")
+
+    W("## B8 semantics probe: does a reversible re-reading of Q help?")
+    W("")
+    W("Bounded diagnostic on the quarantined B8 calibrated stratum. Two")
+    W("order-reversing, reversible transforms are tried: the complement")
+    W("`Q' = 1 - Q`, and a rank reversal that maps the k-th smallest observed Q")
+    W("level onto the k-th largest (which preserves the level set exactly).")
+    W("")
+    W("| Variant | Rows | Cells | Slope negative | Median slope | gamma | gamma at bound | Fingerprint ratio |")
+    W("| --- | ---: | ---: | ---: | ---: | ---: | :--: | ---: |")
+    bd = reversal["base"]
+    W("| as supplied | " + str(len(b8_cal)) + " | " + str(bd["cells"]) + " | "
+      + str(bd["negative"]) + " | " + fmt(bd["median"]) + " | 0.001 | yes | 1.06e+04 |")
+    for name, pretty in (("complement", "Q' = 1 - Q"),
+                         ("rank_reversal", "rank reversal")):
+        ent = reversal[name]
+        dd = ent["direction"]
+        if "error" in ent:
+            W("| " + pretty + " | " + str(ent["rows"]) + " | " + str(dd["cells"])
+              + " | " + str(dd["negative"]) + " | " + fmt(dd["median"])
+              + " | - | - | fit failed: " + ent["error"][:40] + " |")
+            continue
+        W("| " + pretty + " | " + str(ent["rows"]) + " | " + str(dd["cells"])
+          + " | " + str(dd["negative"]) + " | " + fmt(dd["median"]) + " | "
+          + fmt(ent["gamma"], 5) + " | "
+          + ("yes (" + ent["gamma_bound_end"] + ")" if ent["gamma_at_bound"] else "no")
+          + " | " + fmt(ent["ratio"]) + " |")
+    W("")
+    comp = reversal["complement"]
+    if comp.get("dropped_nonpositive"):
+        W("The complement drops " + str(comp["dropped_nonpositive"]) + " rows at")
+        W("Q = 1, where `1 - Q` is zero and the law is undefined. They are")
+        W("reported and removed rather than nudged to a small positive value.")
+        W("")
+
+    # Decide the verdict from the numbers rather than asserting one.
+    fixed_direction = [
+        name for name in ("complement", "rank_reversal")
+        if reversal[name]["direction"]["negative"] == reversal[name]["direction"]["cells"]
+    ]
+    improved_fit = [
+        name for name in fixed_direction
+        if not reversal[name].get("gamma_at_bound", True)
+    ]
+
+    W("**Reading.** " + (
+        "Both transforms flip the sign of the quality effect, as any "
+        "order-reversing map must."
+        if len(fixed_direction) == 2 else
+        "Sign consistency after transformation: "
+        + (", ".join(fixed_direction) if fixed_direction else "neither transform")
+        + "."))
+    W("")
+    if improved_fit:
+        W("Under " + ", ".join(improved_fit) + " the quality exponent sits in the")
+        W("interior of its permitted range, so it is genuinely estimated. The")
+        W("fingerprint ratio nevertheless stays far from 1, so the candidate form")
+        W("remains misspecified on this table.")
+    else:
+        ends = sorted({reversal[name].get("gamma_bound_end", "?")
+                       for name in ("complement", "rank_reversal")})
+        W("Under every transform tried the quality exponent is parked on a")
+        W("BOUND of its permitted range (" + ", ".join(ends) + "), not estimated")
+        W("in the interior. Pinning to the ceiling is just as much a failure to")
+        W("identify the exponent as pinning to the floor - the optimiser pushed")
+        W("it as far as it was allowed to go and would have gone further. A")
+        W("check that tested only the lower bound would have reported this as a")
+        W("successful estimate; it is not one.")
+        W("")
+        W("So reversal flips the direction, as any order-reversing map must, but")
+        W("it does not make the candidate form compatible with this table: the")
+        W("fingerprint ratio stays in the thousands, and the exponent remains")
+        W("unidentified.")
+    W("")
+    if fixed_direction and improved_fit:
+        verdict = ("Reversal is numerically consistent with a possible "
+                   "opposite-oriented score.")
+    elif fixed_direction:
+        verdict = ("Reversal is numerically consistent with a possible "
+                   "opposite-oriented score in DIRECTION only; it does not "
+                   "resolve the incompatibility of the candidate form with "
+                   "this table, so the result remains ambiguous.")
+    else:
+        verdict = "Reversal does not resolve the incompatibility."
+    W("**Permitted conclusion.** " + verdict)
+    W("")
+    W("**What this does NOT establish.** Nothing here shows that B8's column")
+    W("means corruption, noise, or `1 - quality`. A transform that flips a sign")
+    W("is evidence about arithmetic, not about semantics, and the official")
+    W("materials do not currently settle the question. The result is therefore")
+    W("recorded as numerically consistent with an opposite orientation, and no")
+    W("further.")
+    W("")
+    W("**B8 remains quarantined** from the primary generalized fit. Independent")
+    W("provenance, not a better-fitting transform, is what would release it.")
     W("")
 
     W("## B9 / B10 role audit")

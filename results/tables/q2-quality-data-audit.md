@@ -119,6 +119,50 @@ quality-law fit that check depends on is not meaningful for B8 under the
 inverted Q direction established above. Reporting a number from it would
 dress a degenerate fit as a validation.
 
+## B8 semantics probe: does a reversible re-reading of Q help?
+
+Bounded diagnostic on the quarantined B8 calibrated stratum. Two
+order-reversing, reversible transforms are tried: the complement
+`Q' = 1 - Q`, and a rank reversal that maps the k-th smallest observed Q
+level onto the k-th largest (which preserves the level set exactly).
+
+| Variant | Rows | Cells | Slope negative | Median slope | gamma | gamma at bound | Fingerprint ratio |
+| --- | ---: | ---: | ---: | ---: | ---: | :--: | ---: |
+| as supplied | 984 | 90 | 0 | 0.5521 | 0.001 | yes | 1.06e+04 |
+| Q' = 1 - Q | 906 | 90 | 90 | -0.5045 | 10 | yes (upper) | 5874 |
+| rank reversal | 984 | 90 | 90 | -0.5051 | 10 | yes (upper) | 6815 |
+
+The complement drops 78 rows at
+Q = 1, where `1 - Q` is zero and the law is undefined. They are
+reported and removed rather than nudged to a small positive value.
+
+**Reading.** Both transforms flip the sign of the quality effect, as any order-reversing map must.
+
+Under every transform tried the quality exponent is parked on a
+BOUND of its permitted range (upper), not estimated
+in the interior. Pinning to the ceiling is just as much a failure to
+identify the exponent as pinning to the floor - the optimiser pushed
+it as far as it was allowed to go and would have gone further. A
+check that tested only the lower bound would have reported this as a
+successful estimate; it is not one.
+
+So reversal flips the direction, as any order-reversing map must, but
+it does not make the candidate form compatible with this table: the
+fingerprint ratio stays in the thousands, and the exponent remains
+unidentified.
+
+**Permitted conclusion.** Reversal is numerically consistent with a possible opposite-oriented score in DIRECTION only; it does not resolve the incompatibility of the candidate form with this table, so the result remains ambiguous.
+
+**What this does NOT establish.** Nothing here shows that B8's column
+means corruption, noise, or `1 - quality`. A transform that flips a sign
+is evidence about arithmetic, not about semantics, and the official
+materials do not currently settle the question. The result is therefore
+recorded as numerically consistent with an opposite orientation, and no
+further.
+
+**B8 remains quarantined** from the primary generalized fit. Independent
+provenance, not a better-fitting transform, is what would release it.
+
 ## B9 / B10 role audit
 
 | Property | B9 `supplementary_large_models.csv` | B10 `supplementary_large_baseline.csv` |
