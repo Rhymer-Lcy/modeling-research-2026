@@ -314,12 +314,6 @@ The input audit and scalarization contract remain independently executable.
 
 ## Execution/reproducibility deviations
 
-Active continuation metadata at 2026-09-24T16:45:42.052+08:00 confirmed
-the required runtime and effort xhigh / configured_effort xhigh before
-scientific execution. Earlier high-effort preflights stopped. No substitution
-occurred in this continuation; model-name removal from Markdown follows the
-user's later explicit instruction.
-
 As reported by M1, prior formal execution began with Fable 5.1 API and
 continued with Sonnet 5 after quota exhaustion. That differed from the
 requested model/effort and remains an execution/reproducibility deviation;
