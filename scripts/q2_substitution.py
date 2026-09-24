@@ -12,11 +12,14 @@ negative, so ``dN/dQ = -L_Q/L_N`` is negative: better data needs FEWER
 parameters for the same loss. The common error is to report it positive.
 
 STATUS. The candidate form is NOT adopted and no generalized IF3 exists. The
-audit shows it is misspecified on B7 at storage precision, so the fitted gamma
-is a best approximation of a rejected form, not a recovered constant. The
-analytical identities above are exact consequences of the form; the numerical
-values are model-internal illustrative sensitivity on a designed, unreplicated,
-semi-synthetic grid, and are not the final Q2 empirical substitution result.
+audit shows the fit does not reproduce B7 to that file's storage precision, so
+the form is not B7's exact recovered generator and the fitted gamma is an
+imperfect approximation under the current fit rather than a recovered constant.
+That is a statement about reproduction accuracy; no hypothesis test was run and
+the functional form is not rejected. The analytical identities above are exact
+consequences of the form; the numerical values are model-internal illustrative
+sensitivity on a designed, unreplicated, semi-synthetic grid, and are not the
+final Q2 empirical substitution result.
 
 Writes `results/tables/q2-substitution.md`. Regenerate; do not edit.
 
@@ -88,11 +91,17 @@ def main() -> int:
     W("")
     W("> **Status of this document.** `(Q^gamma * D)` is a CANDIDATE form. It is")
     W("> **not adopted**, and no generalized IF3 has been emitted. The audit in")
-    W("> `q2-quality-data-audit.md` shows the form is **misspecified on B7 at")
-    W("> storage precision** (fingerprint ratio in the hundreds, not near 1), so")
-    W("> the fitted gamma is **not** a recovered generator constant - it is a")
-    W("> best approximation of a form the data reject, obtained on a single")
-    W("> designed, unreplicated, semi-synthetic grid.")
+    W("> `q2-quality-data-audit.md` shows the fitted form **does not reproduce")
+    W("> B7 to that file's storage precision** (fingerprint ratio in the")
+    W("> hundreds, not near 1).")
+    W(">")
+    W("> What that supports is narrow, and is stated narrowly: the form is **not")
+    W("> B7's exact recovered generator**, and the fitted gamma is an")
+    W("> **imperfect approximation under the current fit** rather than a")
+    W("> recovered constant, obtained on a single designed, unreplicated,")
+    W("> semi-synthetic grid. It is a reproduction-accuracy statement - no noise")
+    W("> model is posited and no hypothesis is tested - so it does **not**")
+    W("> amount to a statistical rejection of the functional form.")
     W(">")
     W("> This document therefore contains two different kinds of statement, and")
     W("> they are kept apart throughout:")
@@ -112,7 +121,8 @@ def main() -> int:
     W("")
     W("These follow from the candidate form alone and hold for every parameter")
     W("vector in the valid region (A, B, alpha, beta, gamma all positive). They")
-    W("do not depend on the B7 fit and are unaffected by its misspecification.")
+    W("do not depend on the B7 fit, and are unaffected by how closely that fit")
+    W("reproduces B7.")
     W("")
     W("* `dL/dN < 0`, `dL/dD < 0`, `dL/dQ < 0`.")
     W("* Along a curve of constant loss, `dN/dQ = -L_Q / L_N`. Both partials are")

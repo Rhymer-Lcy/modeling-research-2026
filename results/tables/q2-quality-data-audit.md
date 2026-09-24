@@ -99,13 +99,22 @@ its own storage precision.
 | B6 | 360 | 1.2088 | 0.2791 | 0.059172 | 0.01786 | 1.939e-05 | **920.9** |
 | B7 | 450 | 1.1887 | 0.27404 | 0.069882 | 0.01681 | 1.942e-05 | **865.3** |
 
-The ratios are in the hundreds, not near 1. So the candidate form does
-**not** reproduce B6/B7 to their storage precision either: it leaves a
+The ratios are in the hundreds, not near 1. So the fitted candidate form
+does **not** reproduce B6/B7 to their storage precision: it leaves a
 median relative residual of order 1.7%, against a rounding quantum of
-order 2e-05. Unlike the classic N-D law on the principal table, this is
-*not* a generator recovery - the supplied quality mechanism is not the
-`(Q^gamma * D)` effective-token form. The fitted gamma is a
-best-approximation under a misspecified form, and is reported as such.
+order 2e-05.
+
+What that supports is deliberately narrow. Unlike the classic N-D law on
+the principal table, this is **not a generator recovery**: the
+`(Q^gamma * D)` effective-token form, at this fit, is not the exact
+mechanism that produced these tables. The fitted gamma is therefore an
+**imperfect approximation under the current fit**, not a recovered
+generator constant.
+
+This is a statement about reproduction accuracy, not a statistical test.
+No noise model is posited and no hypothesis is tested here, so the
+diagnostic cannot and does not reject the functional form. It says only
+that this fit is not the table's exact generator.
 
 ## B8 strata kept separate
 
@@ -198,10 +207,12 @@ outside, which is an IF1 dependency, not something recoverable here.
    column. B8 is excluded from quality-law estimation until its
    semantics are resolved; it is not pooled, and not reported as
    corroboration.
-3. The candidate `(Q^gamma * D)` effective-token form does **not**
-   reproduce B6/B7 to storage precision. gamma is therefore a
-   best-approximation under a form the data do not support exactly, not
-   a recovered generator constant.
+3. The fitted `(Q^gamma * D)` effective-token form does **not** reproduce
+   B6/B7 to storage precision, so it is not their exact recovered
+   generator. gamma is therefore an imperfect approximation under the
+   current fit, not a recovered generator constant. This is a
+   reproduction-accuracy finding, not a statistical rejection of the
+   functional form.
 4. Every quality-bearing table is a designed, unreplicated grid. Any
    quality exponent from them describes the supplied mechanism and must
    not be reported as empirical evidence that real models obey it.

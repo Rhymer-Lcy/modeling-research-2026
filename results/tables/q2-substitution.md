@@ -8,11 +8,17 @@ in the source table.
 
 > **Status of this document.** `(Q^gamma * D)` is a CANDIDATE form. It is
 > **not adopted**, and no generalized IF3 has been emitted. The audit in
-> `q2-quality-data-audit.md` shows the form is **misspecified on B7 at
-> storage precision** (fingerprint ratio in the hundreds, not near 1), so
-> the fitted gamma is **not** a recovered generator constant - it is a
-> best approximation of a form the data reject, obtained on a single
-> designed, unreplicated, semi-synthetic grid.
+> `q2-quality-data-audit.md` shows the fitted form **does not reproduce
+> B7 to that file's storage precision** (fingerprint ratio in the
+> hundreds, not near 1).
+>
+> What that supports is narrow, and is stated narrowly: the form is **not
+> B7's exact recovered generator**, and the fitted gamma is an
+> **imperfect approximation under the current fit** rather than a
+> recovered constant, obtained on a single designed, unreplicated,
+> semi-synthetic grid. It is a reproduction-accuracy statement - no noise
+> model is posited and no hypothesis is tested - so it does **not**
+> amount to a statistical rejection of the functional form.
 >
 > This document therefore contains two different kinds of statement, and
 > they are kept apart throughout:
@@ -31,7 +37,8 @@ in the source table.
 
 These follow from the candidate form alone and hold for every parameter
 vector in the valid region (A, B, alpha, beta, gamma all positive). They
-do not depend on the B7 fit and are unaffected by its misspecification.
+do not depend on the B7 fit, and are unaffected by how closely that fit
+reproduces B7.
 
 * `dL/dN < 0`, `dL/dD < 0`, `dL/dQ < 0`.
 * Along a curve of constant loss, `dN/dQ = -L_Q / L_N`. Both partials are

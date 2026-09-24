@@ -114,16 +114,22 @@ and it is recorded rather than guessed.
 gradient information and would bias any fit including them. B6/B7 show no such
 clamp.
 
-### 4. The candidate form is misspecified even where it is fittable
+### 4. The fitted candidate form does not reproduce B7 to storage precision
 
 On B6/B7 the fingerprint ratio is in the hundreds (≈865 on B7), not near 1: the
 fit leaves a median relative residual of order 1.7% against a rounding quantum
 of order 2e-05. Unlike the classic N-D law on B1, **this is not a generator
-recovery**. The supplied quality mechanism is not the `(Q^gamma * D)`
-effective-token form.
+recovery** — the fitted `(Q^gamma * D)` effective-token form is not the exact
+mechanism behind these tables.
 
-The reported gamma (≈1.19 on B7) is therefore a best approximation under a form
-the data do not support exactly. It is labelled as such in the artifact and must
+Stated precisely, because the distinction matters: this is a
+reproduction-accuracy finding, not a statistical test. No noise model is
+posited and no hypothesis is tested, so the diagnostic does **not** reject the
+functional form. It establishes only that this fit is not B7's exact recovered
+generator.
+
+The reported gamma (≈1.19 on B7) is therefore an imperfect approximation under
+the current fit. It is labelled as such in the artifact and must
 not be quoted as a recovered constant.
 
 ### 5. B9 and B10 roles
@@ -180,7 +186,8 @@ Three defects were caught during development and fixed rather than papered over:
 
 Consumes nothing new. Produces no new interface object yet: the classic IF3 is
 untouched, and **no generalized IF3 is emitted**, because its `q_term` would
-rest on a misspecified form fitted to one unreplicated grid.
+rest on a form that does not reproduce its own source table to storage
+precision, fitted to one unreplicated grid.
 
 Downstream tasks may rely on the mathematics being correct and sign-tested, and
 on the provenance findings above. They must **not** rely on a numerical quality
@@ -198,10 +205,11 @@ rather than producing one under assumptions the audit disproved.
 ## Known limitations and open risks
 
 1. **No generalized law is adopted.** What exists is a tested implementation and
-   an audit that says the candidate form is misspecified on the only usable
-   table.
-2. **gamma is not a measured quantity.** It is a best fit of a form the data
-   reject at storage precision, on a designed unreplicated grid, in one table.
+   an audit showing the fitted candidate form does not reproduce the only
+   usable table to its storage precision.
+2. **gamma is not a measured quantity.** It is an imperfect approximation under
+   the current fit, on a designed unreplicated grid, in one table. Note this is
+   not a statistical rejection of the form — no such test was run.
 3. **B8 is unusable pending provenance.** Roughly two thirds of the
    quality-bearing rows are currently excluded.
 4. **IF1/IF2 are absent** from the canonical interface location; only
@@ -242,9 +250,11 @@ at or below 1.
 The artifact previously called this the adopted form and said the estimator
 recovers the supplied quality mechanism. Both are withdrawn. It now states that
 `(Q^gamma * D)` is a **candidate** form, not adopted, with no generalized IF3
-emitted, misspecified on B7 at storage precision, and that gamma is a best
-approximation of a form the data reject on a single designed, unreplicated,
-semi-synthetic grid.
+emitted; that the fit does not reproduce B7 to that file's storage precision, so
+the form is not B7's exact recovered generator; and that gamma is an imperfect
+approximation under the current fit on a single designed, unreplicated,
+semi-synthetic grid. The artifact also says explicitly that this is a
+reproduction-accuracy statement and not a statistical rejection of the form.
 
 The document is now split into **analytical identities** — exact consequences of
 the candidate form, dataset-independent, machine-checked — and **numerical
