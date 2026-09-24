@@ -211,6 +211,97 @@ rather than producing one under assumptions the audit disproved.
    near-deterministic fit table, not a statement about real model scaling. That
    finding is preserved, not weakened.
 
+## v2 supervisory delta (2026-09-23)
+
+Narrowly scoped correction of three review findings plus one bounded
+diagnostic. The v1 sections above are unchanged; this section records only the
+delta.
+
+### 1. Out-of-validity quality targets — fixed
+
+The substitution scenario table multiplied a base quality by fixed factors and
+so walked outside the fitted box: it printed targets of **1.05** and **1.35**
+while the fitted ceiling is **Q = 1**, reporting extrapolation as though it were
+interpolation.
+
+Fixed structurally, not by deleting the offending rows. `Q_min`/`Q_max` now come
+from the fitted validity box; candidates are clipped to the ceiling; only
+targets satisfying `Q_base < Q_target <= Q_max` survive; duplicates created by
+clipping several multipliers onto the same ceiling are collapsed; and a base
+already at the ceiling yields **no** target, which the artifact states
+explicitly instead of inventing one.
+
+The construction lives in `src.scaling.quality.upward_quality_targets` so it is
+importable and testable, and `scripts/q2_substitution.py` additionally raises on
+the targets it actually emitted — a gate on output, not on intent. The regenerated
+table now carries 7 rows (was 9; two were clipped duplicates) with every target
+at or below 1.
+
+### 2. Claim language — corrected
+
+The artifact previously called this the adopted form and said the estimator
+recovers the supplied quality mechanism. Both are withdrawn. It now states that
+`(Q^gamma * D)` is a **candidate** form, not adopted, with no generalized IF3
+emitted, misspecified on B7 at storage precision, and that gamma is a best
+approximation of a form the data reject on a single designed, unreplicated,
+semi-synthetic grid.
+
+The document is now split into **analytical identities** — exact consequences of
+the candidate form, dataset-independent, machine-checked — and **numerical
+illustrations**, explicitly labelled model-internal illustrative sensitivity and
+explicitly **not the final Q2 empirical substitution result**. No mathematics
+was removed and no tested sign derivation was weakened.
+
+### 3. Classic IF3 provenance — hardened
+
+No schema change, and the organizer's `trust` category for B1 is deliberately
+left as `observed` rather than dishonestly downgraded. The provenance notes now
+carry, in order: the organizer's label; the numerical fingerprint finding; the
+consequence that the fitted parameters support estimator and generator recovery
+rather than precise empirical knowledge of real scaling, so the narrow
+intervals must not be read that way; and that empirical external support comes
+from B4 with the overlapping Pythia rows excluded and from B5.
+
+### 4. B8 reversal diagnostic — result
+
+Appended to the existing audit rather than made a new artifact. Two reversible,
+order-reversing transforms were tried on the quarantined B8 calibrated stratum.
+
+| Variant | Cells | Slope negative | Median slope | gamma | At a bound? | Fingerprint ratio |
+| --- | ---: | ---: | ---: | ---: | :--: | ---: |
+| as supplied | 90 | 0 | +0.5521 | 0.001 | yes (lower) | 1.06e+04 |
+| `Q' = 1 - Q` | 90 | 90 | -0.5045 | 10 | yes (**upper**) | 5874 |
+| rank reversal | 90 | 90 | -0.5051 | 10 | yes (**upper**) | 6815 |
+
+Both transforms flip the sign, as any order-reversing map must. Neither
+produces an identified exponent: gamma moves from the lower bound to the
+**upper** bound, and the fingerprint ratio stays in the thousands.
+
+**Permitted conclusion recorded:** reversal is numerically consistent with a
+possible opposite-oriented score **in direction only**; it does not resolve the
+incompatibility of the candidate form with this table, so the result remains
+ambiguous. The artifact states explicitly that nothing here establishes that
+B8 means corruption, noise, or `1 - quality`, and **B8 remains quarantined**.
+
+### A defect this delta caught in its own check
+
+The first run of the reversal diagnostic reported "the exponent leaves its
+lower bound, so the term is estimated". It had moved to the *upper* bound — my
+`gamma_at_bound` test only compared against the floor. A one-directional check
+reported a ceiling-pinned parameter as a successful estimate. The bounds are now
+exported as `GAMMA_BOUNDS` from the module that enforces them, both ends are
+tested, the report names which end, and the conclusion was downgraded
+accordingly.
+
+### Validation of the delta
+
+`selftest_quality.py` PASS **47** / FAIL 0 (was 25; 22 new assertions cover the
+target ceiling, strict improvement, de-duplication, the two specific defect
+values 1.05 and 1.35, and the empty-result case). `selftest_interfaces.py` 21
+assertions pass. Substitution, audit and classic-fit scripts regenerate.
+`git diff --check` clean; public-safety gate passes. No raw data, interface
+schema, or M2/M3 path changed.
+
 ## Next action
 
 M1 raises B8's `Q_score` semantics as a question for the problem's data
