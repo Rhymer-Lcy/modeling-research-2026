@@ -7,7 +7,7 @@
 | Status | wip |
 | Timestamp | 2026-09-24T13:27:02+08:00 |
 | Base | `3da3b1a` (accepted `main`; synchronized in by merge `bc48abd`) |
-| HEAD | `bc48abd` (synchronization merge; this handover is its child) |
+| HEAD | `b733a96` (current branch HEAD / final review head; this handover is its child) |
 | Branch / PR | `exp/m3-T009-q4-panel` -> Draft PR #10 (https://github.com/Rhymer-Lcy/modeling-research-2026/pull/10) |
 
 ## Scope
@@ -94,7 +94,7 @@ python scripts/q4_panel_detail.py        # writes q4-detailed-task-analysis.md (
 python scripts/q4_panel_selftest.py      # PASS (28 assertions)
 python scripts/selftest_interfaces.py    # PASS (21 assertions)
 powershell -File scripts/check_public_safe.ps1 -Mode PreCommit   # PASS (86 files)
-powershell -File scripts/check_public_safe.ps1 -Mode PrePush     # PASS (86 files, 29 commits, 4 addresses)
+powershell -File scripts/check_public_safe.ps1 -Mode PrePush     # PASS (86 files, 30 commits, 4 addresses)
 git diff --check                         # clean
 ```
 
@@ -148,7 +148,7 @@ git diff --check                         # clean
   and was fixed — the checks demonstrably can fail.
 - `scripts/selftest_interfaces.py` — 21 assertions, PASS.
 - `scripts/check_public_safe.ps1 -Mode PreCommit` — PASS, 86 files.
-- `scripts/check_public_safe.ps1 -Mode PrePush` — PASS, 86 files, 29 commits,
+- `scripts/check_public_safe.ps1 -Mode PrePush` — PASS, 86 files, 30 commits,
   4 addresses (2 by approved suffix, 2 by approved exact rule).
 - `git diff --check` — clean. Its only output is Git's CRLF-normalisation
   notice under `core.autocrlf=true`; there is no whitespace error.
@@ -185,14 +185,18 @@ rows (duplicate keys, distinct score vectors); the training-compute field
 - The original execution specified a branch+push+PR; the work landed on
   `main` locally first (two commits `28cf330`, `25febc5`). The corrective
   round moved the review surface to branch `exp/m3-T009-q4-panel` and made all
-  further commits there. Local `main` still points at `25febc5` and has **not**
-  been reset or force-pushed; M1 decides whether to move it.
+  further commits there. Local `main` later advanced to `bcb4c96` (a pull-merge
+  of the remote `main`); it has never been reset or force-pushed.
 - The accepted `main` (`3da3b1a`) was newer than this branch, so at operational
   closeout it was synchronized in by a **merge** commit (`bc48abd`): no rebase,
   no force-push, no conflict. Nothing on the branch was overwritten by stale
   main content. The merge brought in `TASKS.md`, the `paper/` format and
   integration files, `reviews/T-012`, `reviews/T-014`, and the
   `worklog/specs/` T-007/T-009/T-012/T-014 specifications.
+  A second synchronization followed the same policy: local `main` advanced to
+  `bcb4c96` and was merged into the branch as `b733a96` (the current review
+  HEAD) — no rebase, no force-push, no conflict; the merge changed no file
+  content.
 
 ## Negative results and rejected alternatives
 
@@ -226,8 +230,9 @@ rows (duplicate keys, distinct score vectors); the training-compute field
   (`QUARANTINED_DIMENSIONS`); if the MATH source issue is later resolved, those
   constants and the selftest must change in the same commit.
 - ~~Push is blocked~~ — **resolved**. The writable remote is `m3write`
-  (`https://github.com/Rhymer-Lcy/modeling-research-2026.git`); `origin` is
-  still the read-only `gitclone.com` mirror and must not be pushed to.
+  (`git@github.com:Rhymer-Lcy/modeling-research-2026.git`, SSH); `origin` now
+  points at the same GitHub repository (it was the read-only `gitclone.com`
+  mirror) and is likewise not used for pushes.
   `exp/m3-T009-q4-panel` is published on `m3write` and Draft PR #10 is open, so
   the earlier statements here and in `worklog/M3.md` that push was blocked, that
   the commits existed only locally, or that no PR could be opened are **stale
