@@ -31,6 +31,7 @@
 | T-011 | M3 | Q4 decomposition/bridge/frontier forecast | src/evolution/ · scripts/q4_* · results/ · reviews/T-011/ · worklog/M3.md | todo | 2026-09-23 |
 | T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · reviews/T-012/ · worklog/M1.md | todo | 2026-09-23 |
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | wip | 2026-09-23 |
+| T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
 
 ## Problem-F dependency graph
 
@@ -51,6 +52,10 @@ T-010 + T-011 -> T-012
   的接口（IF1/IF2）之前不得关闭。
 - T-010 的求解器可先对解析夹具开发；在 T-008 交付 IF3 之前不产出任何 Q3 科学结论。
 - 接口契约 IF1-IF4 由 M1 负责其模式定义，由各自实现者负责其数值内容。
+- **T-014 同样不在上面这张科学依赖图里。** 它是稿件格式合规任务：把组委会 2026 年
+  官方格式文件归档到被忽略的本地目录，并据此校正 LaTeX 实现。它既不是
+  T-007…T-012 的前置，也不被它们阻塞；T-008 的科研进度不得因它而等待。官方原件
+  只存在于 `docs_local/`，永不进入版本库；逐条对照结论写在 `paper/FORMAT_2026.md`。
 - **T-013 是协调任务，不在上面这张科学依赖图里**，既不是 T-007…T-012 的前置，
   也不被它们阻塞。它维护的是评审包与规范提示词这两条协作约定本身；约定的细则
   写在 `AGENTS.md`，模板在 `reviews/` 与 `worklog/specs/`。T-013 在整个项目期间

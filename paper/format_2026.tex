@@ -1,0 +1,105 @@
+% 2026 manuscript-format compatibility layer.
+%
+% Loaded from paper/main.tex AFTER \documentclass{gmcmthesis}. It overrides only
+% what the organizer's 2026 manuscript-format specification requires, so the
+% third-party class under paper/template/ stays unmodified and git-ignored.
+%
+% Every override below cites the official requirement it implements. The
+% requirement-by-requirement audit, including what was checked and found already
+% compliant, is in paper/FORMAT_2026.md.
+%
+% Each patch fails LOUDLY. A silently skipped patch would leave a
+% non-conforming manuscript that still builds, which is the failure mode this
+% file exists to prevent.
+
+\makeatletter
+
+% ---------------------------------------------------------------------------
+% 1. Single line spacing.
+%
+% Official rule: body text uses single line spacing.
+% Class behaviour: gmcmthesis.cls sets \baselinestretch to 1.38.
+%
+% setspace is already loaded by the class, so \singlespacing is the
+% setspace-aware way to do this; it also fixes the stretch applied to
+% footnotes and displayed material.
+% ---------------------------------------------------------------------------
+\singlespacing
+
+% ---------------------------------------------------------------------------
+% 2. No running header, and the page number centred in the footer.
+%
+% Official rules: the paper must carry no running header, and the page number
+% must sit in the middle of the footer of every page.
+% Observed behaviour: body pages of the unpatched build carry a running header
+% holding the current section name, and put the page number in the top right
+% corner instead of the footer.
+%
+% \ps@plain is redefined rather than patched because the requirement is
+% absolute: no header, page number centred in the foot, on every page that is
+% numbered at all. The identity cover keeps the class's \thispagestyle{empty},
+% so it stays unnumbered, and the abstract page keeps \thispagestyle{plain} and
+% therefore becomes page 1 in the footer centre.
+% ---------------------------------------------------------------------------
+\renewcommand{\ps@plain}{%
+  \renewcommand{\@oddhead}{}%
+  \renewcommand{\@evenhead}{}%
+  \renewcommand{\@oddfoot}{\hfil\normalfont\normalsize\thepage\hfil}%
+  \renewcommand{\@evenfoot}{\@oddfoot}%
+}
+% Assert the default style at the start of the document so that a page style
+% selected by the class during \maketitle cannot leave the body on \headings.
+\AtBeginDocument{\pagestyle{plain}}
+
+% ---------------------------------------------------------------------------
+% 3. Drop the stale cover logo row.
+%
+% The class draws paper/template/figures/logo.pdf across the top of the
+% identity cover. That asset belongs to the PREVIOUS edition of the
+% competition, and it is wrong in two independent ways:
+%
+%   a. the host-university seal it shows is China University of Mining and
+%      Technology, the previous edition's host, whereas the organizer's 2026
+%      template shows Xi'an Jiaotong University;
+%
+%   b. it carries an INVISIBLE text layer. The seal art is what renders, but
+%      the asset also contains selectable text naming the previous edition of
+%      the competition, plus a duplicate set of identity labels. Extracting the
+%      text of a manuscript built with it therefore reports the wrong
+%      competition edition even though the visible cover is correct.
+%
+% Clipping the asset would hide (a) but not (b), because clipping is a visual
+% operation and leaves the text operators in the content stream. The asset is
+% third-party and git-ignored, so it must not be edited in place either.
+% It is therefore dropped from the cover.
+%
+% The cover TITLE is a separate asset and is NOT dropped: it was rendered and
+% inspected, shows the correct 2026 edition, and carries no text layer.
+%
+% Consequence recorded in paper/FORMAT_2026.md: the competition cover carries
+% no logo row. The organizer's own 2026 logo row cannot be redistributed
+% through this repository, and showing the previous host's seal would be a
+% factual error on the cover of a 2026 submission.
+% ---------------------------------------------------------------------------
+\@ifundefined{ge@maketitle}{%
+  \ClassError{format2026}{%
+    gmcmthesis internal macro \string\ge@maketitle\space not found%
+  }{%
+    The pinned document class changed. Re-audit paper/FORMAT_2026.md before
+    building a submission.%
+  }%
+}{%
+  \patchcmd{\ge@maketitle}%
+    {{\includegraphics{logo}}}%
+    {}%
+    {\typeout{format2026: cover logo row removed}}%
+    {\ClassError{format2026}{%
+       could not remove the cover logo row%
+     }{%
+       The expected \string\includegraphics{logo} call was not found in
+       \string\ge@maketitle. The pinned document class changed. Re-audit
+       paper/FORMAT_2026.md before building a submission.%
+     }}%
+}
+
+\makeatother

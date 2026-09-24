@@ -11,6 +11,12 @@
 
 \documentclass{gmcmthesis}
 
+% 2026 manuscript-format compatibility layer. Must be loaded after the document
+% class: it overrides the class where the class disagrees with the organizer's
+% 2026 specification. See paper/FORMAT_2026.md for the requirement-by-
+% requirement audit behind each override.
+\input{format_2026}
+
 \usepackage{booktabs}
 \usepackage{subfig}
 \usepackage{siunitx}
@@ -45,8 +51,13 @@
 \input{sections/00-abstract}
 \end{abstract}
 
-\tableofcontents
-\newpage
+% No table of contents in the competition build.
+%
+% The organizer's 2026 specification states that the page FOLLOWING the
+% abstract page begins the paper body, and nothing in the official
+% specification or the official Word template calls for a table of contents.
+% A contents page between the two would therefore push the body one page later
+% than the rule allows. See paper/FORMAT_2026.md.
 
 \input{sections/01-restatement}
 \input{sections/02-analysis}
@@ -55,6 +66,7 @@
 \input{sections/05-1-model-q1}
 \input{sections/05-2-model-q2}
 \input{sections/05-3-model-q3}
+\input{sections/05-4-model-q4}
 \input{sections/06-validation}
 \input{sections/07-evaluation}
 
