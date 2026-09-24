@@ -18,7 +18,7 @@ from src.quality.handoff import build_if1
 from src.quality.pipeline import QUALITY_DOMAINS
 from src.mixture.data import MixtureTable, LossTable, normalised_proportions
 from src.mixture.validation import select_training_model, evaluate
-from src.mixture.closure import acceptance_checks, limited_extrapolation, validation_intervals
+from src.mixture.closure import acceptance_checks, limited_extrapolation, scope_release_receipt, validation_intervals
 from src.interfaces import Provenance
 
 
@@ -148,6 +148,26 @@ class ClosureChecks(unittest.TestCase):
         baseline=deepcopy(reports)
         pairs={'A10':(test,y)}
         self.assertTrue(acceptance_checks(fit,reports,baseline,pairs,settings)['release_pass'])
+        acceptance = acceptance_checks(fit,reports,baseline,pairs,settings)
+        scope = scope_release_receipt(fit, reports, acceptance)
+        self.assertFalse(scope['scope_release_pass'])
+        self.assertEqual(scope['fit_scale'], '1M')
+        self.assertEqual(scope['release_validation_partition'], 'A6_A7')
+        invalid_scope = deepcopy(reports)
+        invalid_scope['A6_A7']['role'] = 'wrong-role'
+        with self.assertRaises(ValueError):
+            scope_release_receipt(fit, invalid_scope, acceptance)
+        invalid_acceptance = dict(acceptance)
+        invalid_acceptance['in_design_pass'] = False
+        self.assertFalse(scope_release_receipt(fit, reports, invalid_acceptance)['scope_release_pass'])
+        invalid_acceptance = dict(acceptance)
+        invalid_acceptance['release_pass'] = False
+        invalid_acceptance['absolute_transfer_pass'] = {
+            'A6_A7': True, 'A8_A9': False, 'A10_A11': False,
+        }
+        invalid_acceptance['out_of_design_shape_pass'] = False
+        invalid_acceptance['scale_invariance_supported'] = False
+        self.assertTrue(scope_release_receipt(fit, reports, invalid_acceptance)['scope_release_pass'])
         invalid=deepcopy(reports)
         invalid['A6_A7']['absolute']['macro']['r2']['mean']=-1.
         self.assertFalse(acceptance_checks(fit,invalid,baseline,pairs,settings)['release_pass'])

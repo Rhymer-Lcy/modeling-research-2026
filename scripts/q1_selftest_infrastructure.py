@@ -31,6 +31,7 @@ from src.mixture.model import fit_all, predict, substitution_effect
 from src.mixture.validation import (select_training_model, prediction_matrix, evaluate,
                                     paired_scale_analysis, compare_estimated_reference)
 from src.mixture.handoff import build_if2, encode_if2
+from src.mixture.closure import scope_release_receipt
 from scripts.q1_mixture import render_validation
 from scripts.q1_quality import render_quality
 from scripts import q1_mixture, q1_quality
@@ -282,9 +283,18 @@ class InterfaceBuilderChecks(unittest.TestCase):
         validations = {key: evaluate(frozen, testmix, testloss, partition=key)
                        for key in ('A6_A7', 'A8_A9', 'A10_A11')}
         refs = {source: compare_estimated_reference(testloss, testloss.values, source=source) for source in ('A13', 'A15')}
-        kwargs = dict(renormalisation='synthetic row division', provenance=Provenance('reference', ['synthetic fixture']))
+        acceptance = {'in_design_pass': True, 'release_pass': False,
+                      'absolute_transfer_pass': {'A6_A7': True, 'A8_A9': False, 'A10_A11': False},
+                      'out_of_design_shape_pass': False, 'scale_invariance_supported': False}
+        scope_release = scope_release_receipt(frozen, validations, acceptance)
+        kwargs = dict(renormalisation='synthetic row division', provenance=Provenance('reference', ['synthetic fixture']),
+                      scope_release=scope_release)
         interface = build_if2(frozen, validations, refs, **kwargs)
         interface.validate()
+        self.assertEqual(interface.fit_scale, '1M')
+        self.assertEqual(interface.validation['scope_release'], scope_release)
+        self.assertFalse(interface.validation['scope_release']['limitations']['scale_invariance_supported'])
+        self.assertEqual(interface.validation['scope_release']['limitations']['absolute_use_outside_1M'], 'PROHIBITED')
         self.assertEqual(len(interface.domains_without_loss), 4)
         blob = encode_if2(interface)
         again = build_if2(frozen, validations, refs, **kwargs)
@@ -296,6 +306,15 @@ class InterfaceBuilderChecks(unittest.TestCase):
         self.assertIn(frozen.model_sha256, text)
         with self.assertRaises(ValueError):
             build_if2(frozen, {}, refs, **kwargs)
+        invalid = dict(scope_release)
+        invalid['frozen_model_sha256'] = '0' * 64
+        with self.assertRaises(ValueError):
+            build_if2(frozen, validations, refs, **{**kwargs, 'scope_release': invalid})
+        invalid = dict(scope_release)
+        invalid['limitations'] = dict(scope_release['limitations'])
+        invalid['limitations']['absolute_use_outside_1M'] = 'ALLOWED'
+        with self.assertRaises(ValueError):
+            build_if2(frozen, validations, refs, **{**kwargs, 'scope_release': invalid})
         refs['A13']['fit_use'] = True
         with self.assertRaises(ValueError):
             build_if2(frozen, validations, refs, **kwargs)

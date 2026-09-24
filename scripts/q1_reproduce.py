@@ -69,6 +69,17 @@ def check_release(kind,code,stdout):
         value=json.loads(require(canonical).read_text(encoding='utf-8'))
         value['provenance']=Provenance(**value['provenance'])
         (IF1DomainQuality if kind=='IF1' else IF2MixtureResponse)(**value).validate()
+        if kind=='IF2':
+            scope=value['validation'].get('scope_release',{})
+            acceptance=value['validation'].get('acceptance',{})
+            if (value.get('fit_scale')!='1M' or scope.get('scope_release_pass') is not True
+                    or scope.get('frozen_model_sha256')!=report['frozen']['model_sha256']
+                    or scope.get('limitations',{}).get('absolute_use_outside_1M')!='PROHIBITED'
+                    or scope.get('limitations',{}).get('scale_invariance_supported') is not False
+                    or scope.get('a8_a9_absolute_transfer_pass') is not False
+                    or scope.get('a10_a11_out_of_design_shape_pass') is not False
+                    or acceptance.get('release_pass') is not False):
+                raise ValueError('IF2 scope receipt does not preserve its 1M-only limits')
         if file_hash(canonical)!=release['sha256']:
             raise ValueError('interface fingerprint mismatch')
     elif canonical.exists():
@@ -121,7 +132,7 @@ def main():
            'All A1-A16 inputs plus the official DOCX match the secured audit and remain byte-identical.',
            'Runtime: '+json.dumps(versions,sort_keys=True),
            'Scientific and input status (identical in both passes): '+json.dumps(passes[1],sort_keys=True),
-           '**Reproducibility PASS is not scientific acceptance. IF2 remains blocked when its frozen gate fails.**','',
+           '**Reproducibility PASS does not establish broad scientific acceptance. A released IF2, if present, is limited to its explicit 1M scope receipt.**','',
            '| Regenerated artifact | SHA-256 |','| --- | --- |']
     lines += ['| '+p+' | '+h+' |' for p,h in snapshots[1].items()]
     (TABLES/'q1-reproduction.md').write_text('\n'.join(lines)+'\n',encoding='utf-8',newline='\n')

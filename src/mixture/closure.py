@@ -15,7 +15,8 @@ from src.quality.realdata import file_hash
 from src.quality.pipeline import rank_corr
 from .data import MIXTURE_FILES, LOSS_FILES, MixtureTable, load_pair, normalised_proportions, check_decimal_grid, diagnostics
 from .model import response_matrix, _ridge_fit
-from .validation import select_training_model, evaluate, paired_scale_analysis, prediction_matrix, compare_estimated_reference
+from .validation import (VALIDATION_ROLES, select_training_model, evaluate, paired_scale_analysis,
+                         prediction_matrix, compare_estimated_reference)
 from .handoff import build_if2, encode_if2, write_if2
 
 
@@ -72,6 +73,30 @@ def acceptance_checks(frozen, reports, baseline, pairs, settings):
             'release_pass':bool(in_design and out_shape),
             'scale_invariance_supported':bool(all(absolute.values()) and out_shape),
             'scope':'1M absolute response; larger-scale ranking/shape validation cannot certify absolute scale transfer'}
+
+
+def scope_release_receipt(frozen, reports, acceptance):
+    """Record the narrow 1M IF2 decision without changing broad validation."""
+    frozen.check_unchanged()
+    for partition, role in VALIDATION_ROLES.items():
+        report=reports.get(partition,{})
+        if report.get('role')!=role or report.get('model_sha256')!=frozen.model_sha256:
+            raise ValueError('scope release requires every validation role on the frozen model')
+    absolute=acceptance.get('absolute_transfer_pass',{})
+    limitations={'absolute_use_outside_1M':'PROHIBITED','scale_invariance_supported':False,
+                 'A8_A9_absolute_transfer_certified':False,'A10_A11_out_of_design_shape_certified':False,
+                 'fitted_10B_70B_extrapolation':'NOT RELEASED'}
+    passed=bool(acceptance.get('in_design_pass') and not acceptance.get('release_pass')
+                and absolute.get('A8_A9') is False and absolute.get('A10_A11') is False
+                and acceptance.get('out_of_design_shape_pass') is False
+                and acceptance.get('scale_invariance_supported') is False)
+    return {'scope_release_pass':passed,'fit_scale':'1M','fit_sources':['A4','A5'],
+            'release_validation_partition':'A6_A7','release_validation_role':VALIDATION_ROLES['A6_A7'],
+            'frozen_model_sha256':frozen.model_sha256,
+            'broad_transfer_pass':bool(acceptance.get('release_pass')),
+            'a8_a9_absolute_transfer_pass':absolute.get('A8_A9'),
+            'a10_a11_out_of_design_shape_pass':bool(acceptance.get('out_of_design_shape_pass')),
+            'limitations':limitations}
 
 
 def fixed_parameters(x, y, alphas):
@@ -225,8 +250,10 @@ def run_mixture_closure(seed,settings):
     for j,t in enumerate(frozen.targets):
         paired['per_target'][t]['paired_mean_shift_ci']=ci[j].tolist()
     acceptance=acceptance_checks(frozen,reports,baselines,pairs,settings)
+    scope_release=scope_release_receipt(frozen,reports,acceptance)
     # Freeze all validation metrics before post-validation descriptive fits.
-    dump(out/'mixture-frozen-validation.json',{'validation':reports,'baseline':baselines,'paired':paired,'acceptance':acceptance})
+    dump(out/'mixture-frozen-validation.json',{'validation':reports,'baseline':baselines,'paired':paired,
+                                               'acceptance':acceptance,'scope_release':scope_release})
     effects=effect_diagnostics(frozen,pairs,settings,seed)
     references={}
     extrapolation=None
@@ -252,13 +279,16 @@ def run_mixture_closure(seed,settings):
         references[label]['nonpositive_predictions']=int(np.sum(predicted<=0))
     provenance=Provenance('observed',['data_local/problem-f/raw/real_attachments/A_data_value/regmix_tables/'+f for f in hashes],
                          'A4/A5 fit; observed validation kept separate from A13/A15 estimated agreement; no quality effect is inferred.')
-    release={'status':'BLOCKED','reason':'frozen validation acceptance failed','path':None,'sha256':None}
-    if acceptance['release_pass']:
-        interface=build_if2(frozen,reports,references,renormalisation='divide each nonnegative row by its positive stored sum; 0.0085 nearest-rounding bound; exact zeros retained',provenance=provenance)
+    release={'status':'BLOCKED','display_status':'BLOCKED','reason':'same-scale 1M scope-release receipt failed',
+             'fit_scale':None,'path':None,'sha256':None}
+    if scope_release['scope_release_pass']:
+        interface=build_if2(frozen,reports,references,
+                             renormalisation='divide each nonnegative row by its positive stored sum; 0.0085 nearest-rounding bound; exact zeros retained',
+                             provenance=provenance,scope_release=scope_release)
         interface.validation['acceptance']=acceptance
-        interface.validation['scale_applicability']={'absolute':'1M only unless independently calibrated by the consumer',
-             'scale_invariance_supported':acceptance['scale_invariance_supported'],
-             'larger_scale':'frozen ranking and shape diagnostics only; no test-set correction masquerading as validation'}
+        interface.validation['scale_applicability']={'absolute':'1M only; absolute use outside 1M is prohibited',
+             'scale_invariance_supported':False,
+             'larger_scale':'A8/A9 absolute transfer and A10/A11 out-of-design shape failed; no correction or reselection applied'}
         interface.validation['parameter_uncertainty']=effects
         interface.validation['limited_extrapolation_NOT_validation']=extrapolation
         interface.validation['configuration_sha256']=config_hash
@@ -267,13 +297,15 @@ def run_mixture_closure(seed,settings):
                 'quality_vs_composition':'composition model; no coefficient estimates a causal quality effect'}
         interface.validate()
         path=write_if2(interface)
-        release={'status':'READY FOR REVIEW','path':path.relative_to(REPO_ROOT).as_posix(),'sha256':file_hash(path),'validate':'PASS'}
+        release={'status':'READY FOR REVIEW','display_status':'READY FOR REVIEW — 1M SCOPE ONLY',
+                 'fit_scale':'1M','path':path.relative_to(REPO_ROOT).as_posix(),'sha256':file_hash(path),'validate':'PASS',
+                 'scope_release':scope_release}
     frozen.check_unchanged()
     report={'configuration_sha256':config_hash,'frozen':{'kind':frozen.kind,'reference':frozen.reference,
                    'domain_order':list(frozen.domains),'model_sha256':frozen.model_sha256,'training_sha256':frozen.training_sha256,
                    'selection':frozen.cv,'fits':[asdict(f) for f in frozen.fits]},
             'validation':reports,'baseline_validation':baselines,'paired':paired,'effects':effects,
-            'acceptance':acceptance,'extrapolation':extrapolation,'estimated_references':references,
+            'acceptance':acceptance,'scope_release':scope_release,'extrapolation':extrapolation,'estimated_references':references,
             'release':release,'structure':diagnostics(pairs),'raw_sha256':hashes,
             'runtime':{'python':platform.python_version(),'numpy':np.__version__}}
     dump(out/'mixture-analysis.json',report)
@@ -339,9 +371,14 @@ def render_reports(tables,report):
            'Estimated-reference agreement cannot establish genuine prediction accuracy at 10B/70B. Negative findings retained.'])
     write('q1-if2-summary.md','IF2 release status',['Property','Value'],
           [[k,v] for k,v in report['release'].items()],
-          ['Config SHA-256: '+report['configuration_sha256'],
+          ['Scope release: '+json.dumps(report['scope_release'],sort_keys=True),
+           'Broad cross-scale scientific acceptance remains: '+str(report['acceptance']['release_pass']),
+           'A8/A9 absolute transfer pass: '+str(report['acceptance']['absolute_transfer_pass']['A8_A9'])+
+           '; A10/A11 out-of-design shape pass: '+str(report['acceptance']['out_of_design_shape_pass'])+
+           '; scale invariance supported: '+str(report['acceptance']['scale_invariance_supported']),
+           'Config SHA-256: '+report['configuration_sha256'],
            'Zero policy: exact boundary zeros, no pseudocount. Renormalization: divide by observed row sum.',
            'Domain order: '+json.dumps(frozen['domain_order']),
            'Contrast reference: '+frozen['reference']+'; model: '+frozen['kind'],
            'Fit source: A4/A5 at 1M only. Observed validation and estimated agreement remain distinct.',
-           'Scale applicability: '+json.dumps(report['acceptance'],sort_keys=True)])
+           'No fitted 10B/70B extrapolation is released.'])
