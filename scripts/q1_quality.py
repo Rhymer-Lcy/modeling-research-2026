@@ -61,6 +61,9 @@ def render_quality(analyses: dict, comparisons: dict, settings: dict) -> str:
 
 def main() -> int:
     seed, settings = load_settings('quality')
+    if settings.get('missing_signal_policy') == 'complete_case_confirmed_literal_nan':
+        from src.quality.closure import run_quality_closure
+        return run_quality_closure(seed, settings)
     require_settings(settings, ['bootstrap_replicates', 'confidence', 'conflict_thresholds',
                                 'material_rank_correlation', 'aggregators', 'families',
                                 'direction_overrides', 'desirability_intervals', 'missing_signal_policy'])

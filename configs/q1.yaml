@@ -1,0 +1,78 @@
+# M1 authorized this path in the T-007 continuation, before real model fitting.
+# Derived from the proposal at checkpoint 823f35f; no validation-based tuning.
+provenance:
+  task: T-007
+  authorization: M1 explicit configuration-path authorization
+  proposal_checkpoint: 823f35f
+  selection_scope: A4 and A5 only
+quality:
+  bootstrap_replicates: 1000
+  confidence: 0.95
+  conflict_thresholds: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+  material_rank_correlation: 0.3
+  normalization: midrank_ecdf_A1_complete_cases
+  direction_overrides:
+    rps_doc_unigram_entropy: higher_better
+    rps_lines_numerical_chars_fraction: lower_better
+  desirability_intervals:
+    rps_doc_mean_word_length: [3.0, 10.0]
+  missing_signal_policy: complete_case_confirmed_literal_nan
+  missingness_scenarios: [0.0, 0.5, 1.0]
+  expected_missing_records: {A1: 18, A2: 0, A3: 1}
+  allowed_missing_fields: [modernbert_reasoning, modernbert_professionalism]
+  aggregators: [equal_indicator, family_balanced, robust_median]
+  primary_aggregator: family_balanced
+  families:
+    dsir: [dsir_books, dsir_wiki, dsir_math]
+    rps:
+      - rps_doc_word_count
+      - rps_doc_num_sentences
+      - rps_doc_unigram_entropy
+      - rps_doc_frac_unique_words
+      - rps_doc_frac_no_alph_words
+      - rps_doc_frac_chars_top_2gram
+      - rps_doc_frac_chars_top_3gram
+      - rps_lines_uppercase_letter_fraction
+      - rps_lines_ending_with_terminal_punctution_mark
+      - rps_lines_numerical_chars_fraction
+      - rps_doc_mean_word_length
+    fineweb: [fineweb_edu]
+    wanjuan: [fluency_en, ad_en]
+    qurating: [qurater]
+    modernbert: [modernbert_cleanliness, modernbert_readability, modernbert_reasoning, modernbert_professionalism]
+  uncertainty_unit: source_shard_within_domain
+  single_shard_fallback: conditional_document_bootstrap
+  sensitivity_transforms: [ordinal_argmax, numeric_neutral, word_length_increasing]
+  material_missingness_q: 0.001
+  material_missingness_conflict_rate: 0.001
+  material_extension_q: 0.05
+  quantiles: [0.05, 0.25, 0.5, 0.75, 0.95]
+mixture:
+  stored_decimal_places: 3
+  row_sum_tolerance: 0.0085
+  cv_folds: 5
+  ridge_alphas: [0.00000001, 0.000001, 0.0001, 0.01, 0.1, 1.0, 10.0]
+  candidates: [linear, pairwise_interactions]
+  selection_rule: nonlinear_requires_relative_gain_and_fold_consistency
+  nonlinear_min_relative_gain: 0.05
+  nonlinear_min_fold_wins: 4
+  zero_policy: exact_boundary_zeros_no_pseudocount
+  renormalization: divide_each_row_by_observed_positive_sum
+  contrast_basis_rule: maximum_nonzero_prevalence_times_share_sd_on_A4
+  bootstrap_replicates: 1000
+  coefficient_bootstrap_replicates: 200
+  confidence: 0.95
+  substitution_mass: 0.01
+  acceptance:
+    in_design_min_macro_r2: 0.0
+    in_design_max_baseline_rmse_ratio: 1.05
+    out_design_min_macro_spearman: 0.3
+    out_design_max_centered_nrmse: 2.0
+    # Absolute transfer is reported separately; failing it forbids scale invariance.
+    absolute_transfer_max_relative_error: 0.1
+  extrapolation:
+    candidate: positive_scale_offset_plus_frozen_composition
+    scales: [1000000, 60000000, 1000000000]
+    target_scales: [10000000000, 70000000000]
+    fitting_sources: [A5, A7, A9, A11]
+    references_not_for_fitting: [A13, A15]

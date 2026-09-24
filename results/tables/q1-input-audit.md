@@ -72,7 +72,8 @@ without publishing text or source record IDs.
 The existing scalarization script checks dimensions, but does not reject
 these non-finite values. Its successful run is not a finiteness certificate.
 The repaired quality preprocessor rejects them before fitting an ECDF.
-A missing-signal policy needs an explicit decision before Q1a resumes.
+The raw-input audit remains failed. The approved complete-case and flagged
+sensitivity policy is evaluated separately by scripts/q1_quality.py.
 
 ## Mixture structure
 

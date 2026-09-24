@@ -50,6 +50,9 @@ def build_if1(estimates: dict, training: MixtureTable, mapping: dict, mapping_ty
     covered = p[:, [mapping[d] is not None for d in training.domains]].sum(axis=1)
     notes = dict(processing_notes)
     notes['raw_directions'] = dict(sc.DIRECTIONS)
+    notes['final_indicator_interpretation'] = {name: 'higher_is_better_after_declared_transform'
+                                              for name in sc.INDICATORS}
+    notes['unmapped_mixture_domains'] = [d for d in training.domains if mapping[d] is None]
     notes['coverage'] = {'reference': 'mean covered mass across unit-mass A4 training designs',
                          'minimum': float(covered.min()), 'maximum': float(covered.max()),
                          'zero_coverage_designs': int(np.sum(covered == 0)),
@@ -62,7 +65,7 @@ def build_if1(estimates: dict, training: MixtureTable, mapping: dict, mapping_ty
                              {d: list(map(float, domains[d]['ci'])) for d in QUALITY_DOMAINS},
                              {d: int(domains[d]['n']) for d in QUALITY_DOMAINS},
                              dict(mapping), dict(mapping_type), mass_weighted_coverage(training, mapping),
-                             dict(processing_notes['directions']), evidence)
+                             dict(sc.DIRECTIONS), evidence)
     result.validate()
     return result
 

@@ -224,7 +224,8 @@ def main() -> int:
     lines += ['', 'The existing scalarization script checks dimensions, but does not reject',
               'these non-finite values. Its successful run is not a finiteness certificate.',
               'The repaired quality preprocessor rejects them before fitting an ECDF.',
-              'A missing-signal policy needs an explicit decision before Q1a resumes.', '',
+              'The raw-input audit remains failed. The approved complete-case and flagged',
+              'sensitivity policy is evaluated separately by scripts/q1_quality.py.', '',
               '## Mixture structure', '',
               'Every mixture/loss pair has unique, exactly aligned indices, 17 consistently',
               'named domains and 13 finite nonnegative Loss targets. Original values are retained.', '',
@@ -267,7 +268,7 @@ def main() -> int:
     out.write_text('\n'.join(lines), encoding='utf-8', newline='\n')
     print('wrote', out.relative_to(REPO_ROOT).as_posix(), flush=True)
     print('raw input fingerprints unchanged; mixture structure PASS', flush=True)
-    print('quality finiteness FAIL; Q1a stopped' if failed else 'quality finiteness PASS', flush=True)
+    print('raw-input audit: KNOWN INPUT DEFECT; scientific pipeline acceptance is separate' if failed else 'quality finiteness PASS', flush=True)
     return 2 if failed else 0
 
 
