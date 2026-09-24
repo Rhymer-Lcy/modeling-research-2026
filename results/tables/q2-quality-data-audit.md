@@ -176,4 +176,3 @@ B8's `Q_score` measures - it may be a corruption or noise fraction, a
 differently-normalised score, or a different quantity altogether. That
 is a provenance question, not something recoverable by fitting, and it
 is recorded rather than guessed.
-

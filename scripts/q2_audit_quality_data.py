@@ -381,6 +381,10 @@ def main() -> int:
     W("is recorded rather than guessed.")
     W("")
 
+    # A trailing empty entry would emit a blank line at end of file, which
+    # `git diff --check` reports as an error.
+    while lines and lines[-1] == "":
+        lines.pop()
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("wrote " + str(out.relative_to(Path.cwd())))
     for label, fit, fp in fits:

@@ -208,6 +208,10 @@ def main() -> int:
     W("gamma) to confirm the sign checks can fail.")
     W("")
 
+    # A trailing empty entry would emit a blank line at end of file, which
+    # `git diff --check` reports as an error.
+    while lines and lines[-1] == "":
+        lines.pop()
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print("wrote " + str(out.relative_to(Path.cwd())))
     print("  gamma = " + fmt(p["gamma"]) + "  alpha = " + fmt(p["alpha"])

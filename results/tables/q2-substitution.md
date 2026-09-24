@@ -106,4 +106,3 @@ checks that the two substitution transforms exactly restore the loss they
 claim to, requires the equivalent-capacity boundary to raise rather than
 return NaN, and finally feeds a deliberately invalid law (negative
 gamma) to confirm the sign checks can fail.
-

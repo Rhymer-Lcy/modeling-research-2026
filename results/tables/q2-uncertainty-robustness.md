@@ -84,4 +84,3 @@ trajectory in it belongs to the same family, so the family-level
 resampling unit has exactly one level. Cross-family sensitivity is only
 observable through the independent validation tables, not through a
 refit of this one.
-
