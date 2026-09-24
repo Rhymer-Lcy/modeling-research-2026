@@ -59,6 +59,9 @@ def render_validation(frozen, reports: dict, structural: dict, paired: dict) -> 
 
 def main() -> int:
     seed, settings = load_settings('mixture')
+    if settings.get('selection_rule') == 'nonlinear_requires_relative_gain_and_fold_consistency':
+        from src.mixture.closure import run_mixture_closure
+        return run_mixture_closure(seed, settings)
     require_settings(settings, ['row_sum_tolerance', 'cv_folds', 'ridge_alphas', 'candidates', 'stored_decimal_places'])
     print('seed:', seed, flush=True)
     root = ATT_A / 'regmix_tables'

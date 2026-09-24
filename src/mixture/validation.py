@@ -9,7 +9,7 @@ from typing import Sequence
 import numpy as np
 
 from .data import LossTable, MixtureTable, normalised_proportions
-from .model import FitResult, fit_all, metrics, predict, response_matrix, _folds
+from .model import FitResult, fit_all, metrics, predict, response_matrix, _folds, _ridge_fit
 
 
 VALIDATION_ROLES = {
@@ -60,7 +60,7 @@ class FrozenResponse:
 def select_training_model(mixture: MixtureTable, loss: LossTable, *,
                           source_pair: tuple[str, str], seed: int,
                           alphas: Sequence[float], folds: int,
-                          candidates: Sequence[str]) -> FrozenResponse:
+                          candidates: Sequence[str], selection: dict | None = None) -> FrozenResponse:
     """No validation/reference data parameter exists on the tuning API.
 
     Each candidate tunes per-target ridge strength with identical deterministic
@@ -93,8 +93,34 @@ def select_training_model(mixture: MixtureTable, loss: LossTable, *,
             'smallest_singular_value': float(singular[-1]),
             'condition_number': float(singular[0] / singular[-1]) if rank == x.shape[1] else None,
         }
+        if selection is not None:
+            oof = np.empty_like(loss.values)
+            fold_scores = []
+            for training, valid in _folds(len(p), seed, folds):
+                for j, fit in enumerate(fits):
+                    intercept, coef = _ridge_fit(x[training], loss.values[training,j], fit.alpha)
+                    oof[valid,j] = intercept + x[valid] @ coef
+                fold_scores.append(float(np.mean(np.sqrt(np.mean((oof[valid]-loss.values[valid])**2,axis=0))/scale)))
+            reports[kind]['fold_normalized_rmse'] = fold_scores
         fits_by_kind[kind] = fits
     chosen = min(candidates, key=lambda kind: reports[kind]['selection_score'])
+    decision = {'rule':'minimum selection CV score (legacy synthetic infrastructure)'}
+    if selection is not None:
+        if list(candidates) != ['linear','pairwise_interactions']:
+            raise ValueError('real selection requires the declared linear and pairwise family')
+        minimum = selection['minimum_relative_gain']
+        wins_required = selection['minimum_fold_wins']
+        if not 0 <= minimum < 1 or not 1 <= wins_required <= folds:
+            raise ValueError('invalid predeclared complexity guard')
+        baseline = reports['linear']['selection_score']
+        gain = 1-reports['pairwise_interactions']['selection_score']/baseline if baseline else 0.
+        wins = int(np.sum(np.asarray(reports['pairwise_interactions']['fold_normalized_rmse']) <
+                             np.asarray(reports['linear']['fold_normalized_rmse'])))
+        chosen = 'pairwise_interactions' if gain >= minimum and wins >= wins_required else 'linear'
+        decision = {'rule':'nonlinear requires relative CV improvement and fold consistency',
+                    'minimum_relative_gain':minimum,'minimum_fold_wins':wins_required,
+                    'observed_relative_gain':float(gain),'observed_fold_wins':wins,
+                    'heldout_used':False}
     fits = tuple(fits_by_kind[chosen])
     cv = {
         'sources': ['A4', 'A5'], 'seed': int(seed), 'folds': int(folds),
@@ -102,7 +128,7 @@ def select_training_model(mixture: MixtureTable, loss: LossTable, *,
         'metric': 'mean per-target CV RMSE divided by mean absolute A5 target',
         'warning': 'selection CV; not an unbiased nested-CV performance estimate',
         'validation_indices': [mixture.indices[valid].tolist() for _, valid in _folds(len(p), seed, folds)],
-        'candidates': reports, 'chosen': chosen,
+        'candidates': reports, 'chosen': chosen, 'decision':decision,
     }
     return FrozenResponse(tuple(mixture.domains), tuple(loss.columns), fits[0].reference,
                           chosen, fits, _model_digest(fits),
