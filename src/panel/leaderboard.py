@@ -23,6 +23,14 @@ A task whose options cannot be counted is never allowed to fall through to a
 baseline of zero, because that silently treats a guessable multiple-choice task
 as generative and inflates its score by the whole baseline.
 
+GPQA is a grouped multiple-choice task too, but the harness does not rescale
+its three subtasks (main / diamond / extended) individually and then average:
+it pools their accuracy into one number and rescales that. Averaging the three
+per-subtask rescaled scores instead of rescaling the pooled accuracy weights the
+subtasks equally even though they have very different sample sizes, and shifts
+the result by about 0.4 points. ``_gpqa`` below uses the harness's own pooled
+accuracy; this was found by reconciliation failing, not by reading the schema.
+
 Reproducing the published summary from the raw records is the acceptance test
 for this pipeline: it is an end-to-end check that the parsing, the baselines
 and the aggregation are all right, and it fails loudly if any of them is not.
@@ -31,6 +39,7 @@ and the aggregation are all right, and it fails loudly if any of them is not.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -74,6 +83,13 @@ KNOWN_CHOICE_COUNTS: Dict[str, int] = {
     "leaderboard_musr_team_allocation": 3,
     "leaderboard_musr_object_placements": 5,
 }
+
+#: GPQA baseline. The three GPQA subtasks (main, diamond, extended) are each
+#: 4-way multiple choice, so a random guess scores 1/4. The aggregate
+#: ``leaderboard_gpqa`` block has no per-task config of its own, so the baseline
+#: is the subtasks' documented choice count rather than a value read from a
+#: config at run time.
+GPQA_BASELINE: float = 1.0 / 4.0
 
 
 def _baseline_from_config(task: str, config: Dict[str, object]) -> float:
@@ -127,6 +143,24 @@ def _ifeval(results: Dict[str, Dict[str, object]]) -> Optional[float]:
     return float(np.mean(values) * 100.0)
 
 
+def _gpqa(results: Dict[str, Dict[str, object]]) -> Optional[float]:
+    """GPQA, rescaled from the harness's own pooled 4-way accuracy.
+
+    ``leaderboard_gpqa`` is a grouped task whose subtasks have very different
+    sample sizes, so the leaderboard pools their accuracy and rescales the
+    pooled value against the 4-way random baseline. Rescaling each subtask and
+    averaging instead weights them equally and misses the published value by
+    about 0.4 points; using the pooled accuracy closes that gap.
+    """
+    block = results.get("leaderboard_gpqa")
+    if not block:
+        return None
+    raw = block.get("acc_norm,none")
+    if not isinstance(raw, (int, float)):
+        return None
+    return _normalise(raw, GPQA_BASELINE)
+
+
 def score_record(payload: Dict[str, object]) -> Dict[str, float]:
     """Compute the six normalised dimensions from one evaluation record."""
     results: Dict[str, Dict[str, object]] = payload.get("results", {})  # type: ignore[assignment]
@@ -139,8 +173,12 @@ def score_record(payload: Dict[str, object]) -> Dict[str, float]:
     if value is not None:
         out["IFEval"] = value
 
+    value = _gpqa(results)
+    if value is not None:
+        out["GPQA"] = value
+
     for label, group in GROUPS.items():
-        if label == "IFEval":
+        if label in ("IFEval", "GPQA"):
             continue
         children = [c for c in subtasks.get(group, []) if c in results]
         if children:
@@ -165,6 +203,55 @@ def score_record(payload: Dict[str, object]) -> Dict[str, float]:
     return out
 
 
+def subtask_scores(payload: Dict[str, object]) -> Dict[str, List[Tuple[str, float, float, float]]]:
+    """Per-subtask (name, raw, baseline, normalised) for each grouped dimension.
+
+    This is the same arithmetic ``score_record`` uses to average each grouped
+    dimension, but it keeps the per-subtask values rather than collapsing them,
+    so the detailed-task analysis can decompose *within-model* versus
+    *between-model* variance. Dimensions without subtasks (IFEval, GPQA) are
+    omitted because they have no within-task breakdown to analyse.
+    """
+    results: Dict[str, Dict[str, object]] = payload.get("results", {})  # type: ignore[assignment]
+    configs: Dict[str, Dict[str, object]] = payload.get("configs", {})  # type: ignore[assignment]
+    subtasks: Dict[str, List[str]] = payload.get("group_subtasks", {})  # type: ignore[assignment]
+
+    out: Dict[str, List[Tuple[str, float, float, float]]] = {}
+    for label, group in GROUPS.items():
+        if label in ("IFEval", "GPQA"):
+            continue
+        children = [c for c in subtasks.get(group, []) if c in results]
+        if not children:
+            continue
+        rows: List[Tuple[str, float, float, float]] = []
+        for child in children:
+            raw = _primary_metric(results[child])
+            if raw is None:
+                continue
+            baseline = _baseline_from_config(child, configs.get(child, {}))
+            rows.append((child, raw, baseline, _normalise(raw, baseline)))
+        if rows:
+            out[label] = rows
+    return out
+
+
+def _open_text(path: Path):
+    """Open a UTF-8 text file, tolerating Windows MAX_PATH limits.
+
+    On Windows a path longer than about 260 characters fails to open with
+    ``FileNotFoundError`` even though the file exists. The extended-length
+    ``\\\\?\\`` prefix lifts that limit. A handful of model directory names are
+    long enough to cross it, and they are genuine records, not damaged files,
+    so they are retried once with the prefix rather than misreported.
+    """
+    try:
+        return open(path, encoding="utf-8")
+    except FileNotFoundError:
+        if os.name != "nt":
+            raise
+        return open("\\\\?\\" + str(path.resolve()), encoding="utf-8")
+
+
 def load_detailed_results(root: Path) -> Tuple[List[ModelRecord], List[Dict[str, str]]]:
     """Parse every usable per-model record under ``root``.
 
@@ -179,7 +266,7 @@ def load_detailed_results(root: Path) -> Tuple[List[ModelRecord], List[Dict[str,
         best: Optional[Tuple[str, Dict[str, object]]] = None
         for path in sorted(directory.glob("*.json")):
             try:
-                with path.open(encoding="utf-8") as handle:
+                with _open_text(path) as handle:
                     payload = json.load(handle)
             except Exception as exc:  # noqa: BLE001
                 damaged.append({
@@ -206,4 +293,4 @@ def load_detailed_results(root: Path) -> Tuple[List[ModelRecord], List[Dict[str,
     return records, damaged
 
 
-__all__ = ["GROUPS", "ModelRecord", "score_record", "load_detailed_results"]
+__all__ = ["GROUPS", "ModelRecord", "score_record", "subtask_scores", "load_detailed_results"]
