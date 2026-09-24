@@ -198,6 +198,35 @@ def main() -> int:
           bool(np.all(bad_dn_dq > 0)),
           "if this stays negative the sign test cannot discriminate")
 
+    # ---- 8b. quality targets must stay inside the fitted validity box -------
+    print("")
+    print("[8b] upward quality targets respect the validity ceiling")
+    from src.scaling.quality import upward_quality_targets
+
+    Q_MAX = 1.0
+    for base in (0.1, 0.5, 0.7, 0.9, 0.95, 1.0):
+        targets = upward_quality_targets(base, Q_MAX)
+        check("base Q=" + str(base) + " -> no target above the ceiling",
+              all(t <= Q_MAX + 1e-12 for t in targets), str(targets))
+        check("base Q=" + str(base) + " -> every target strictly improves",
+              all(t > base for t in targets), str(targets))
+        check("base Q=" + str(base) + " -> no duplicate targets",
+              len(targets) == len(set(targets)), str(targets))
+
+    # The specific defect this replaced: a fixed multiplier walked outside the
+    # box whenever the base was near the ceiling.
+    check("Q=0.9 no longer yields 1.35 (the reported defect)",
+          1.35 not in upward_quality_targets(0.9, 1.0),
+          str(upward_quality_targets(0.9, 1.0)))
+    check("Q=0.7 no longer yields 1.05 (the reported defect)",
+          1.05 not in upward_quality_targets(0.7, 1.0),
+          str(upward_quality_targets(0.7, 1.0)))
+    check("a base already at the ceiling yields NO target, rather than "
+          "an invented one", upward_quality_targets(1.0, 1.0) == [])
+    check("clipping collapses several multipliers onto one ceiling target",
+          upward_quality_targets(0.9, 1.0) == [0.99, 1.0],
+          str(upward_quality_targets(0.9, 1.0)))
+
     # ---- 9. input validation ------------------------------------------------
     print("")
     print("[9] input validation")

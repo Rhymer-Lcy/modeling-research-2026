@@ -35,6 +35,11 @@ from scipy.special import logsumexp
 
 from src.scaling.law import HUBER_DELTA, _huber
 
+#: Optimiser bounds for the quality exponent. Exported so that a diagnostic
+#: asking "is gamma identified?" tests BOTH ends. Checking only the lower bound
+#: reports a parameter pinned to the ceiling as though it had been estimated.
+GAMMA_BOUNDS = (1e-3, 10.0)
+
 #: Starting grid in the log parameterisation, extended with gamma.
 _INIT_A = (0.0, 5.0, 10.0)
 _INIT_B = (0.0, 5.0, 10.0)
@@ -134,7 +139,7 @@ def fit_quality_law(
         (-10.0, 3.0),    # log E
         (1e-3, 3.0),     # alpha
         (1e-3, 3.0),     # beta
-        (1e-3, 10.0),    # gamma
+        GAMMA_BOUNDS,    # gamma
     ]
 
     def run(start, ftol, gtol, maxiter):
@@ -278,6 +283,33 @@ def iso_loss_dn_dq(params: Sequence[float], n, d, q) -> np.ndarray:
     return -p["dL_dQ"] / p["dL_dN"]
 
 
+def upward_quality_targets(q_base, q_max, multipliers=(1.1, 1.5, 3.0), tol=1e-12):
+    """Quality targets strictly above ``q_base`` and never above ``q_max``.
+
+    A scenario table that multiplies a base quality by a fixed factor will walk
+    outside the fitted validity box as soon as the base is near the ceiling:
+    0.9 * 1.5 is 1.35, and evaluating the law there is extrapolation reported as
+    though it were interpolation.
+
+    Each candidate is therefore clipped to the ceiling, candidates that do not
+    strictly improve on the base are dropped, and duplicates produced by
+    clipping several multipliers onto the same ceiling are collapsed. The result
+    is sorted ascending and may be EMPTY - a base already at the ceiling has no
+    upward target inside the box, and the caller is expected to say so rather
+    than invent one.
+    """
+    if q_max <= 0:
+        raise ValueError("q_max must be positive")
+    out = []
+    for m in multipliers:
+        if m <= 1.0:
+            raise ValueError("multipliers must exceed 1 to be upward targets")
+        target = min(float(q_base) * float(m), float(q_max))
+        if target > q_base + tol:
+            out.append(round(target, 10))
+    return sorted(set(out))
+
+
 class InfeasibleEquivalent(ValueError):
     """Raised when a loss reduction exceeds what the N term can ever supply.
 
@@ -372,6 +404,7 @@ __all__ = [
     "partials",
     "elasticities",
     "iso_loss_dn_dq",
+    "upward_quality_targets",
     "parameter_saving",
     "equivalent_capacity",
     "InfeasibleEquivalent",
