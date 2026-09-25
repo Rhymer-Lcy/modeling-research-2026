@@ -32,7 +32,7 @@
 | T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · reviews/T-012/ · worklog/M1.md | todo | 2026-09-23 |
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | wip | 2026-09-23 |
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
-| T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | todo | 2026-09-25 |
+| T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | done | 2026-09-25 |
 
 ## Problem-F dependency graph
 
