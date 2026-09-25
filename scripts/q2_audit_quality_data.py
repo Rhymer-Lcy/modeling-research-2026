@@ -27,8 +27,9 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.paths import ATT_B, TABLES, ensure, require  # noqa: E402
+from src.scaling.closure import q_direction  # noqa: E402
 from src.scaling.quality import (  # noqa: E402
-    GAMMA_BOUNDS,
+    bound_status,
     fit_quality_law,
     quality_fingerprint,
 )
@@ -105,31 +106,6 @@ def overlap_rows(frames):
     return rows
 
 
-def q_direction(frame):
-    """Sign of d logL / d logQ in EVERY (N, D) cell of the table.
-
-    Measured over the whole table rather than over cells chosen by hand: a
-    claim about a table's quality semantics must not rest on a sample the
-    claimant selected.
-    """
-    slopes = []
-    for _key, sub in frame.groupby(["N_params_B", "D_tokens_B"]):
-        if len(sub) < 3:
-            continue
-        qv = sub["Q_score"].to_numpy(float)
-        lv = sub["val_loss"].to_numpy(float)
-        slopes.append(float(np.polyfit(np.log(qv), np.log(lv), 1)[0]))
-    slopes = np.asarray(slopes)
-    return {
-        "cells": int(slopes.size),
-        "negative": int((slopes < 0).sum()),
-        "positive": int((slopes > 0).sum()),
-        "median": float(np.median(slopes)),
-        "min": float(slopes.min()),
-        "max": float(slopes.max()),
-    }
-
-
 def reversal_diagnostic(frame, label):
     """Does a simple reversible re-reading of Q make B8 direction-consistent?
 
@@ -176,15 +152,12 @@ def reversal_diagnostic(frame, label):
             # was switched off; parked on the UPPER bound it is equally
             # unidentified, the optimiser having pushed it as far as allowed.
             # Checking only one end reports a ceiling-pinned gamma as estimated.
-            lo, hi = GAMMA_BOUNDS
-            span = hi - lo
-            entry["gamma_at_bound"] = bool(g <= lo + 1e-3 * span or g >= hi - 1e-3 * span)
-            entry["gamma_bound_end"] = (
-                "lower" if g <= lo + 1e-3 * span
-                else "upper" if g >= hi - 1e-3 * span
-                else "interior"
-            )
-        except Exception as exc:  # noqa: BLE001 - reported, not swallowed
+            entry["gamma_bound_end"] = bound_status(g)
+            entry["gamma_at_bound"] = entry["gamma_bound_end"] != "interior"
+        except (RuntimeError, ValueError, FloatingPointError, np.linalg.LinAlgError) as exc:
+            # Only a numerical failure of the fit is a reportable outcome. A
+            # programming error (NameError, KeyError, ...) must crash the
+            # script: caught here it was once rendered as a scientific verdict.
             entry["error"] = str(exc)
         out[name] = entry
     return out
@@ -425,15 +398,19 @@ def main() -> int:
         W("reported and removed rather than nudged to a small positive value.")
         W("")
 
-    # Decide the verdict from the numbers rather than asserting one.
+    # Decide the verdict from the numbers rather than asserting one. A variant
+    # whose fit failed supports no conclusion at all: it is neither "on a
+    # bound" nor "estimated", and must not be counted as either.
+    variants = ("complement", "rank_reversal")
     fixed_direction = [
-        name for name in ("complement", "rank_reversal")
+        name for name in variants
         if reversal[name]["direction"]["negative"] == reversal[name]["direction"]["cells"]
     ]
-    improved_fit = [
-        name for name in fixed_direction
-        if not reversal[name].get("gamma_at_bound", True)
-    ]
+    failed = [name for name in variants if "error" in reversal[name]]
+    estimated = [name for name in variants if "error" not in reversal[name]]
+    improved_fit = [name for name in fixed_direction
+                    if name in estimated and not reversal[name]["gamma_at_bound"]]
+    at_bound = [name for name in estimated if reversal[name]["gamma_at_bound"]]
 
     W("**Reading.** " + (
         "Both transforms flip the sign of the quality effect, as any "
@@ -443,14 +420,22 @@ def main() -> int:
         + (", ".join(fixed_direction) if fixed_direction else "neither transform")
         + "."))
     W("")
+    if failed:
+        W("The reversed fit FAILED for " + ", ".join(failed) + " ("
+          + "; ".join(reversal[name]["error"][:80] for name in failed) + ").")
+        W("A failed fit supports no statement about whether the exponent is")
+        W("identified, so none is drawn from it.")
+        W("")
     if improved_fit:
+        ratios = [reversal[name]["ratio"] for name in improved_fit]
         W("Under " + ", ".join(improved_fit) + " the quality exponent sits in the")
         W("interior of its permitted range, so it is genuinely estimated. The")
-        W("fingerprint ratio nevertheless stays far from 1, so the fit still does")
-        W("not reproduce this table to its storage precision.")
-    else:
-        ends = sorted({reversal[name].get("gamma_bound_end", "?")
-                       for name in ("complement", "rank_reversal")})
+        W("fingerprint ratio is " + fmt(min(ratios)) + " - " + fmt(max(ratios))
+          + ", so the fit still does not")
+        W("reproduce this table to its storage precision.")
+    elif at_bound and not failed:
+        ends = sorted({reversal[name]["gamma_bound_end"] for name in at_bound})
+        ratios = [reversal[name]["ratio"] for name in at_bound]
         W("Under every transform tried the quality exponent is parked on a")
         W("BOUND of its permitted range (" + ", ".join(ends) + "), not estimated")
         W("in the interior. Pinning to the ceiling is just as much a failure to")
@@ -461,10 +446,15 @@ def main() -> int:
         W("")
         W("So reversal flips the direction, as any order-reversing map must, but")
         W("it does not make the candidate form compatible with this table: the")
-        W("fingerprint ratio stays in the thousands, and the exponent remains")
+        W("fingerprint ratio is " + fmt(min(ratios)) + " - " + fmt(max(ratios))
+          + ", and the exponent remains")
         W("unidentified.")
     W("")
-    if fixed_direction and improved_fit:
+    if failed:
+        verdict = ("The result remains ambiguous: at least one reversed fit "
+                   "failed, so neither compatibility nor incompatibility is "
+                   "established.")
+    elif fixed_direction and improved_fit:
         verdict = ("Reversal is numerically consistent with a possible "
                    "opposite-oriented score.")
     elif fixed_direction:
@@ -479,9 +469,13 @@ def main() -> int:
     W("**What this does NOT establish.** Nothing here shows that B8's column")
     W("means corruption, noise, or `1 - quality`. A transform that flips a sign")
     W("is evidence about arithmetic, not about semantics, and the official")
-    W("materials do not currently settle the question. The result is therefore")
-    W("recorded as numerically consistent with an opposite orientation, and no")
-    W("further.")
+    if fixed_direction and not failed:
+        W("materials do not currently settle the question. The result is therefore")
+        W("recorded as numerically consistent with an opposite orientation, and no")
+        W("further.")
+    else:
+        W("materials do not currently settle the question. The result is recorded")
+        W("as ambiguous.")
     W("")
     W("**B8 remains quarantined** from the primary generalized fit. Independent")
     W("provenance, not a better-fitting transform, is what would release it.")
@@ -560,7 +554,8 @@ def main() -> int:
     while lines and lines[-1] == "":
         lines.pop()
     out.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print("wrote " + str(out.relative_to(Path.cwd())))
+    print("wrote " + (str(out.relative_to(Path.cwd())) if out.is_relative_to(Path.cwd())
+                      else out.name))
     for label, fit, fp in fits:
         print("  " + label.ljust(18) + " gamma=" + fmt(fit.params["gamma"], 5)
               + "  ratio=" + fmt(fp["ratio"], 4))
