@@ -12,7 +12,7 @@
 
 `Status` 取值：`todo` / `wip` / `review` / `done` / `blocked` / `dropped`
 
-成员标识：`M1` 协调与集成负责人，`M2`、`M3` 贡献者。真实姓名不进入本仓库。
+成员标识：`M1` 协调与集成负责人，`M2`、`M3`、`M4` 贡献者。真实姓名不进入本仓库。
 
 日期一律使用 UTC+8（Asia/Shanghai）。
 
@@ -28,7 +28,7 @@
 | T-008 | M1 | Q2 generalized scaling law | src/scaling/ · scripts/q2_* · results/ · reviews/T-008/ · worklog/M1.md | done | 2026-09-25 |
 | T-009 | M3 | Q4 panel/eligibility/C8 pipeline | src/panel/ · scripts/q4_panel_* · results/ · reviews/T-009/ · worklog/M3.md | done | 2026-09-24 |
 | T-010 | M2 | Q3 compute-constrained resource optimization | src/alloc/ · scripts/q3_* · results/tables/q3-* · results/figures/q3-* · reviews/T-010/ · worklog/M2.md | wip | 2026-09-25 |
-| T-011 | M3 | Q4 decomposition/bridge/frontier forecast | src/evolution/ · scripts/q4_* · results/tables/q4-evolution-* · results/tables/q4-bridge* · results/tables/q4-decomposition* · results/tables/q4-frontier* · results/tables/q4-forecast-* · results/figures/q4-* · reviews/T-011/ · worklog/M3.md | wip | 2026-09-25 |
+| T-011 | M4 | Q4 decomposition/bridge/frontier forecast | src/evolution/ · scripts/q4_* · results/tables/q4-evolution-* · results/tables/q4-bridge* · results/tables/q4-decomposition* · results/tables/q4-frontier* · results/tables/q4-forecast-* · results/figures/q4-* · reviews/T-011/ · worklog/M4.md | wip | 2026-09-25 |
 | T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · reviews/T-012/ · worklog/M1.md | todo | 2026-09-23 |
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | wip | 2026-09-23 |
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
