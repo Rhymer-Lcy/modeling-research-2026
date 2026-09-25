@@ -96,8 +96,8 @@ its own storage precision.
 
 | Table | n | gamma | alpha | beta | Median abs. rel. err. | Rounding quantum | Ratio |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| B6 | 360 | 1.2088 | 0.2791 | 0.059172 | 0.01786 | 1.939e-05 | **920.9** |
-| B7 | 450 | 1.1887 | 0.27404 | 0.069882 | 0.01681 | 1.942e-05 | **865.3** |
+| B6 | 360 | 1.2088 | 0.2791 | 0.059173 | 0.01786 | 1.939e-05 | **920.9** |
+| B7 | 450 | 1.1887 | 0.27405 | 0.069884 | 0.01681 | 1.942e-05 | **865.3** |
 
 The ratios are in the hundreds, not near 1. So the fitted candidate form
 does **not** reproduce B6/B7 to their storage precision: it leaves a
@@ -157,7 +157,7 @@ successful estimate; it is not one.
 
 So reversal flips the direction, as any order-reversing map must, but
 it does not make the candidate form compatible with this table: the
-fingerprint ratio stays in the thousands, and the exponent remains
+fingerprint ratio is 5874 - 6815, and the exponent remains
 unidentified.
 
 **Permitted conclusion.** Reversal is numerically consistent with a possible opposite-oriented score in DIRECTION only; it does not resolve the incompatibility of the candidate form with this table, so the result remains ambiguous.
