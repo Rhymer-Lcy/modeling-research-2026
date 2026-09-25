@@ -40,6 +40,29 @@ from src.scaling.law import HUBER_DELTA, _huber
 #: reports a parameter pinned to the ceiling as though it had been estimated.
 GAMMA_BOUNDS = (1e-3, 10.0)
 
+#: A value within this fraction of the bound span of either end counts as
+#: sitting on that bound.
+BOUND_REL_TOL = 1e-3
+
+
+def bound_status(value, bounds=GAMMA_BOUNDS, rel_tol=BOUND_REL_TOL):
+    """Where a fitted value sits in its optimiser bounds: lower, upper or interior.
+
+    Both ends are tested. A value on either bound was not estimated: the
+    optimiser went as far as it was allowed and would have gone further.
+    """
+    lo, hi = float(bounds[0]), float(bounds[1])
+    if not lo < hi:
+        raise ValueError("bounds must satisfy lo < hi")
+    span = hi - lo
+    v = float(value)
+    if v <= lo + rel_tol * span:
+        return "lower"
+    if v >= hi - rel_tol * span:
+        return "upper"
+    return "interior"
+
+
 #: Starting grid in the log parameterisation, extended with gamma.
 _INIT_A = (0.0, 5.0, 10.0)
 _INIT_B = (0.0, 5.0, 10.0)
@@ -398,6 +421,9 @@ def quality_fingerprint(fit: QualityFit, n, d, q, loss, stored_dp: int) -> Dict[
 
 
 __all__ = [
+    "BOUND_REL_TOL",
+    "GAMMA_BOUNDS",
+    "bound_status",
     "predict_q",
     "QualityFit",
     "fit_quality_law",
