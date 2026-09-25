@@ -7,7 +7,7 @@
 | Status | todo in `TASKS.md`; implementation complete, awaiting supervisory review |
 | Timestamp | 2026-09-25T18:45:00+08:00 |
 | Base | `96f3ff7` (main after the T-013 archival of `worklog/specs/T-015.md` v1; dispatch main was `191ba4e`) |
-| HEAD | `67247b5` (the `environment.yml` change this package describes) |
+| Implementation commit | `67247b5` — environment.yml pinning |
 | Branch / PR | `chore/m1-T015-pin-python-env` / Draft PR #14, base `main`; unmerged |
 
 ## Scope
