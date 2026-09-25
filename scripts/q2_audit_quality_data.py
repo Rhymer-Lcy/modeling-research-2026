@@ -553,7 +553,7 @@ def main() -> int:
     # `git diff --check` reports as an error.
     while lines and lines[-1] == "":
         lines.pop()
-    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print("wrote " + (str(out.relative_to(Path.cwd())) if out.is_relative_to(Path.cwd())
                       else out.name))
     for label, fit, fp in fits:
