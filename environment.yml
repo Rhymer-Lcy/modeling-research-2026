@@ -5,15 +5,21 @@ channels:
   - nodefaults
 
 dependencies:
-  - python=3.11
+  # Direct scientific runtime pinned exactly to the versions recorded by the
+  # accepted T-007 and T-008 reproductions (results/tables/q1-reproduction.md
+  # and results/tables/q2-reproduction.md) (T-015). This stabilizes the
+  # declared direct runtime only. It is not by itself a complete
+  # platform/build-level lock: transitive packages, build strings and the
+  # BLAS/LAPACK implementation are still chosen by the solver.
+  - python=3.11.16
   - pip
   # Q2 scaling-law estimation (T-008): a Huber objective optimised with
   # L-BFGS-B, attachment tables read as data frames, and the shared seed and
   # constants read from configs/.
-  - numpy
-  - scipy
-  - pandas
-  - pyyaml
+  - numpy=2.4.6
+  - scipy=1.17.1
+  - pandas=3.0.6
+  - pyyaml=6.0.3
 
 # This file is the single canonical dependency definition for the project.
 # There is deliberately no requirements.txt: two hand-edited dependency files
