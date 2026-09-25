@@ -32,6 +32,7 @@
 | T-012 | M1 | cross-question integration/validation/manuscript integration | paper/ · results/ · reviews/T-012/ · worklog/M1.md | todo | 2026-09-23 |
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | wip | 2026-09-23 |
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
+| T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | todo | 2026-09-25 |
 
 ## Problem-F dependency graph
 
@@ -60,5 +61,8 @@ T-010 + T-011 -> T-012
   也不被它们阻塞。它维护的是评审包与规范提示词这两条协作约定本身；约定的细则
   写在 `AGENTS.md`，模板在 `reviews/` 与 `worklog/specs/`。T-013 在整个项目期间
   保持 `wip`，因为 M1 会持续维护这些规范。
+- **T-015 也不在上面这张科学依赖图里。** 它是项目支撑任务，负责使 Python 环境
+  可复现。上面的依赖图不变；但在 T-015 完成之前，T-010 与 T-011 **暂缓启动**。
+  这是执行层面的暂缓，不是新增的科学依赖。
 - 每个科学任务在其 `Paths` 里都列出了自己的 `reviews/T-0xx/`：评审包由该任务
   **当前的负责人**所有，与代码路径同一套归属规则，不另立一套。
