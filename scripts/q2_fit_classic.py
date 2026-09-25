@@ -1,11 +1,13 @@
 """Q2 baseline: fit the classic N-D scaling law and validate it out of family.
 
-Produces results/tables/q2-classic-fit.md and the classic half of the IF3
-interface. The quality and mixture terms are not fitted here: they depend on
-Q1's outputs and on the only quality-bearing tables, which are semi-synthetic
-and need their own provenance treatment.
+Produces results/tables/q2-classic-fit.md and the classic IF3 interface. No
+quality or mixture term is fitted here; whether a generalized law replaces this
+object as the canonical interface is decided, gate by gate, by
+scripts/q2_final_closure.py.
 
-Run:  python scripts/q2_fit_classic.py
+Run in the project environment, activated:
+
+    conda run -n modeling-research-2026 --no-capture-output python scripts/q2_fit_classic.py
 """
 
 from __future__ import annotations
@@ -306,7 +308,7 @@ def main() -> int:
     table_path.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"wrote {table_path.relative_to(Path(__file__).resolve().parent.parent)}")
 
-    # IF3, classic half only.
+    # IF3: the classic interface, in raw parameter and token counts.
     box = {
         "N": [float(fit.validity_box["N"][0]), float(fit.validity_box["N"][1])],
         "D": [float(fit.validity_box["D"][0]), float(fit.validity_box["D"][1])],
@@ -329,27 +331,51 @@ def main() -> int:
         validation=validations,
         q_term_provenance=ifc.Provenance(
             trust="reference",
-            sources=["not yet fitted"],
+            sources=["classic N-D form; no quality term"],
             notes=(
-                "The classic form carries no quality term. Q is pinned to 1 in the "
-                "validity box so a consumer cannot read this fit as covering any "
-                "quality variation."
+                "The classic form carries no quality term, so this object has no Q "
+                "dependence of any kind. The validity-box interval Q = [1, 1] is a "
+                "SENTINEL meaning 'no quality dimension'. It is not a value on the IF1 "
+                "quality scale, whose pooled reference sits at 0.5 by construction, and "
+                "it must not be read as IF1 Q = 1. The T-008 decision on a generalized "
+                "quality term is recorded in results/tables/q2-final-closure.md."
             ),
         ),
         provenance=ifc.Provenance(
+            # The organizer's own category for B1 is kept. Downgrading it here
+            # would misreport the source; the distinction below belongs in the
+            # notes, where a consumer reads it together with the numbers.
             trust="observed",
             sources=["B1 pythia_training_log_existing.csv"],
             notes=(
-                "Validated against B5 and against B4 with the Pythia rows removed. "
-                "B2 is semi-synthetic and B10 is model output, so neither is "
-                "treated as independent validation."
+                "ORGANIZER LABEL: B1 is described as observed Pythia "
+                "training-log data. "
+                "NUMERICAL FINGERPRINT: its val_loss column is consistent with "
+                "a deterministic evaluation of the published Chinchilla law "
+                "down to approximately the storage precision of the file "
+                "(median absolute relative residual against the published "
+                "constants sits at the rounding quantum, while the same test on "
+                "the semi-synthetic control misses by four orders of "
+                "magnitude). "
+                "CONSEQUENCE: these fitted parameters support estimator and "
+                "generator recovery, NOT precise empirical knowledge of how "
+                "real models scale, and the very narrow bootstrap intervals "
+                "must not be read as such. "
+                "EMPIRICAL EXTERNAL SUPPORT comes from B4 with the overlapping "
+                "Pythia rows excluded, and from B5 literature values. B2 is "
+                "semi-synthetic and B10 is model output, so neither is "
+                "independent validation. "
+                "See results/tables/q2-classic-fit.md for the diagnostic and "
+                "results/tables/q2-uncertainty-robustness.md for the interval "
+                "families."
             ),
         ),
     )
     out = ifc.save(if3, ensure(PROBLEM_F_INTERFACES) / "IF3_classic.json")
     print(f"wrote interface {out.name} (local-only)")
     print()
-    print("Q2 classic baseline complete. The quality and mixture terms await IF1/IF2.")
+    print("Q2 classic baseline complete. The generalized-law decision is made by "
+          "scripts/q2_final_closure.py.")
     return 0
 
 

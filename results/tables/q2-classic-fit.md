@@ -17,11 +17,11 @@ evidence and report an interval the data does not support.
 
 | Parameter | Estimate | 95% CI low | 95% CI high | SD |
 | --- | ---: | ---: | ---: | ---: |
-| E | 1.68982 | 1.68967 | 1.68994 | 7.12e-05 |
-| A | 406.24 | 405.465 | 406.793 | 0.4668 |
-| alpha | 0.339979 | 0.339861 | 0.340054 | 6.36e-05 |
-| B | 409.748 | 409.389 | 410.115 | 0.1935 |
-| beta | 0.279888 | 0.279843 | 0.279935 | 2.422e-05 |
+| E | 1.68982 | 1.68969 | 1.68993 | 6.699e-05 |
+| A | 406.268 | 405.541 | 406.784 | 0.3708 |
+| alpha | 0.339983 | 0.339878 | 0.340053 | 5.173e-05 |
+| B | 409.744 | 409.388 | 410.114 | 0.1943 |
+| beta | 0.279888 | 0.279844 | 0.279934 | 2.433e-05 |
 
 The intervals above are extremely narrow. That is a property of the fit
 data, not a measure of how well real model scaling is known: see the next
