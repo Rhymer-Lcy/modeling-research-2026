@@ -51,6 +51,28 @@
     address is a reviewable edit to that tracked file, so intentional
     publication leaves a trace while accidental publication stays blocked.
 
+    HISTORICAL EXCEPTIONS
+    Two different things can let an address through, and they must not be
+    confused:
+
+        approved address      an address deliberately allowed in public
+                              history, for existing and future commits
+                              (configs/git-email-policy.txt)
+
+        historical exception  ONE already-public commit whose metadata carries
+                              an unapproved address that can no longer be
+                              withdrawn without rewriting shared history
+                              (configs/git-email-history-exceptions.txt)
+
+    An exception is keyed by the full commit SHA, never by address, and it has
+    no wildcard form. It lets that exact commit pass and approves nothing: the
+    same address on any other commit still fails. It exists only for
+    irreversible, already-published metadata incidents. An entry that is
+    malformed or duplicated, that names a commit absent from reachable history,
+    or that names a commit needing no exception is itself a failure, so the
+    list cannot drift into a silent allowance. A missing exception file means
+    zero exceptions.
+
     SEVERITY
     Only high-confidence credential signatures fail. Generic assignments such as
     `token = "..."` are reported as warnings for manual review: a gate that
@@ -86,6 +108,8 @@ $script:PathExemptions = 0
 $script:EmailsChecked = 0
 $script:EmailsByExact = 0
 $script:EmailsBySuffix = 0
+$script:HistoryExceptionsUsed = 0
+$script:HistoryExceptionsListed = 0
 $script:PathsDecoded = 0
 $script:PathsUninterpretable = 0
 
@@ -97,8 +121,9 @@ function Add-Manual  { param([string]$m) [void]$script:Manual.Add($m) }
 # Policy
 # --------------------------------------------------------------------------
 
-$EmailPolicyRelPath  = 'configs/git-email-policy.txt'
-$PathExemptionMarker = 'check-public-safe: allow-path-pattern'
+$EmailPolicyRelPath    = 'configs/git-email-policy.txt'
+$EmailExceptionRelPath = 'configs/git-email-history-exceptions.txt'
+$PathExemptionMarker   = 'check-public-safe: allow-path-pattern'
 
 # High confidence: a match is a credential, not a variable name. These FAIL.
 $HighConfidenceSecrets = @(
@@ -308,6 +333,40 @@ function Get-EmailVerdict {
         if ($a.EndsWith($s)) { return 'suffix' }
     }
     return 'unapproved'
+}
+
+function Read-EmailHistoryExceptions {
+    <# Parses configs/git-email-history-exceptions.txt into a set of full
+       commit SHAs. Returns a hashtable keyed by lower-case SHA.
+
+       Every non-comment line must be exactly `exact-commit <40 hex>`. Anything
+       else - an abbreviated SHA, a wildcard, an address, another keyword - is
+       reported as a failure rather than skipped, and so is a duplicate. A
+       missing file yields an empty set: absence never broadens permission. #>
+    $set  = @{}
+    $path = Join-Path $repoRoot ($EmailExceptionRelPath -replace '/', '\')
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return $set }
+
+    $n = 0
+    foreach ($line in (Get-Content -LiteralPath $path -Encoding UTF8)) {
+        $n++
+        $t = $line.Trim()
+        if ($t -eq '' -or $t.StartsWith('#')) { continue }
+        $m = [regex]::Match($t, '^exact-commit\s+([0-9A-Fa-f]{40})$')
+        if (-not $m.Success) {
+            Add-Failure ("Malformed entry in $EmailExceptionRelPath line $n" +
+                         ": only 'exact-commit <full 40-character SHA>' is accepted.")
+            continue
+        }
+        $sha = $m.Groups[1].Value.ToLowerInvariant()
+        if ($set.ContainsKey($sha)) {
+            Add-Failure ("Duplicate entry in $EmailExceptionRelPath line $n" + ": " + $sha)
+            continue
+        }
+        $set[$sha] = $n
+    }
+    $script:HistoryExceptionsListed = $set.Count
+    return $set
 }
 
 function Test-IsBinary {
@@ -528,26 +587,71 @@ function Invoke-HistoryChecks {
         return
     }
 
-    $addresses = (Invoke-GitLines @('log','--all','--format=%ae%n%ce')) |
-        ForEach-Object { $_.Trim().ToLowerInvariant() } |
-        Where-Object { $_ -ne '' } |
-        Sort-Object -Unique
+    # Historical exceptions are keyed by commit, so the scan works on
+    # (commit, author, committer) triples rather than on unique addresses.
+    $exceptions = Read-EmailHistoryExceptions
 
-    $byExact = 0
-    $bySuffix = 0
-    foreach ($a in $addresses) {
-        $verdict = Get-EmailVerdict -Address $a -Policy $policy
-        if     ($verdict -eq 'exact')  { $byExact++ }
-        elseif ($verdict -eq 'suffix') { $bySuffix++ }
-        else {
-            # Reporting the address is the point of this failure: it names an
-            # accidental public-history disclosure so it can be dealt with.
-            Add-Failure ("Git history contains an address not permitted by $EmailPolicyRelPath" + ": " + $a)
+    $verdicts  = @{}   # address -> 'exact' | 'suffix' | 'unapproved'
+    $offending = @{}   # unapproved address -> commits that are NOT excepted
+    $used      = @{}   # excepted SHA -> $true once it actually waived something
+    $reachable = @{}   # every reachable commit SHA
+
+    foreach ($row in (Invoke-GitLines @('log','--all','--format=%H%x09%ae%x09%ce'))) {
+        if ([string]::IsNullOrWhiteSpace($row)) { continue }
+        $f = $row.Split("`t")
+        if ($f.Count -ne 3) {
+            Add-Failure ("Unparseable commit metadata line in history scan: " + $row)
+            continue
+        }
+        $sha = $f[0].Trim().ToLowerInvariant()
+        $reachable[$sha] = $true
+        foreach ($raw in @($f[1], $f[2])) {
+            $a = $raw.Trim().ToLowerInvariant()
+            if ($a -eq '') { continue }
+            if (-not $verdicts.ContainsKey($a)) {
+                $verdicts[$a] = Get-EmailVerdict -Address $a -Policy $policy
+            }
+            if ($verdicts[$a] -ne 'unapproved') { continue }
+
+            if ($exceptions.ContainsKey($sha)) {
+                # Waived for this exact commit only; the address stays
+                # unapproved everywhere else.
+                $used[$sha] = $true
+                continue
+            }
+            if (-not $offending.ContainsKey($a)) {
+                $offending[$a] = New-Object System.Collections.ArrayList
+            }
+            if (-not $offending[$a].Contains($sha)) { [void]$offending[$a].Add($sha) }
         }
     }
-    $script:EmailsChecked  = $addresses.Count
-    $script:EmailsByExact  = $byExact
-    $script:EmailsBySuffix = $bySuffix
+
+    foreach ($a in ($offending.Keys | Sort-Object)) {
+        # Reporting the address is the point of this failure: it names an
+        # accidental public-history disclosure so it can be dealt with.
+        $shas = $offending[$a]
+        Add-Failure ("Git history contains an address not permitted by $EmailPolicyRelPath" + ": " + $a +
+                     " (" + $shas.Count + " commit(s), e.g. " + $shas[0].Substring(0, 12) + ")")
+    }
+
+    foreach ($sha in ($exceptions.Keys | Sort-Object)) {
+        if (-not $reachable.ContainsKey($sha)) {
+            Add-Failure ("Entry in $EmailExceptionRelPath names a commit not in reachable history: " + $sha)
+        }
+        elseif (-not $used.ContainsKey($sha)) {
+            Add-Failure ("Entry in $EmailExceptionRelPath names a commit that needs no exception: " + $sha)
+        }
+    }
+
+    if ($reachable.Count -ne $script:CommitsScanned) {
+        Add-Failure ("Email scan covered " + $reachable.Count + " commits but " +
+                     $script:CommitsScanned + " are reachable.")
+    }
+
+    $script:EmailsChecked  = $verdicts.Count
+    $script:EmailsByExact  = @($verdicts.Values | Where-Object { $_ -eq 'exact' }).Count
+    $script:EmailsBySuffix = @($verdicts.Values | Where-Object { $_ -eq 'suffix' }).Count
+    $script:HistoryExceptionsUsed = $used.Count
 
     $patch = (Invoke-GitLines @('log','--all','-p')) -join "`n"
     foreach ($p in $HighConfidenceSecrets) {
@@ -576,6 +680,11 @@ Invoke-FileChecks
 if ($Mode -eq 'PrePush') {
     Invoke-HistoryChecks
 }
+else {
+    # PreCommit validates the exception file's format so a malformed entry is
+    # caught before it is committed; reachability is checked at PrePush.
+    [void](Read-EmailHistoryExceptions)
+}
 
 # Coverage assertions. A run that examined nothing must never report success.
 if ($script:FilesExamined -le 0) {
@@ -592,6 +701,12 @@ if ($Mode -eq 'PrePush') {
     Write-Host ("addresses checked : " + $script:EmailsChecked +
                 " (" + $script:EmailsBySuffix + " by approved suffix, " +
                 $script:EmailsByExact + " by approved exact rule)")
+    # Counts only; an exception never prints the address it waives.
+    Write-Host ("history exceptions: " + $script:HistoryExceptionsUsed + " of " +
+                $script:HistoryExceptionsListed + " listed commit(s) waived")
+}
+else {
+    Write-Host ("history exceptions: " + $script:HistoryExceptionsListed + " listed (format only)")
 }
 Write-Host ("path exemptions   : " + $script:PathExemptions)
 Write-Host ("quoted paths      : " + $script:PathsDecoded + " decoded, " +

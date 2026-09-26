@@ -21,11 +21,22 @@
 #
 # Matching is case-insensitive. Blank lines and lines beginning with # are
 # ignored.
+#
+# An APPROVED address, listed here, is deliberately allowed in public history
+# for existing and future commits. It is distinct from a HISTORICAL EXCEPTION,
+# listed in configs/git-email-history-exceptions.txt, which acknowledges one
+# already-published commit by its full SHA without approving its address: the
+# same address on any other commit still fails. Exceptions exist only for
+# irreversible, already-published metadata incidents. Never list an address
+# here merely to make an accidental disclosure pass.
 
 # Every contributor's GitHub-provided noreply address. This is the default, and
-# what M2 and M3 should configure before their first commit: it keeps a personal
-# mailbox out of the public record without the project needing to know anything
-# about it.
+# what M2, M3 and M4 should configure before their first commit: it keeps a
+# personal mailbox out of the public record without the project needing to know
+# anything about it. A server-side squash merge takes its author address from
+# the pull-request author's GitHub account, not from repository-local
+# configuration, so that account's email settings must resolve to a noreply
+# address as well.
 suffix @users.noreply.github.com
 
 # GitHub's own server-side committer. A squash or rebase merge performed through

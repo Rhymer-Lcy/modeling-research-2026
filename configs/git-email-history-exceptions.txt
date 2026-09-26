@@ -1,0 +1,32 @@
+# Historical author-email exceptions for public Git history.
+#
+# This file is NOT an approval list. Approved addresses live in
+# configs/git-email-policy.txt, and only an address approved there may be used
+# by any new commit.
+#
+# An entry here acknowledges ONE already-published commit whose author or
+# committer metadata carries an address that the policy does not approve, when
+# that metadata can no longer be withdrawn: the commit is on public main, and
+# removing it would require rewriting and force-pushing shared history. The
+# entry lets the public-safety gate pass for that exact commit and for nothing
+# else. The same address on any other commit, earlier or later, still fails.
+#
+# Use this only for an irreversible, already-published metadata incident. Never
+# add an entry to make a new commit pass: fix the author address instead.
+#
+# Deliberately, no entry and no comment in this file names the address itself.
+# The commit identifier is sufficient for the gate and adds no personal data.
+#
+# Format, one rule per line:
+#
+#   exact-commit <full 40-character commit SHA>
+#
+# Nothing else is accepted. An abbreviated SHA, a wildcard, an address, any
+# other keyword, a duplicate entry, or an entry naming a commit that is absent
+# from reachable history or that needs no exception fails the gate. Blank lines
+# and lines beginning with # are ignored.
+
+# Server-side squash merge of an accepted pull request, authored by GitHub from
+# the pull-request author's public-profile address rather than a noreply
+# address. Already public on main when it was found.
+exact-commit 4b22bbedb1d9fde4863dabe601b15ae162f00ff8
