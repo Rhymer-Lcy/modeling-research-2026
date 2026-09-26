@@ -1,0 +1,39 @@
+{
+  "baseline_identity": {
+    "delta_g_flops_per_token": 0.0,
+    "identity": "[g(Q0) - g(Q0)]_+ = 0",
+    "quality_coordinate": "Q0",
+    "quality_preprocessing_flops": 0.0
+  },
+  "cross_scale_quality_benefit_gate": {
+    "reason": "Classic IF3 has no accepted quality-loss term; the receipt supplies a cost expression, not a cross-scale benefit model.",
+    "result": "PROHIBITED"
+  },
+  "limitation": "No source-established global scalar Q0 is supplied here. IF1's partially mapped relative proxy is not substituted for Q0, and no unmapped mass is imputed.",
+  "numeric_nonbaseline_scenarios_ran": false,
+  "purpose": "T-010 blocked nonbaseline quality-cost status report; no numeric scenario",
+  "quality_baseline_gate": {
+    "reason": "The source defines Q0 semantically but supplies no global scalar value. A scenario may proceed only after a Q0 source or explicitly declared assumption is provided; no IF1 proxy substitution or unmapped-mass imputation is permitted.",
+    "result": "BLOCKED_UNTIL_Q0_DECLARED"
+  },
+  "quality_cost_families": {
+    "exponential": {
+      "formula": "g(Q) = gamma exp(lambda Q)",
+      "gamma": "1e7",
+      "lambda": "6.0"
+    },
+    "logarithmic_asymptotic": {
+      "formula": "g(Q) = gamma ln(1 + lambda Q)",
+      "gamma": "2e9",
+      "lambda": "10.0"
+    },
+    "power": {
+      "formula": "g(Q) = gamma Q^lambda",
+      "gamma": "5e9",
+      "lambda": "4.0"
+    }
+  },
+  "quality_optimization_ran": false,
+  "receipt_path": "results/tables/q3-source-receipt.json",
+  "schema_version": "q3-quality-cost-sensitivity-v1"
+}

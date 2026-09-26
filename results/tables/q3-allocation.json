@@ -1,0 +1,127 @@
+{
+  "allocations": [
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "budget_saturation_residual_flops": 2048.0,
+      "context_tokens": 4096,
+      "cost": {
+        "attention_flops": 1.2013139371187236e+18,
+        "attention_share": 0.12013139371187238,
+        "base_flops": 8.798686062881275e+18,
+        "base_share": 0.8798686062881277,
+        "budget_residual_flops": 2048.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 9.999999999999998e+18
+      },
+      "d_tokens_raw": 6814144239.165979,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 6.8192,
+      "n_parameters_raw": 215206433.21843827,
+      "predicted_loss": 3.0114366630445843,
+      "stationary_residual_dloss_dlog_n": -1.1102230246251565e-16,
+      "status": "VALID_ALLOCATION",
+      "unconstrained_diagnostic": {
+        "d_tokens_raw": 6814144239.165979,
+        "inside_canonical_validity_box": true,
+        "n_parameters_raw": 215206433.21843827,
+        "predicted_loss": 3.0114366630445843
+      },
+      "validity_labels": {
+        "active_boundary": "none",
+        "d_tokens": 6814144239.165979,
+        "in_validity_box": true,
+        "lower_constraints": [],
+        "n_parameters": 215206433.21843827,
+        "upper_constraints": []
+      }
+    },
+    {
+      "active_boundary": "D_max",
+      "budget_flops": 1e+22,
+      "budget_saturation_residual_flops": 0.0,
+      "context_tokens": 4096,
+      "cost": {
+        "attention_flops": 1.2013139371187236e+21,
+        "attention_share": 0.12013139371187236,
+        "base_flops": 8.798686062881277e+21,
+        "base_share": 0.8798686062881277,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+22
+      },
+      "d_tokens_raw": 299893000000.0,
+      "feasibility_label": "active_validity_boundary",
+      "kappa_flops_per_parameter_token": 6.8192,
+      "n_parameters_raw": 4889902989.222421,
+      "predicted_loss": 2.1475143490254687,
+      "stationary_residual_dloss_dlog_n": 0.0001870821767165909,
+      "status": "VALID_ALLOCATION",
+      "unconstrained_diagnostic": {
+        "d_tokens_raw": 301184149511.3987,
+        "inside_canonical_validity_box": false,
+        "n_parameters_raw": 4868940412.454805,
+        "predicted_loss": 2.147513947143961
+      },
+      "validity_labels": {
+        "active_boundary": "D_max",
+        "d_tokens": 299893000000.0,
+        "in_validity_box": true,
+        "lower_constraints": [
+          "D_max"
+        ],
+        "n_parameters": 4889902989.222421,
+        "upper_constraints": []
+      }
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 4096,
+      "reason": "no point can simultaneously saturate this receipt-supported budget and remain inside the accepted raw N/D IF3 validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    }
+  ],
+  "classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+  "cross_scale_quality_benefit": "PROHIBITED",
+  "presentation_context_role": "observed presentation row only; not a preferred regime or optimized context",
+  "presentation_context_tokens": 4096,
+  "purpose": "T-010 canonical baseline N-D allocation; no quality-coordinate optimization",
+  "quality_coordinate": "Q0",
+  "quality_preprocessing_flops": 0.0,
+  "receipt_path": "results/tables/q3-source-receipt.json",
+  "schema_version": "q3-allocation-v1",
+  "uncertainty_evidence": {
+    "allocation_propagation_available": false,
+    "complete_parameter_vectors_released": false,
+    "limitation": "The accepted IF3 serialization supplies marginal bootstrap parameter intervals only; it does not release complete joint bootstrap parameter vectors. Allocation uncertainty bands are therefore not computed, and no joint samples are synthesized from marginals.",
+    "n_clusters": 8,
+    "parameter_intervals": {
+      "A": [
+        405.54148306456716,
+        406.7844618286681
+      ],
+      "B": [
+        409.3876950655455,
+        410.1140459487031
+      ],
+      "E": [
+        1.689691859780387,
+        1.689927440585504
+      ],
+      "alpha": [
+        0.3398783756204177,
+        0.340053263141023
+      ],
+      "beta": [
+        0.2798440398420515,
+        0.279933741070548
+      ]
+    },
+    "replicates": 399,
+    "representation": "accepted_classic_if3_bootstrap_marginal_intervals",
+    "seed": 42,
+    "source_unit": "model"
+  }
+}

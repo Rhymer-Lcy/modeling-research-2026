@@ -1,0 +1,253 @@
+{
+  "classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+  "context_role": "full observed C7 sensitivity grid; not an optimized context choice",
+  "parity_role": "base/attention cost-parity identity only",
+  "parity_tokens": 30000.0,
+  "purpose": "T-010 full observed-context baseline sensitivity; no context optimization",
+  "quality_coordinate": "Q0",
+  "quality_preprocessing_flops": 0.0,
+  "receipt_path": "results/tables/q3-source-receipt.json",
+  "rows": [
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "context_tokens": 2048,
+      "cost": {
+        "attention_flops": 6.390414378432351e+17,
+        "attention_share": 0.06390414378432352,
+        "base_flops": 9.360958562156763e+18,
+        "base_share": 0.9360958562156765,
+        "budget_residual_flops": 2048.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 9.999999999999998e+18
+      },
+      "d_tokens_raw": 7049635029.428727,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 6.4096,
+      "n_parameters_raw": 221310713.7953338,
+      "predicted_loss": 2.998928635704038,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "context_tokens": 4096,
+      "cost": {
+        "attention_flops": 1.2013139371187236e+18,
+        "attention_share": 0.12013139371187238,
+        "base_flops": 8.798686062881275e+18,
+        "base_share": 0.8798686062881277,
+        "budget_residual_flops": 2048.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 9.999999999999998e+18
+      },
+      "d_tokens_raw": 6814144239.165979,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 6.8192,
+      "n_parameters_raw": 215206433.21843827,
+      "predicted_loss": 3.0114366630445843,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "context_tokens": 8192,
+      "cost": {
+        "attention_flops": 2.1449518223711777e+18,
+        "attention_share": 0.21449518223711778,
+        "base_flops": 7.855048177628823e+18,
+        "base_share": 0.7855048177628823,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+19
+      },
+      "d_tokens_raw": 6403075069.509456,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 7.6384,
+      "n_parameters_raw": 204460307.2835389,
+      "predicted_loss": 3.0346544107862594,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "context_tokens": 32768,
+      "cost": {
+        "attention_flops": 5.220494519500382e+18,
+        "attention_share": 0.5220494519500383,
+        "base_flops": 4.779505480499618e+18,
+        "base_share": 0.4779505480499618,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+19
+      },
+      "d_tokens_raw": 4875809175.054817,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 12.5536,
+      "n_parameters_raw": 163374779.06751356,
+      "predicted_loss": 3.14123351444453,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+19,
+      "context_tokens": 131072,
+      "cost": {
+        "attention_flops": 8.137478891427437e+18,
+        "attention_share": 0.8137478891427437,
+        "base_flops": 1.862521108572564e+18,
+        "base_share": 0.1862521108572564,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+19
+      },
+      "d_tokens_raw": 2907812914.2973075,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 32.2144,
+      "n_parameters_raw": 106753836.61576079,
+      "predicted_loss": 3.3671567852342306,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "D_max",
+      "budget_flops": 1e+22,
+      "context_tokens": 2048,
+      "cost": {
+        "attention_flops": 6.390414378432351e+20,
+        "attention_share": 0.06390414378432353,
+        "base_flops": 9.360958562156763e+21,
+        "base_share": 0.9360958562156765,
+        "budget_residual_flops": 2097152.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 9.999999999999998e+21
+      },
+      "d_tokens_raw": 299893000000.0,
+      "feasibility_label": "active_validity_boundary",
+      "kappa_flops_per_parameter_token": 6.4096,
+      "n_parameters_raw": 5202388052.937083,
+      "predicted_loss": 2.1432138466879436,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "D_max",
+      "budget_flops": 1e+22,
+      "context_tokens": 4096,
+      "cost": {
+        "attention_flops": 1.2013139371187236e+21,
+        "attention_share": 0.12013139371187236,
+        "base_flops": 8.798686062881277e+21,
+        "base_share": 0.8798686062881277,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+22
+      },
+      "d_tokens_raw": 299893000000.0,
+      "feasibility_label": "active_validity_boundary",
+      "kappa_flops_per_parameter_token": 6.8192,
+      "n_parameters_raw": 4889902989.222421,
+      "predicted_loss": 2.1475143490254687,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+22,
+      "context_tokens": 8192,
+      "cost": {
+        "attention_flops": 2.1449518223711774e+21,
+        "attention_share": 0.21449518223711778,
+        "base_flops": 7.855048177628821e+21,
+        "base_share": 0.7855048177628823,
+        "budget_residual_flops": 2097152.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 9.999999999999998e+21
+      },
+      "d_tokens_raw": 283014954098.45984,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 7.6384,
+      "n_parameters_raw": 4625814563.198005,
+      "predicted_loss": 2.155554514116511,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+22,
+      "context_tokens": 32768,
+      "cost": {
+        "attention_flops": 5.220494519500383e+21,
+        "attention_share": 0.5220494519500383,
+        "base_flops": 4.779505480499617e+21,
+        "base_share": 0.47795054804996173,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+22
+      },
+      "d_tokens_raw": 215510031491.2763,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 12.5536,
+      "n_parameters_raw": 3696274559.6470366,
+      "predicted_loss": 2.1924640554886246,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "active_boundary": "none",
+      "budget_flops": 1e+22,
+      "context_tokens": 131072,
+      "cost": {
+        "attention_flops": 8.137478891427437e+21,
+        "attention_share": 0.8137478891427437,
+        "base_flops": 1.8625211085725638e+21,
+        "base_share": 0.18625211085725638,
+        "budget_residual_flops": 0.0,
+        "quality_flops": 0.0,
+        "quality_share": 0.0,
+        "total_flops": 1e+22
+      },
+      "d_tokens_raw": 128524893044.83649,
+      "feasibility_label": "interior",
+      "kappa_flops_per_parameter_token": 32.2144,
+      "n_parameters_raw": 2415253398.84004,
+      "predicted_loss": 2.270703823172095,
+      "status": "VALID_ALLOCATION"
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 2048,
+      "reason": "no budget-saturating allocation lies in the accepted raw N/D validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 4096,
+      "reason": "no budget-saturating allocation lies in the accepted raw N/D validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 8192,
+      "reason": "no budget-saturating allocation lies in the accepted raw N/D validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 32768,
+      "reason": "no budget-saturating allocation lies in the accepted raw N/D validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    },
+    {
+      "budget_flops": 1e+24,
+      "context_tokens": 131072,
+      "reason": "no budget-saturating allocation lies in the accepted raw N/D validity box",
+      "status": "NO_VALIDITY_BOX_ALLOCATION"
+    }
+  ],
+  "schema_version": "q3-context-sensitivity-v1"
+}
