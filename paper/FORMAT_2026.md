@@ -44,8 +44,32 @@ third-party class stays ignored and unmodified.
 | 15 | References ordered by first citation | spec text | `gmcm.bst` numbers by first citation, not alphabetically | compliant | none | two-entry fixture: an author sorting last alphabetically, cited first, received `[1]` |
 | 16 | Book citations include page information | spec text | the placeholder book entry carried no page range, so the rendered reference omitted it | **non-compliant** | added a `pages` field to the tracked example, and a note in `references.bib` that book entries must carry one | rendered reference now reads `... Press, 127-134, 2004.` |
 | 17 | Book / journal / web reference formats | spec text | `gmcm.bst` renders the prescribed field order for books | compliant | none; journal and web entries are not yet exercised | rendered reference compared with the specification's pattern |
-| 18 | Cover shows the correct 2026 competition edition | Word template, and the cover of the spec document | the class's title asset **does** carry the correct 2026 edition | compliant | none — see ambiguity A below for the asset that was not | title asset rendered and read directly |
+| 18 | Cover shows the correct 2026 competition edition | Word template, and the cover of the spec document | the class's title asset **does** carry the correct 2026 edition | compliant | none — see ambiguity A below for the asset that was not; the 2026 logo row is covered in the section below | title asset rendered and read directly |
 | 19 | Four-question manuscript structure | problem statement | `main.tex` wired Q1-Q3 only | **non-compliant** | added `paper/sections/05-4-model-q4.tex`, wired after Q3 and before validation | rendered page 4 shows section 8 问题四 |
+
+## 2026 update: the cover logo row (T-012 v3)
+
+The findings below are the historical T-014 record. One of their consequences
+has since changed; the full comparison is in `paper/TEMPLATE_DECISION_2026.md`.
+
+- **Historical T-014 finding (still true):** the class's own logo asset is
+  stale and carries a hidden stale text layer, so it is never drawn.
+- **New evidence:** the four images of the official 2026 cover row were
+  extracted from the organizer's Word template itself — two byte-identical to
+  the embedded images, the sponsor mark as its exact embedded stream, the
+  host-university seal as a lossless crop of the embedded composite. They show
+  the 2026 host and carry no text layer. They are organizer material and stay in
+  the git-ignored `docs_local/gmcm-2026/cover-assets/`.
+- **Selected implementation:** `paper/format_2026.tex` now replaces the stale
+  class row with the official row when all four local images are present, and
+  with **no row** otherwise, logging a warning. Rendered at 300 dpi, the row's
+  logo positions agree with the official cover within 0.7 mm and its widths
+  within 1.4 mm. `scripts/build_paper.ps1 -Submission` refuses to build without
+  the row, without real cover identity, without SimSun and SimHei embedded, with
+  non-empty PDF title/author metadata, or with an undefined reference.
+
+Retained ambiguity 1 below is therefore resolved for a local submission build.
+A clean public clone still builds without the row, and says so.
 
 ## Findings that required judgement
 
@@ -98,7 +122,8 @@ changed to imitate the template's incidental `0`.
 
 ## Retained ambiguities
 
-1. **Cover logo row.** Finding A above. Omission is the least-wrong option
+1. **Cover logo row.** *Resolved for local submission builds by the 2026
+   update above; kept here as the T-014 record.* Finding A above. Omission is the least-wrong option
    available under the redistribution constraint, but it is a visible deviation
    from the official template's cover, and a reviewer may prefer a manually
    supplied 2026 logo row placed in local-only space. That choice is left open
