@@ -82,7 +82,9 @@ def build_ledger() -> list[dict[str, Any]]:
         {"id": "S1", "category": "formula", "value": verified("budget_inequality"),
          "sources": docx_source("budget_inequality", "total_budget_three_parts"),
          "derivation": "organizer wording 'total cost does not exceed C' verified at its paragraph",
-         "status": "VERIFIED", "limitation": "an inequality; saturation holds only for C < C_box"},
+         "status": "VERIFIED",
+         "limitation": "an inequality: for C_min <= C <= C_box an optimum saturates the budget (at C = C_box "
+                       "it is the saturating upper corner); for C > C_box the upper-corner optimum has slack"},
         {"id": "S2", "category": "coefficient", "value": verified("base_training_coefficient"),
          "sources": docx_source("base_training_coefficient", "flops_unit_definition"),
          "derivation": "parsed from structured OMML {C}_{train}=6ND", "status": "VERIFIED",
