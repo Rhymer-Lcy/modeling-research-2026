@@ -9,7 +9,7 @@
 | Timestamp | 2026-09-26T11:04:25+08:00 (v3); pre-v3 package 2026-09-26T02:28:11+08:00 |
 | Base | `1e487fb` (branch point); synchronized with `main` `4096a97` (the T-011 v3 archival) by merge `648efaf` (merge, not rebase) |
 | Reviewed pre-v3 head | `7309fa6` (Draft PR #15 as reviewed; its pre-v3 evidence HEAD was `460df14`) |
-| Evidence HEAD | this commit, `fix(evolution): distinguish compute and parameter slowdown [T-011]` (hash recorded by the next commit) (the v3 correction commit: last commit carrying code or generated artifacts) |
+| Evidence HEAD | `d0be937` (`fix(evolution): distinguish compute and parameter slowdown [T-011]`: the v3 correction, the last commit carrying code or generated artifacts; later commits touch only this package and the worklog) |
 | Branch / PR | `exp/m4-T011-q4-evolution` / Draft PR #15 (https://github.com/Rhymer-Lcy/modeling-research-2026/pull/15), unmerged |
 
 ## Scope
