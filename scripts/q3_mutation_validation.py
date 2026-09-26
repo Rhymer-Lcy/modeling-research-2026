@@ -51,7 +51,12 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from scripts.q3_selftest import FORGERIES, forged_receipt  # noqa: E402
-from src.alloc import AUTHORIZED_Q3_INPUTS, install_q3_input_guard, require_authorized_q3_input  # noqa: E402
+from src.alloc import (  # noqa: E402
+    AUTHORIZED_Q3_INPUTS,
+    git_blob_sha1,
+    install_q3_input_guard,
+    require_authorized_q3_input,
+)
 from src.alloc.inputguard import LOG_ENVIRONMENT_VARIABLE  # noqa: E402
 from src.alloc.report import write_artifacts  # noqa: E402
 
@@ -380,10 +385,13 @@ def run_mutant(worktree: Path, mutant: Mutant) -> dict[str, Any]:
     originals = {target: (worktree / target).read_bytes() for target in targets}
     texts = {target: data.decode("utf-8") for target, data in originals.items()}
     for old, new in mutant.replacements:
-        owners = [target for target in targets if texts[target].count(old) == 1]
+        # The worktree is checked out with LF endings; matching stays correct if a checkout used CRLF.
+        variants = {target: (old, new) if "\r\n" not in texts[target]
+                    else (old.replace("\n", "\r\n"), new.replace("\n", "\r\n")) for target in targets}
+        owners = [target for target in targets if texts[target].count(variants[target][0]) == 1]
         if len(owners) != 1:
             raise RuntimeError(mutant.identifier + ": replacement text must occur exactly once in exactly one target")
-        texts[owners[0]] = texts[owners[0]].replace(old, new)
+        texts[owners[0]] = texts[owners[0]].replace(*variants[owners[0]])
     try:
         for target in targets:
             (worktree / target).write_bytes(texts[target].encode("utf-8"))
@@ -432,8 +440,11 @@ def main() -> int:
     sources = tested_sources()
     temp = Path(tempfile.mkdtemp(prefix="t010-mutation-"))
     worktree = temp / "worktree"
-    git("worktree", "add", "--detach", str(worktree), "HEAD")
+    # Check out with LF endings so every tested file is byte-identical to its committed blob.
+    git("-c", "core.autocrlf=false", "-c", "core.eol=lf", "worktree", "add", "--detach", str(worktree), "HEAD")
     try:
+        if not all(git_blob_sha1((worktree / item["path"]).read_bytes()) == item["git_blob_id"] for item in sources):
+            raise RuntimeError("worktree sources are not byte-identical to their committed blobs")
         for entry in AUTHORIZED_Q3_INPUTS:
             if entry.kind == "tracked_upstream_artifact":
                 continue
