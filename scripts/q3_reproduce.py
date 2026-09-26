@@ -1,9 +1,13 @@
-"""Reproduce the receipt-gated Q3 allocation artifacts deterministically.
+"""Reproduce every Q3 artifact deterministically, under the input guard.
 
-Runs the source receipt and every Q3 generator twice, requiring byte-identical
-artifacts, LF-only output, and no mutation of the local source inputs or IF
-interfaces.  It does not authorize nonbaseline quality scenarios: every pass
-remains on the receipt-approved semantic baseline ``Q0``.
+Before anything runs, the direct runtime must equal the ``environment.yml`` pins
+and every accepted interface must pass its hash, shared-contract and scope
+checks and be published in its tracked upstream receipt.  Every generator then
+runs twice as a separate process under the process-wide Q3 input guard, which
+records the allowlisted inputs it opened and would have raised on any PDF,
+non-allowlisted local file, traversal or write.  The run fails unless both
+passes are byte-identical and LF-only, no guard denial occurred, every read was
+allowlisted, and the authorized inputs and interfaces are unchanged afterwards.
 
 Writes:
     results/tables/q3-reproduction.json
@@ -17,316 +21,220 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
+import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
-from src.alloc import ACCEPTED_CLASSIC_IF3_SHA256, load_classic_if3  # noqa: E402
-from src.paths import (  # noqa: E402
-    ATT_C,
-    PROBLEM_F_INTERFACES,
-    PROBLEM_F_SOURCE,
-    TABLES,
-    ensure,
-    require,
+from src.alloc import (  # noqa: E402
+    ACCEPTED_INTERFACE_SHA256,
+    AUTHORIZED_Q3_INPUTS,
+    install_q3_input_guard,
+    load_all_accepted_interfaces,
+    sha256_authorized_q3_input,
+    verify_accepted_hash_receipts,
 )
+from src.alloc.inputguard import LOG_ENVIRONMENT_VARIABLE  # noqa: E402
+from src.alloc.report import write_artifacts  # noqa: E402
+from src.paths import TABLES  # noqa: E402
 
 GENERATORS = (
     "q3_source_receipt.py",
     "q3_allocate.py",
     "q3_context_sensitivity.py",
+    "q3_regime_analysis.py",
     "q3_quality_cost_sensitivity.py",
+    "q3_loo_robustness.py",
+    "q3_provenance_ledger.py",
 )
-
-ARTIFACTS = (
-    TABLES / "q3-source-receipt.json",
-    TABLES / "q3-source-receipt.md",
-    TABLES / "q3-allocation.json",
-    TABLES / "q3-allocation.md",
-    TABLES / "q3-context-sensitivity.json",
-    TABLES / "q3-context-sensitivity.md",
-    TABLES / "q3-quality-cost-sensitivity.json",
-    TABLES / "q3-quality-cost-sensitivity.md",
+STEMS = (
+    "q3-source-receipt",
+    "q3-allocation",
+    "q3-context-sensitivity",
+    "q3-regime-thresholds",
+    "q3-quality-cost-sensitivity",
+    "q3-loo-robustness",
+    "q3-provenance-ledger",
 )
-
-SOURCE_TREES = (
-    PROBLEM_F_SOURCE,
-    ATT_C,
-)
-SOURCE_FILES = (
-    ATT_C.parent / "source_manifest.json",
-)
-INTERFACE_PATHS = {
-    "IF1": PROBLEM_F_INTERFACES / "q1-if1-domain-quality.json",
-    "IF2": PROBLEM_F_INTERFACES / "q1-if2-mixture-response.json",
-    "IF3": PROBLEM_F_INTERFACES / "IF3_classic.json",
-}
+ARTIFACTS = tuple(TABLES / (stem + suffix) for stem in STEMS for suffix in (".json", ".md"))
+PINNED_PACKAGES = ("python", "numpy", "scipy", "pandas", "pyyaml")
 
 
-def sha256(path: Path) -> str:
-    """Return the SHA-256 digest of one immutable or generated file."""
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def environment_pins() -> dict[str, str]:
+    """Read the exact direct pins declared in environment.yml."""
+    text = (REPO / "environment.yml").read_text(encoding="utf-8")
+    pins = {}
+    for name in PINNED_PACKAGES:
+        match = re.search(r"^\s*-\s*" + name + r"=([0-9][0-9.]*)\s*$", text, flags=re.MULTILINE)
+        if match is None:
+            raise RuntimeError("environment.yml has no exact pin for " + name)
+        pins[name] = match.group(1)
+    return pins
 
 
-def snapshot_tree(root: Path) -> dict[str, Mapping[str, object]]:
-    """Snapshot files under one relevant local source tree without writing to it."""
-    source = require(root)
-    output: dict[str, Mapping[str, object]] = {}
-    for path in sorted(source.rglob("*")):
-        if path.is_file():
-            stat = path.stat()
-            output[path.relative_to(REPO).as_posix()] = {
-                "sha256": sha256(path),
-                "bytes": stat.st_size,
-                "mtime_ns": stat.st_mtime_ns,
-            }
-    if not output:
-        raise RuntimeError("required Q3 source tree is empty: " + root.relative_to(REPO).as_posix())
-    return output
-
-
-def source_snapshot() -> dict[str, Mapping[str, object]]:
-    """Snapshot all source-receipt inputs used by the Q3 receipt generator."""
-    output: dict[str, Mapping[str, object]] = {}
-    for root in SOURCE_TREES:
-        overlap = set(output) & set(snapshot_tree(root))
-        if overlap:
-            raise RuntimeError("Q3 source snapshot roots overlap: " + repr(sorted(overlap)))
-        output.update(snapshot_tree(root))
-    for path in SOURCE_FILES:
-        source = require(path)
-        stat = source.stat()
-        key = source.relative_to(REPO).as_posix()
-        if key in output:
-            raise RuntimeError("Q3 source snapshot repeats " + key)
-        output[key] = {
-            "sha256": sha256(source),
-            "bytes": stat.st_size,
-            "mtime_ns": stat.st_mtime_ns,
-        }
-    return output
-
-
-def interface_snapshot() -> dict[str, Mapping[str, object]]:
-    """Record IF1/IF2 absence or bytes and require an accepted immutable IF3."""
-    require(PROBLEM_F_INTERFACES)
-    output: dict[str, Mapping[str, object]] = {}
-    for name, path in INTERFACE_PATHS.items():
-        if path.exists():
-            stat = path.stat()
-            output[name] = {
-                "status": "PRESENT",
-                "path": path.relative_to(REPO).as_posix(),
-                "sha256": sha256(path),
-                "bytes": stat.st_size,
-                "mtime_ns": stat.st_mtime_ns,
-            }
-        else:
-            output[name] = {"status": "NOT_PRESENT"}
-    if output["IF3"].get("status") != "PRESENT":
-        raise RuntimeError("accepted IF3 interface is missing")
-    if output["IF3"].get("sha256") != ACCEPTED_CLASSIC_IF3_SHA256:
-        raise RuntimeError("accepted IF3 interface hash is not the required producer handoff")
-    return output
-
-
-def public_source_summary(
-    snapshot: Mapping[str, Mapping[str, object]], unchanged: bool
-) -> dict[str, object]:
-    """Expose aggregate source verification without an input-file inventory."""
-    return {
-        "file_count": len(snapshot),
-        "content_size_mtime_unchanged": unchanged,
-    }
-
-
-def public_interface_summary(
-    snapshot: Mapping[str, Mapping[str, object]], unchanged: bool
-) -> dict[str, Mapping[str, object]]:
-    """Expose only interface verification outcomes, never local input metadata."""
-    output: dict[str, Mapping[str, object]] = {}
-    for name, record in snapshot.items():
-        summary: dict[str, object] = {
-            "status": record["status"],
-            "content_size_mtime_unchanged": unchanged,
-        }
-        if name == "IF3":
-            summary["accepted_sha256"] = ACCEPTED_CLASSIC_IF3_SHA256
-        output[name] = summary
-    return output
-
-
-def has_carriage_return(path: Path) -> bool:
-    """Return whether an artifact violates the required LF-only serialization."""
-    return b"\r" in path.read_bytes()
-
-
-def run_pass(label: str) -> tuple[dict[str, str], list[str]]:
-    """Run the full Q3 generator surface once and hash declared artifacts."""
-    for script in GENERATORS:
-        print(label + ": " + script, flush=True)
-        subprocess.run(
-            [sys.executable, str(REPO / "scripts" / script)],
-            cwd=REPO,
-            check=True,
-            stdout=subprocess.DEVNULL,
-        )
-    hashes = {
-        path.relative_to(REPO).as_posix(): sha256(require(path))
-        for path in ARTIFACTS
-    }
-    with_cr = [
-        path.relative_to(REPO).as_posix()
-        for path in ARTIFACTS
-        if has_carriage_return(path)
-    ]
-    return hashes, with_cr
-
-
-def runtime_versions() -> Mapping[str, str]:
-    """Return the declared direct-runtime package versions."""
+def runtime_versions() -> dict[str, str]:
     import numpy
     import pandas
     import scipy
     import yaml
 
-    return {
-        "python": platform.python_version(),
-        "numpy": numpy.__version__,
-        "scipy": scipy.__version__,
-        "pandas": pandas.__version__,
-        "pyyaml": yaml.__version__,
-    }
+    return {"python": platform.python_version(), "numpy": numpy.__version__, "scipy": scipy.__version__,
+            "pandas": pandas.__version__, "pyyaml": yaml.__version__}
 
 
-def markdown_report(
-    payload: Mapping[str, object],
-) -> str:
-    """Render the deterministic reproduction receipt as a reviewable table."""
-    artifacts = payload["artifact_sha256"]
-    assert isinstance(artifacts, Mapping)
-    interfaces = payload["interface_verification"]
-    assert isinstance(interfaces, Mapping)
+def input_snapshot() -> dict[str, dict[str, Any]]:
+    """Content, size and modification time of every allowlisted input (local check only)."""
+    output = {}
+    for entry in AUTHORIZED_Q3_INPUTS:
+        stat = entry.path.stat()
+        output[entry.key] = {"sha256": sha256_authorized_q3_input(entry.path), "bytes": stat.st_size,
+                             "mtime_ns": stat.st_mtime_ns}
+    return output
+
+
+def interface_check() -> dict[str, str]:
+    accepted = load_all_accepted_interfaces()
+    observed = {kind: item.sha256 for kind, item in accepted.items()}
+    if observed != ACCEPTED_INTERFACE_SHA256:
+        raise RuntimeError("accepted interface identity changed")
+    return observed
+
+
+def run_pass(label: str, log_dir: Path) -> tuple[dict[str, str], list[str], dict[str, dict[str, list[str]]]]:
+    guard_logs: dict[str, dict[str, list[str]]] = {}
+    for script in GENERATORS:
+        print(label + ": " + script, flush=True)
+        log_path = log_dir / (label.replace(" ", "_") + "_" + script + ".json")
+        environment = dict(os.environ, **{LOG_ENVIRONMENT_VARIABLE: str(log_path)})
+        subprocess.run([sys.executable, str(REPO / "scripts" / script)], cwd=REPO, env=environment,
+                       check=True, stdout=subprocess.DEVNULL)
+        guard_logs[script] = json.loads(log_path.read_text(encoding="utf-8"))
+    hashes = {path.relative_to(REPO).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in ARTIFACTS}
+    with_cr = [path.relative_to(REPO).as_posix() for path in ARTIFACTS if b"\r" in path.read_bytes()]
+    return hashes, with_cr, guard_logs
+
+
+def markdown(payload: Mapping[str, Any]) -> str:
+    check = lambda value: "**PASS**" if value else "**FAIL**"  # noqa: E731
     lines = [
         "# Q3 reproduction",
         "",
         "Generated by `scripts/q3_reproduce.py`. Do not edit by hand.",
         "",
-        "The receipt and all baseline-only Q3 generators ran in two complete passes. Hashes",
-        "are of generated bytes; every declared artifact is required to be LF-only. The",
-        "reproduction check preserves the semantic `Q0` baseline and runs no numerical",
-        "nonbaseline quality-cost scenario.",
+        "| Requirement | Result |",
+        "| --- | --- |",
+        "| Direct runtime equals the environment.yml pins | " + check(payload["runtime_matches_pins"]) + " |",
+        "| Accepted IF1/IF2/IF3 hash, contract and IF2 1M scope before and after | " + check(payload["interfaces_unchanged"]) + " |",
+        "| Accepted hashes published in tracked upstream receipts | " + check(payload["accepted_hash_receipts_found"]) + " |",
+        "| Two complete passes byte-identical | " + check(payload["two_passes_byte_identical"]) + " |",
+        "| Every artifact LF-only in both passes | " + check(payload["lf_only"]) + " |",
+        "| Authorized inputs unchanged (content, size, mtime) | " + check(payload["authorized_inputs_unchanged"]) + " |",
+        "| Input-guard denials across all generator runs | " + str(payload["guard_denials"]) + " |",
+        "| Every local input opened was allowlisted | " + check(payload["only_allowlisted_inputs_read"]) + " |",
         "",
         "Runtime: `" + json.dumps(payload["runtime"], sort_keys=True) + "`.",
         "",
-        "Deterministic seed policy: " + str(payload["seed_policy"]),
+        "## Inputs opened, per generator (identical in both passes)",
         "",
-        "| Artifact | SHA-256, pass 1 | Pass 2 identical |",
+        "| Generator | Allowlisted inputs opened |",
+        "| --- | --- |",
+    ]
+    for script, reads in payload["inputs_opened_by_generator"].items():
+        lines.append("| `scripts/" + script + "` | " + (", ".join("`" + key + "`" for key in reads) or "none") + " |")
+    lines += [
+        "",
+        "Each generator ran under the process-wide audit-hook guard, which raises before the operating",
+        "system opens any `*.pdf`, any local file outside the allowlist, or any allowlisted file for",
+        "writing, and before any directory under `data_local/` or `docs_local/` is listed. Zero denials",
+        "means no generator attempted any of these; in particular neither PDF was opened, stated through",
+        "an open, hashed or parsed. The current input snapshot is the " + str(len(payload["authorized_inputs"]))
+        + "-file allowlist below; the",
+        "historical whole-tree count of the reviewed checkpoint is not carried forward.",
+        "",
+        "| Key | Path | SHA-256 |",
         "| --- | --- | --- |",
     ]
-    for path, digest in artifacts.items():
-        lines.append(
-            "| `" + str(path) + "` | `" + str(digest) + "` | "
-            + ("yes" if payload["two_passes_byte_identical"] else "**NO**") + " |"
-        )
+    for entry in payload["authorized_inputs"]:
+        lines.append("| `" + entry["key"] + "` | `" + entry["path"] + "` | `" + entry["sha256"] + "` |")
     lines += [
         "",
-        "Generators, in order: "
-        + ", ".join("`scripts/" + script + "`" for script in GENERATORS) + ".",
+        "## Artifacts",
         "",
-        "Two complete passes byte-identical: **"
-        + ("PASS" if payload["two_passes_byte_identical"] else "FAIL") + "**.",
-        "",
-        "Every declared artifact LF-only in both passes: **"
-        + ("PASS" if payload["lf_only"] else "FAIL") + "**.",
-        "",
-        "Source-receipt inputs unchanged in content, size, and modification time: **"
-        + ("PASS" if payload["source_inputs_unchanged"] else "FAIL") + "** ("
-        + str(payload["source_input_file_count"]) + " files).",
-        "",
-        "Interface snapshot unchanged in content, size, and modification time: **"
-        + ("PASS" if payload["interfaces_unchanged"] else "FAIL") + "**.",
-        "",
-        "| Interface | State | Content/size/mtime unchanged | Accepted SHA-256 |",
-        "| --- | --- | --- | --- |",
+        "| Artifact | SHA-256 |",
+        "| --- | --- |",
     ]
-    for name, record in interfaces.items():
-        assert isinstance(record, Mapping)
-        lines.append(
-            "| `" + str(name) + "` | " + str(record["status"])
-            + " | " + ("yes" if record["content_size_mtime_unchanged"] else "**NO**")
-            + " | "
-            + ("`" + str(record["accepted_sha256"]) + "`" if "accepted_sha256" in record else "—")
-            + " |"
-        )
+    for path, digest in payload["artifact_sha256"].items():
+        lines.append("| `" + path + "` | `" + digest + "` |")
     lines += [
         "",
-        "IF1 and IF2 are not Q3 inputs. If absent, their retained `NOT_PRESENT` status is",
-        "checked across both passes rather than replaced or fabricated. IF3 is required to",
-        "remain the accepted immutable classic-law byte sequence.",
-        "",
-        "No numerical nonbaseline quality scenario ran. Cross-scale quality benefit remains",
-        "prohibited because the accepted classic IF3 law has no quality-loss term.",
+        "Seeds: " + payload["seed_policy"],
     ]
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
-    before_sources = source_snapshot()
-    before_interfaces = interface_snapshot()
-    load_classic_if3()
-    first_hashes, first_cr = run_pass("pass 1")
-    second_hashes, second_cr = run_pass("pass 2")
-    after_sources = source_snapshot()
-    after_interfaces = interface_snapshot()
-    load_classic_if3()
+    install_q3_input_guard()
+    pins = environment_pins()
+    runtime = runtime_versions()
+    if runtime != pins:
+        print("RUNTIME MISMATCH: " + json.dumps({"runtime": runtime, "pins": pins}), file=sys.stderr)
+        return 1
+    receipts = verify_accepted_hash_receipts()
+    before_inputs = input_snapshot()
+    before_interfaces = interface_check()
+    with tempfile.TemporaryDirectory() as directory:
+        first_hashes, first_cr, first_logs = run_pass("pass 1", Path(directory))
+        second_hashes, second_cr, second_logs = run_pass("pass 2", Path(directory))
+    after_inputs = input_snapshot()
+    after_interfaces = interface_check()
+    verify_accepted_hash_receipts()
 
-    identical = first_hashes == second_hashes
-    lf_only = not first_cr and not second_cr
-    sources_unchanged = before_sources == after_sources
-    interfaces_unchanged = before_interfaces == after_interfaces
+    allowed = {entry.key for entry in AUTHORIZED_Q3_INPUTS}
+    denials = sum(len(log["denied"]) for logs in (first_logs, second_logs) for log in logs.values())
+    reads = {script: first_logs[script]["reads"] for script in GENERATORS}
+    only_allowlisted = all(set(log["reads"]) <= allowed for logs in (first_logs, second_logs) for log in logs.values())
     payload = {
-        "schema_version": "q3-reproduction-v1",
-        "purpose": "T-010 deterministic baseline-only Q3 regeneration receipt",
-        "runtime": runtime_versions(),
-        "seed_policy": (
-            "Q3 generators draw no random values. The accepted IF3 bootstrap seed is retained "
-            "as descriptive uncertainty provenance only; no allocation uncertainty resampling runs."
-        ),
+        "schema_version": "q3-reproduction-v3",
+        "purpose": "T-010 deterministic two-pass regeneration receipt under the Q3 input guard",
+        "runtime": runtime,
+        "environment_pins": pins,
+        "runtime_matches_pins": runtime == pins,
+        "accepted_interface_sha256": dict(ACCEPTED_INTERFACE_SHA256),
+        "accepted_hash_receipts": receipts,
+        "accepted_hash_receipts_found": True,
+        "interfaces_unchanged": before_interfaces == after_interfaces == ACCEPTED_INTERFACE_SHA256,
         "generators": ["scripts/" + script for script in GENERATORS],
         "artifact_sha256": second_hashes,
-        "two_passes_byte_identical": identical,
-        "lf_only": lf_only,
-        "source_input_verification": public_source_summary(after_sources, sources_unchanged),
-        "source_input_file_count": len(after_sources),
-        "source_inputs_unchanged": sources_unchanged,
-        "interface_verification": public_interface_summary(after_interfaces, interfaces_unchanged),
-        "interfaces_unchanged": interfaces_unchanged,
-        "accepted_classic_if3_sha256": ACCEPTED_CLASSIC_IF3_SHA256,
+        "two_passes_byte_identical": first_hashes == second_hashes,
+        "lf_only": not first_cr and not second_cr,
+        "authorized_inputs": [{"key": entry.key, "path": entry.relative_path, "kind": entry.kind,
+                               "sha256": after_inputs[entry.key]["sha256"]} for entry in AUTHORIZED_Q3_INPUTS],
+        "authorized_inputs_unchanged": before_inputs == after_inputs,
+        "inputs_opened_by_generator": reads,
+        "inputs_opened_identical_across_passes": all(
+            first_logs[script]["reads"] == second_logs[script]["reads"] for script in GENERATORS
+        ),
+        "guard_denials": denials,
+        "only_allowlisted_inputs_read": only_allowlisted,
+        "pdf_opens": 0 if denials == 0 else "see denials",
+        "seed_policy": "Q3 generators draw no random numbers; the IF3 bootstrap seed is provenance only.",
     }
-    out_dir = ensure(TABLES)
-    json_path = out_dir / "q3-reproduction.json"
-    markdown_path = out_dir / "q3-reproduction.md"
-    json_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-        newline="\n",
-    )
-    markdown_path.write_text(markdown_report(payload), encoding="utf-8", newline="\n")
-    print("wrote " + json_path.relative_to(REPO).as_posix())
-    print("wrote " + markdown_path.relative_to(REPO).as_posix())
-    print(
-        "two passes identical: " + str(identical)
-        + "; LF-only: " + str(lf_only)
-        + "; source inputs unchanged: " + str(sources_unchanged)
-        + "; interfaces unchanged: " + str(interfaces_unchanged)
-    )
-    return 0 if identical and lf_only and sources_unchanged and interfaces_unchanged else 1
+    passed = all((payload["runtime_matches_pins"], payload["interfaces_unchanged"], payload["two_passes_byte_identical"],
+                  payload["lf_only"], payload["authorized_inputs_unchanged"], payload["only_allowlisted_inputs_read"],
+                  payload["inputs_opened_identical_across_passes"], denials == 0))
+    write_artifacts("q3-reproduction", payload, markdown(payload))
+    print("two passes identical: " + str(payload["two_passes_byte_identical"]) + "; LF-only: " + str(payload["lf_only"])
+          + "; inputs unchanged: " + str(payload["authorized_inputs_unchanged"]) + "; interfaces unchanged: "
+          + str(payload["interfaces_unchanged"]) + "; guard denials: " + str(denials)
+          + "; runtime matches pins: " + str(payload["runtime_matches_pins"]))
+    return 0 if passed else 1
 
 
 if __name__ == "__main__":

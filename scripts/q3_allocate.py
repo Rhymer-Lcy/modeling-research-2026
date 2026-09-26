@@ -1,7 +1,10 @@
-"""Generate canonical receipt-bound baseline N-D allocation results.
+"""Generate the canonical baseline N-D allocation at the source-supported budgets.
 
-Writes the selected observed-context baseline allocation for each source-supported
-compute budget. The context is a presentation row, not an optimization choice.
+Solves ``min L(N, D)`` subject to ``kappa N D <= C`` inside the accepted IF3
+validity box at each organizer representative budget, for one observed C7
+context used as a compact presentation row (not a preferred or optimized
+context; the full grid is in q3-context-sensitivity).  Every allocation is
+checked against an independent numerical search.
 
 Run through the declared environment:
     conda run -n modeling-research-2026 --no-capture-output python scripts/q3_allocate.py
@@ -9,10 +12,9 @@ Run through the declared environment:
 
 from __future__ import annotations
 
-import json
 import sys
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
@@ -21,172 +23,162 @@ from src.alloc import (  # noqa: E402
     BaselineCompute,
     NoValidityBoxAllocation,
     describe_allocation_uncertainty,
+    install_q3_input_guard,
+    load_all_accepted_interfaces,
     load_classic_if3,
     load_source_receipt,
-    solve_baseline,
+    solve_baseline_numeric,
 )
-from src.paths import TABLES, ensure  # noqa: E402
+from src.alloc.report import allocation_record, fmt, infeasible_record, unused_text, write_artifacts  # noqa: E402
 
 PRESENTATION_CONTEXT_TOKENS = 4096
+#: Justified agreement limits of the numerical comparator (see solve_baseline_numeric).
+N_D_RELATIVE_TOLERANCE = 1e-6
+LOSS_RELATIVE_TOLERANCE = 1e-11
 
 
-def fmt(value: float, digits: int = 8) -> str:
-    return format(float(value), "." + str(digits) + "g")
-
-
-def result_record(result) -> dict[str, object]:
-    labels = result.validity_labels
-    return {
-        "status": "VALID_ALLOCATION",
-        "budget_flops": result.compute.budget_flops,
-        "context_tokens": result.compute.context_tokens,
-        "kappa_flops_per_parameter_token": result.compute.kappa,
-        "n_parameters_raw": result.n_parameters,
-        "d_tokens_raw": result.d_tokens,
-        "predicted_loss": result.predicted_loss,
-        "feasibility_label": result.feasibility_label,
-        "active_boundary": result.active_boundary,
-        "validity_labels": dict(labels),
-        "stationary_residual_dloss_dlog_n": result.stationary_residual,
-        "budget_saturation_residual_flops": result.budget_saturation_residual_flops,
-        "cost": dict(result.cost),
-        "unconstrained_diagnostic": {
-            "n_parameters_raw": result.unconstrained_n_parameters,
-            "d_tokens_raw": result.unconstrained_d_tokens,
-            "predicted_loss": result.unconstrained_predicted_loss,
-            "inside_canonical_validity_box": not result.constrained,
-        },
-    }
-
-
-def unavailable_record(budget: float) -> dict[str, object]:
-    return {
-        "status": "NO_VALIDITY_BOX_ALLOCATION",
-        "budget_flops": budget,
-        "context_tokens": PRESENTATION_CONTEXT_TOKENS,
-        "reason": (
-            "no point can simultaneously saturate this receipt-supported budget and remain "
-            "inside the accepted raw N/D IF3 validity box"
-        ),
-    }
-
-
-def solve_record(classic, receipt, budget: float) -> dict[str, object]:
+def solve_record(classic: Any, receipt: Any, budget: float, context: int) -> dict[str, Any]:
     try:
-        return result_record(solve_baseline(
-            classic,
-            BaselineCompute.create(receipt, budget, PRESENTATION_CONTEXT_TOKENS),
-        ))
-    except NoValidityBoxAllocation:
-        return unavailable_record(budget)
+        agreement = solve_baseline_numeric(classic, BaselineCompute.create(receipt, budget, context))
+    except NoValidityBoxAllocation as exc:
+        return infeasible_record(budget, context, str(exc))
+    record = allocation_record(agreement.analytic)
+    passed = (agreement.n_relative_difference <= N_D_RELATIVE_TOLERANCE
+              and agreement.d_relative_difference <= N_D_RELATIVE_TOLERANCE
+              and agreement.loss_relative_difference <= LOSS_RELATIVE_TOLERANCE
+              and agreement.analytic_not_improved)
+    record["numerical_check"] = {
+        "method": "geometric-grid global bracketing plus bounded Brent in log N; no analytic candidate used",
+        "n_relative_difference": agreement.n_relative_difference,
+        "d_relative_difference": agreement.d_relative_difference,
+        "loss_relative_difference": agreement.loss_relative_difference,
+        "analytic_not_improved": agreement.analytic_not_improved,
+        "tolerances": {"n_d_relative": N_D_RELATIVE_TOLERANCE, "loss_relative": LOSS_RELATIVE_TOLERANCE},
+        "result": "PASS" if passed else "FAIL",
+    }
+    if not passed:
+        raise RuntimeError("numerical search disagrees with the analytic allocation at " + repr((budget, context)))
+    return record
 
 
-def markdown_table(records: list[Mapping[str, object]], uncertainty: Mapping[str, object]) -> str:
+def markdown(records: list[Mapping[str, Any]], uncertainty: Mapping[str, Any]) -> str:
     lines = [
         "# Q3 canonical baseline allocation",
         "",
         "Generated by `scripts/q3_allocate.py`. Do not edit by hand.",
         "",
-        "This table uses the accepted classic raw-N/raw-D IF3 law and the frozen",
-        "`results/tables/q3-source-receipt.json` gate. Every row is at the semantic",
-        "baseline `Q0`, so quality preprocessing compute and quality share are exactly zero.",
+        "Model-conditional allocation under the accepted classic raw-N/raw-D IF3 law at the semantic",
+        "baseline `Q0` (quality compute exactly zero). The canonical problem is",
         "",
-        "The observed `L_ctx = 4096`-token row is selected only for compact presentation; it",
-        "is not a preferred empirical regime or an optimized context choice. Full context",
-        "sensitivity is in `results/tables/q3-context-sensitivity.md`.",
+        "```text",
+        "minimize L(N, D) = E + A N^-alpha + B D^-beta",
+        "subject to kappa N D <= C,  N_min <= N <= N_max,  D_min <= D <= D_max,  kappa = 6 + eta L_ctx",
+        "```",
         "",
-        "| Budget (FLOPs) | L_ctx (tokens) | kappa | N (raw parameters) | D (raw tokens) | Predicted loss | Feasibility | Active boundary | Base share | Attention share | Quality share | Budget residual (FLOPs) |",
-        "| ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | ---: | ---: | ---: | ---: |",
+        "The budget is an inequality. An optimum spends the whole budget only while `C < C_box =",
+        "kappa N_max D_max`; above `C_box` the accepted-box optimum is the upper corner `(N_max, D_max)`",
+        "and the remainder is unused. `L_ctx = 4096` is an observed compact presentation row, not a",
+        "preferred or optimized context; every observed context is in `q3-context-sensitivity.md`.",
+        "",
+        "| Budget C (FLOPs) | L_ctx | kappa | N* (parameters) | D* (tokens) | Predicted loss | Regime | Spent (FLOPs) | Unused (FLOPs) | Utilization | Base share of spent | Attention share of spent | Base fraction of budget | Attention fraction of budget |",
+        "| ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for record in records:
         if record["status"] != "VALID_ALLOCATION":
-            lines.append(
-                "| " + fmt(record["budget_flops"]) + " | " + str(record["context_tokens"])
-                + " | — | — | — | — | unavailable | `NO_VALIDITY_BOX_ALLOCATION`"
-                + " | — | — | — | — |"
-            )
+            lines.append("| " + fmt(record["budget_flops"]) + " | " + str(record["context_tokens"])
+                         + " | — | — | — | — | `INFEASIBLE_BELOW_C_MIN` | — | — | — | — | — | — | — |")
             continue
         cost = record["cost"]
-        assert isinstance(cost, Mapping)
         lines.append(
             "| " + fmt(record["budget_flops"]) + " | " + str(record["context_tokens"])
             + " | " + fmt(record["kappa_flops_per_parameter_token"])
-            + " | " + fmt(record["n_parameters_raw"])
-            + " | " + fmt(record["d_tokens_raw"])
-            + " | " + fmt(record["predicted_loss"])
-            + " | " + str(record["feasibility_label"])
-            + " | `" + str(record["active_boundary"]) + "`"
-            + " | " + fmt(cost["base_share"])
-            + " | " + fmt(cost["attention_share"])
-            + " | " + fmt(cost["quality_share"])
-            + " | " + fmt(cost["budget_residual_flops"]) + " |"
+            + " | " + fmt(record["n_parameters_raw"]) + " | " + fmt(record["d_tokens_raw"])
+            + " | " + fmt(record["predicted_loss"]) + " | `" + record["regime"] + "`"
+            + " | " + fmt(cost["spent_flops"]) + " | " + unused_text(record)
+            + " | " + fmt(cost["compute_utilization"])
+            + " | " + fmt(cost["base_share_of_spent"]) + " | " + fmt(cost["attention_share_of_spent"])
+            + " | " + fmt(cost["base_fraction_of_budget"]) + " | " + fmt(cost["attention_fraction_of_budget"]) + " |"
         )
     lines += [
         "",
-        "## Validity and diagnostic status",
+        "Regime `SATURATED:<active bounds>` spends the whole budget; `SLACK:N_max+D_max` is the upper",
+        "corner with unused budget. Shares of spent compute and fractions of the budget have different",
+        "denominators and coincide only when the budget saturates. Quality share is exactly zero in",
+        "every row.",
         "",
-        "Canonical rows are inside the accepted raw N/D validity box. If the unconstrained",
-        "stationary point lies outside that box, it is retained only as a diagnostic in the",
-        "machine-readable companion and is never presented as a canonical allocation.",
+        "## Solver validation",
         "",
-        "Any `NO_VALIDITY_BOX_ALLOCATION` row is explicitly unavailable: no raw-N/raw-D",
-        "point can simultaneously saturate that receipt-supported budget and remain inside",
-        "the accepted IF3 validity box. It is not silently clipped or extrapolated.",
+        "| Budget C (FLOPs) | Stationary point inside box | Relative stationary residual | Numerical N / D / loss relative difference | Check |",
+        "| ---: | --- | ---: | --- | --- |",
+    ]
+    for record in records:
+        if record["status"] != "VALID_ALLOCATION":
+            continue
+        check = record["numerical_check"]
+        residual = record["stationary_residual_relative"]
+        lines.append(
+            "| " + fmt(record["budget_flops"]) + " | "
+            + ("yes" if record["stationary_point_diagnostic"]["inside_validity_box"] else "no (diagnostic only)")
+            + " | " + ("—" if residual is None else fmt(residual, 3))
+            + " | " + fmt(check["n_relative_difference"], 3) + " / " + fmt(check["d_relative_difference"], 3)
+            + " / " + fmt(check["loss_relative_difference"], 3) + " | " + check["result"] + " |"
+        )
+    lines += [
         "",
-        "## Uncertainty evidence",
+        "The closed-form stationary point `N_s = [alpha A/(beta B)]^(1/(alpha+beta)) (C/kappa)^(beta/(alpha+beta))`",
+        "is the optimum only when it lies inside the box; otherwise it is kept in the JSON as a diagnostic",
+        "and the constrained optimum is reported. The relative stationary residual is reported wherever the",
+        "budget saturates; it vanishes, to rounding, only at an interior optimum. The numerical check searches the feasible N",
+        "interval without using any analytic candidate; tolerances are 1e-6 for N and D (the flatness of a",
+        "smooth minimum) and 1e-11 for the loss.",
+        "",
+        "## Scope",
+        "",
+        "These are consequences of the accepted classic IF3 law inside its validity box, not observations",
+        "and not guidance for real training runs. The upper-corner result at budgets above `C_box` does",
+        "not identify an optimum beyond the box or a physical limit on useful compute, and the unused",
+        "remainder is not extrapolated.",
         "",
         str(uncertainty["limitation"]),
-        "",
-        "Released representation: `" + str(uncertainty["representation"]) + "`; bootstrap unit: `"
-        + str(uncertainty["source_unit"]) + "`; replicates: `" + str(uncertainty["replicates"])
-        + "`; clusters: `" + str(uncertainty["n_clusters"]) + "`.",
-        "",
-        "No numerical nonbaseline quality scenario ran. Cross-scale quality benefit remains prohibited",
-        "because the accepted classic IF3 law has no quality-loss term.",
     ]
     return "\n".join(lines) + "\n"
 
 
 def main() -> int:
+    install_q3_input_guard()
+    load_all_accepted_interfaces()
     classic = load_classic_if3()
     receipt = load_source_receipt()
-    if PRESENTATION_CONTEXT_TOKENS not in receipt.contexts_tokens:
-        raise RuntimeError("selected presentation context is not receipt-supported")
-    uncertainty = describe_allocation_uncertainty(classic)
-    records = [
-        solve_record(classic, receipt, budget)
-        for budget in receipt.budgets_flops
-    ]
+    receipt.require_context(PRESENTATION_CONTEXT_TOKENS)
+    evidence = describe_allocation_uncertainty(classic)
+    uncertainty = {
+        "representation": evidence.representation,
+        "source_unit": evidence.source_unit,
+        "replicates": evidence.replicates,
+        "n_clusters": evidence.n_clusters,
+        "seed": evidence.seed,
+        "parameter_intervals": {name: list(bounds) for name, bounds in evidence.parameter_intervals.items()},
+        "complete_bootstrap_vectors_released": evidence.complete_bootstrap_vectors_released,
+        "bootstrap_allocation_propagation": evidence.bootstrap_allocation_propagation,
+        "limitation": evidence.limitation,
+    }
+    records = [solve_record(classic, receipt, budget, PRESENTATION_CONTEXT_TOKENS)
+               for budget in receipt.budgets_flops]
     payload = {
-        "schema_version": "q3-allocation-v1",
-        "purpose": "T-010 canonical baseline N-D allocation; no quality-coordinate optimization",
+        "schema_version": "q3-allocation-v3",
+        "purpose": "T-010 canonical baseline N-D allocation under C_total <= C; no quality optimization",
         "receipt_path": "results/tables/q3-source-receipt.json",
         "classic_if3_sha256": classic.sha256,
         "presentation_context_tokens": PRESENTATION_CONTEXT_TOKENS,
-        "presentation_context_role": "observed presentation row only; not a preferred regime or optimized context",
+        "presentation_context_role": "observed compact presentation row; not a preferred or optimized context",
+        "constraint": "kappa N D <= C inside the accepted IF3 raw N/D validity box",
+        "claim_level": "model-conditional; not direct observation or developer guidance",
         "quality_coordinate": "Q0",
-        "quality_preprocessing_flops": 0.0,
         "cross_scale_quality_benefit": "PROHIBITED",
-        "uncertainty_evidence": {
-            "representation": uncertainty.representation,
-            "source_unit": uncertainty.source_unit,
-            "replicates": uncertainty.replicates,
-            "n_clusters": uncertainty.n_clusters,
-            "seed": uncertainty.seed,
-            "parameter_intervals": dict(uncertainty.parameter_intervals),
-            "complete_parameter_vectors_released": uncertainty.complete_parameter_vectors_released,
-            "allocation_propagation_available": uncertainty.allocation_propagation_available,
-            "limitation": uncertainty.limitation,
-        },
+        "uncertainty_evidence": uncertainty,
         "allocations": records,
     }
-    out_dir = ensure(TABLES)
-    json_path = out_dir / "q3-allocation.json"
-    markdown_path = out_dir / "q3-allocation.md"
-    json_path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
-    markdown_path.write_text(markdown_table(records, payload["uncertainty_evidence"]), encoding="utf-8", newline="\n")
-    print("wrote " + json_path.relative_to(REPO).as_posix())
-    print("wrote " + markdown_path.relative_to(REPO).as_posix())
+    write_artifacts("q3-allocation", payload, markdown(records, uncertainty))
     return 0
 
 

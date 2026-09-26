@@ -9,17 +9,19 @@ quality coordinate.
 
 from __future__ import annotations
 
-import dataclasses
-import hashlib
-import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
 
 from src import interfaces as ifc
-from src.paths import PROBLEM_F_INTERFACES, require
 from src.scaling.law import Fit, compute_optimal
+
+from .receipts import (
+    AcceptedInterfaceError,
+    AcceptedInterfaceHashMismatch,
+    load_accepted_interface,
+)
 
 ACCEPTED_CLASSIC_IF3_SHA256 = "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514"
 CLASSIC_IF3_FILENAME = "IF3_classic.json"
@@ -64,24 +66,6 @@ class AcceptedClassicIF3:
             key: (float(values[0]), float(values[1]))
             for key, values in self.law.validity_box.items()
         }
-
-
-def _build_if3(payload: Mapping[str, Any]) -> ifc.IF3ScalingLaw:
-    names = {field.name for field in dataclasses.fields(ifc.IF3ScalingLaw)}
-    extra = set(payload) - names
-    missing = names - set(payload)
-    if extra or missing:
-        raise ClassicIF3ContractError(
-            "IF3 payload does not match the shared contract; extra="
-            + repr(sorted(extra)) + " missing=" + repr(sorted(missing))
-        )
-    values = dict(payload)
-    try:
-        values["q_term_provenance"] = ifc.Provenance(**values["q_term_provenance"])
-        values["provenance"] = ifc.Provenance(**values["provenance"])
-        return ifc.IF3ScalingLaw(**values)
-    except (KeyError, TypeError) as exc:
-        raise ClassicIF3ContractError("IF3 provenance cannot reconstruct the shared contract") from exc
 
 
 def _positive_finite(value: object, label: str) -> float:
@@ -130,24 +114,22 @@ def load_classic_if3(
     *,
     expected_sha256: str = ACCEPTED_CLASSIC_IF3_SHA256,
 ) -> AcceptedClassicIF3:
-    """Load the accepted classic IF3 law, refusing altered bytes before parsing."""
-    source = require(path or (PROBLEM_F_INTERFACES / CLASSIC_IF3_FILENAME))
-    raw = source.read_bytes()
-    observed_sha256 = hashlib.sha256(raw).hexdigest()
-    if observed_sha256 != expected_sha256:
-        raise AcceptedIF3HashMismatch(
-            "classic IF3 SHA-256 " + observed_sha256 + " is not the accepted "
-            + expected_sha256 + "; install the accepted producer bytes, do not regenerate"
-        )
+    """Load classic IF3 through the unified accepted-interface receipt boundary."""
     try:
-        payload = json.loads(raw.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise ClassicIF3ContractError("accepted classic IF3 bytes are not valid UTF-8 JSON") from exc
-    if not isinstance(payload, dict):
-        raise ClassicIF3ContractError("classic IF3 payload must be a JSON object")
-    law = _build_if3(payload)
-    _validate_classic_contract(law)
-    return AcceptedClassicIF3(law=law, payload=payload, path=source, sha256=observed_sha256)
+        accepted = load_accepted_interface("IF3", path, expected_sha256=expected_sha256)
+    except AcceptedInterfaceHashMismatch as exc:
+        raise AcceptedIF3HashMismatch(str(exc)) from exc
+    except AcceptedInterfaceError as exc:
+        raise ClassicIF3ContractError(str(exc)) from exc
+    if not isinstance(accepted.interface, ifc.IF3ScalingLaw):
+        raise ClassicIF3ContractError("accepted IF3 did not reconstruct an IF3 shared contract")
+    _validate_classic_contract(accepted.interface)
+    return AcceptedClassicIF3(
+        law=accepted.interface,
+        payload=accepted.payload,
+        path=accepted.path,
+        sha256=accepted.sha256,
+    )
 
 
 def require_baseline_quality(quality: object | None = None) -> None:
@@ -169,8 +151,12 @@ def _positive_raw(value: object, label: str) -> float:
     return numeric
 
 
-def classic_loss(classic: AcceptedClassicIF3, n_parameters: object, d_tokens: object) -> float:
-    """Evaluate accepted classic IF3 in raw parameters and raw tokens."""
+def classic_loss(classic: Any, n_parameters: object, d_tokens: object) -> float:
+    """Evaluate the classic law in raw parameters and raw tokens.
+
+    ``classic`` is the accepted IF3 or a labelled
+    :class:`src.alloc.robustness.SensitivityClassicLaw`; only ``params`` is used.
+    """
     n_value = _positive_raw(n_parameters, "N")
     d_value = _positive_raw(d_tokens, "D")
     p = classic.params
@@ -182,7 +168,7 @@ def classic_loss(classic: AcceptedClassicIF3, n_parameters: object, d_tokens: ob
 
 
 def baseline_closed_form(
-    classic: AcceptedClassicIF3,
+    classic: Any,
     budget_flops: object,
     kappa: object,
 ) -> tuple[float, float]:

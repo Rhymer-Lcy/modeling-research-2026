@@ -1,8 +1,10 @@
 """Baseline-only Q3 allocation consumer for the accepted classic IF3 law.
 
-This package deliberately exposes no quality-coordinate optimizer.  The frozen
-Q3 receipt permits canonical allocation only at its semantic baseline ``Q0``,
-where the specified positive-part quality cost is exactly zero.
+This package deliberately exposes no quality-coordinate optimizer.  The Q3
+source receipt permits canonical allocation only at its semantic baseline
+``Q0``, where the specified positive-part quality cost is exactly zero.  All
+local inputs pass through :mod:`src.alloc.receipts`, and production entry points
+run under the process-wide guard in :mod:`src.alloc.inputguard`.
 """
 
 from .classic import (
@@ -12,38 +14,166 @@ from .classic import (
     BaselineScopeError,
     ClassicIF3ContractError,
     SourceReceiptError,
+    baseline_closed_form,
     classic_loss,
     load_classic_if3,
+    pure_nd_oracle,
 )
 from .constraint import (
+    CONTINUATION,
+    SOURCE_SUPPORTED,
     BaselineCompute,
     SourceReceipt,
     cost_breakdown,
     load_source_receipt,
 )
-from .solver import AllocationResult, SolverAgreement, solve_baseline, solve_baseline_numeric
+from .inputguard import guard_installed, guard_record, install_q3_input_guard
+from .loo import (
+    PRECISION_LABEL,
+    LOORobustnessError,
+    LOORobustnessEvidence,
+    PublishedParameterVector,
+    load_loo_robustness,
+)
+from .provenance import ProvenanceError, validate_ledger
+from .quality import raw_family_analysis
+from .receipts import (
+    ACCEPTED_INTERFACE_SHA256,
+    AUTHORIZED_Q3_INPUTS,
+    AcceptedInterface,
+    AcceptedInterfaceError,
+    AcceptedInterfaceHashMismatch,
+    B8_PATH,
+    C7_PATH,
+    DOCX_PATH,
+    ForbiddenQ3Input,
+    IF2ScopeError,
+    INTAKE_MANIFEST_PATH,
+    IdentityOnlyInterfaceError,
+    InterfaceIdentityReceipt,
+    LOO_PATH,
+    MANIFEST_PATH,
+    UnauthorizedQ3Input,
+    authorized_input,
+    authorized_q3_input_paths,
+    git_blob_sha1,
+    is_forbidden_path,
+    load_accepted_interface,
+    load_all_accepted_interfaces,
+    reject_forbidden_q3_input,
+    repo_relative,
+    require_authorized_q3_input,
+    sha256_authorized_q3_input,
+    verify_accepted_hash_receipts,
+)
+from .regime import (
+    RegimeInterval,
+    RegimeThresholdAnalysis,
+    ThresholdDisposition,
+    analytic_elasticities,
+    analyze_regime_thresholds,
+    candidate_thresholds,
+    stationary_threshold,
+)
+from .robustness import (
+    LOOSensitivityModel,
+    SensitivityClassicLaw,
+    build_loo_sensitivity_models,
+    load_loo_sensitivity_models,
+    rounding_corner_laws,
+)
+from .solver import AllocationResult, SolverAgreement, regime_label, solve_baseline, solve_baseline_numeric
+from .sourcedocx import (
+    ACCEPTED_DOCX_SHA256,
+    SOURCE_CHECKS,
+    SourceVerificationError,
+    read_docx_blocks,
+    verified_values,
+    verify_source_values,
+)
 from .uncertainty import AllocationUncertaintyEvidence, describe_allocation_uncertainty
 from .validity import AllocationBox, NoValidityBoxAllocation
 
 __all__ = [
     "ACCEPTED_CLASSIC_IF3_SHA256",
+    "ACCEPTED_DOCX_SHA256",
+    "ACCEPTED_INTERFACE_SHA256",
+    "AUTHORIZED_Q3_INPUTS",
     "AcceptedClassicIF3",
     "AcceptedIF3HashMismatch",
+    "AcceptedInterface",
+    "AcceptedInterfaceError",
+    "AcceptedInterfaceHashMismatch",
     "AllocationBox",
     "AllocationResult",
     "AllocationUncertaintyEvidence",
+    "B8_PATH",
     "BaselineCompute",
     "BaselineScopeError",
+    "C7_PATH",
+    "CONTINUATION",
     "ClassicIF3ContractError",
+    "DOCX_PATH",
+    "ForbiddenQ3Input",
+    "IF2ScopeError",
+    "INTAKE_MANIFEST_PATH",
+    "IdentityOnlyInterfaceError",
+    "InterfaceIdentityReceipt",
+    "LOORobustnessError",
+    "LOORobustnessEvidence",
+    "LOOSensitivityModel",
+    "LOO_PATH",
+    "MANIFEST_PATH",
     "NoValidityBoxAllocation",
+    "PRECISION_LABEL",
+    "ProvenanceError",
+    "PublishedParameterVector",
+    "RegimeInterval",
+    "RegimeThresholdAnalysis",
+    "SOURCE_CHECKS",
+    "SOURCE_SUPPORTED",
+    "SensitivityClassicLaw",
     "SolverAgreement",
     "SourceReceipt",
     "SourceReceiptError",
+    "SourceVerificationError",
+    "ThresholdDisposition",
+    "UnauthorizedQ3Input",
+    "analytic_elasticities",
+    "analyze_regime_thresholds",
+    "authorized_input",
+    "authorized_q3_input_paths",
+    "baseline_closed_form",
+    "build_loo_sensitivity_models",
+    "candidate_thresholds",
     "classic_loss",
     "cost_breakdown",
     "describe_allocation_uncertainty",
+    "git_blob_sha1",
+    "guard_installed",
+    "guard_record",
+    "install_q3_input_guard",
+    "is_forbidden_path",
+    "load_accepted_interface",
+    "load_all_accepted_interfaces",
     "load_classic_if3",
+    "load_loo_robustness",
+    "load_loo_sensitivity_models",
     "load_source_receipt",
+    "pure_nd_oracle",
+    "raw_family_analysis",
+    "read_docx_blocks",
+    "regime_label",
+    "reject_forbidden_q3_input",
+    "repo_relative",
+    "require_authorized_q3_input",
+    "rounding_corner_laws",
+    "sha256_authorized_q3_input",
     "solve_baseline",
     "solve_baseline_numeric",
+    "stationary_threshold",
+    "validate_ledger",
+    "verified_values",
+    "verify_accepted_hash_receipts",
+    "verify_source_values",
 ]
