@@ -4,16 +4,199 @@
 | --- | --- |
 | Task | T-012 |
 | Owner | M1 |
-| Status | `todo` in `TASKS.md`. **Stage A (v3) manuscript fast-track complete; T-012 final integration remains blocked on T-010.** |
-| Specification | `worklog/specs/T-012.md` v3 (L3), archived prospectively on this branch |
-| Timestamp | 2026-09-27T01:40:37+08:00 (Stage A) |
-| Base | `583b8db` (accepted `main`; unchanged at the end of Stage A) |
-| Branch / PR | `docs/m1-T012-manuscript-stage-a` / Draft PR (opened after the push; see the PR itself for its number) |
+| Status | `wip` in `TASKS.md`. **Stage B (v4) final-integration candidate complete; awaiting final independent audit.** |
+| Specification | `worklog/specs/T-012.md` v4 (L3), archived prospectively on this branch (`0b295eb`); v1-v3 unchanged |
+| Timestamp | 2026-09-27T05:08:27+08:00 (Stage B) |
+| Base | `main` `648b7b4` (T-010 accepted head `fe1dd7c` plus the T-010 closeout), merged normally into this branch as `826f438` |
+| Branch / PR | `docs/m1-T012-manuscript-stage-a` / PR #18 (Draft) |
 
-**T-012 final integration remains blocked on T-010.** Stage A drafts only what
-accepted evidence supports and resolves the 2026 LaTeX template question. It is
-not final integration: no final abstract, no Question 3 content, no
-cross-question synthesis. The dependency `T-010 + T-011 -> T-012` is unchanged.
+## Stage B (T-012 v4)
+
+### A. Scope and synchronization
+
+Final scientific integration of accepted Q1-Q4 evidence into one manuscript,
+per v4. Latest `main` was merged normally (no rebase, no force push). The only
+conflict was the expected one at the end of `worklog/M1.md`: both appended
+entries (Stage A, then the T-010 closeout) are kept verbatim in chronological
+order; a script asserted that the result is base + Stage-A addition + closeout
+addition. Every T-010 path in the merge equals `main` byte for byte.
+
+### B. Accepted inputs and the T-010 claim boundary
+
+Inputs are the tracked accepted artifacts listed in v4 (Q1 `q1-*`, Q2 `q2-*`,
+Q4 panel and evolution tables, Q3 `q3-*` with `reviews/T-010/HANDOVER.md` at the
+accepted head). The Q3 text uses only the seven consumable classes of the T-010
+handover: the verified cost model and grids; baseline allocations with the
+inequality, the upper-corner slack disposition and explicit shares; the regime
+definition and the two transitions per context; LOO ranges labelled as
+robustness ranges (loss not resolved at published precision); raw g(Q)
+crossings and interval orderings; the quality-lane status; and 30000 tokens as
+a cost-parity identity only. Every sentence touching a prohibited class
+(physical transition, optimum beyond the box, use of unused budget, confidence
+or posterior intervals, continuous context threshold, optimal context, Q
+optimum, IF1 as Q0, data quality unimportant, either PDF) was listed by script
+and read: each occurrence is a negation or a limitation.
+
+### C. Contributor reference pack (local only)
+
+- Archived without recompression as
+  `docs_local/problem-f/contrib/m2_reference_pack.received.zip`
+  (SHA-256 `8e6e4f3f7ecbb52a908b19fe8ded65e630fb4db661f0e4eaa48368bfa713a3cb`,
+  75,156,310 bytes), with a local provenance record and a separate extracted
+  inspection copy; the root copy was removed only after the hashes matched.
+  Nothing from the pack is tracked. It contains no organizer PDF.
+- 21 files, 19 distinct works (two works appear twice). **Useful: 8** (five new
+  citations below, plus the Chinchilla, Pythia and RegMix copies that confirm
+  already-cited claims). **Not cited: 10** (relevant to no sentence of the
+  manuscript). **Rejected: 1** (a survey credited to a lab team with no
+  identifiable publication record). No bibliography was imported from the pack.
+
+| Reference | Change | Verified against | Supports |
+| --- | --- | --- | --- |
+| Muennighoff et al., NeurIPS 36 (2023) 50358-50376 | added | Crossref, proceedings record | data may soon be limited by available text (Section 1) |
+| Subramanyam et al., ICLR 2026 | added | ICLR 2026 paper page, arXiv API | the candidate quality form is in the same family as their effective-data law (Section 6) |
+| Schaeffer et al., NeurIPS 36 (2023) 55565-55581 | added | Crossref, proceedings record | nonlinear or discontinuous metrics can stay near the floor while loss falls (Section 8) |
+| Ruan et al., NeurIPS 37 (2024) 15841-15892 | added | Crossref, proceedings record | training-compute efficiency differs widely across model families (Section 8) |
+| Krajewski et al., ICLR 2026 | added | ICLR 2026 paper page | downstream accuracy modelled directly, not through the loss proxy (Section 8) |
+| Zhuang et al. (Meta-rater) | arXiv -> ACL 2025 long paper, pp. 10856-10896 | ACL Anthology record | quality-signal framework |
+| Liu et al. (RegMix) | arXiv 2024 -> ICLR 2025 | ICLR 2025 paper page | origin of A4-A15 |
+| Rae et al. (Gopher) | version made explicit: arXiv:2112.11446v2, 2022 | arXiv API | word-length rule |
+| Hoffmann et al. (Chinchilla) | version made explicit: arXiv:2203.15556v1; also cited for C = 6ND in Q3 | arXiv API; pack copy read at the 6ND passage | classic form, published constants, training-cost term |
+
+Thirteen entries, all cited, first-citation order, no duplicates; each entry
+uses one version's metadata only. The reference list follows the official
+2026 journal pattern (author, title, venue, volume(issue): pages, year, no
+document-type marks); the v4 GB/T 7714 examples are not applied where they
+conflict, per the v4 authority order (`paper/FORMAT_2026.md`, ambiguity 4).
+
+### D. Figures (new)
+
+Generated by `scripts/paper_figures.py` from accepted tables only (receipt with
+input and output SHA-256: `results/tables/paper-figures.md`); vector PDFs,
+byte-identical across two runs; SimSun/Times New Roman embedded.
+
+| Figure | File | Source artifact(s) |
+| --- | --- | --- |
+| 5.1 Q1 per-target transfer | `results/figures/paper-q1-transfer.pdf` | `q1-mixture-validation.md` |
+| 7.1 Q3 N*(C), D*(C) | `results/figures/paper-q3-allocation.pdf` | `q3-context-sensitivity.json`, `q3-regime-thresholds.json` |
+| 7.2 Q3 regime map | `results/figures/paper-q3-regimes.pdf` | same |
+| 7.3 Q3 raw g(Q) | `results/figures/paper-q3-quality-cost.pdf` | `q3-quality-cost-sensitivity.json` |
+| 8.1 Q4 frontier and forecast | `results/figures/paper-q4-frontier.pdf` | `q4-frontier-forecast.md` |
+
+Allocation curves are straight log-log segments between accepted allocations of
+one regime, which is the exact model curve; the script asserts each of the 20
+segment slopes equals the accepted elasticity and every accepted row is a
+vertex. The g(Q) curves must reproduce the accepted g(1), limits and crossings;
+the Q4 line must reproduce the 12/24-month points. `scripts/paper_figures_selftest.py`
+plants 10 errors; all 10 are rejected. No Q2 figure: no accepted per-row
+prediction artifact exists. Plotting dependency: `matplotlib-base=3.11.2`
+pinned in `environment.yml`; a solver dry run and a before/after package-list
+comparison show no pinned package changed; the accepted Q3 self-test (187
+checks) and the interface self-test (21 assertions) pass in the updated
+environment.
+
+### E. Manuscript
+
+- **Question 3** (`05-3-model-q3.tex`): approach; cost model and parity
+  identity; inequality problem, validity box and the infeasible / saturated /
+  slack cases; stationary point and the structural-transition definition;
+  allocation results (Table 7.1, Figure 7.1); transitions (Figure 7.2,
+  Table 7.2); context sensitivity; LOO robustness; the three quality questions
+  and the raw g(Q) comparison (Figure 7.3); scope.
+- **Cross-question**: Section 1 now defines the five evidence classes A-E;
+  Section 2 adds the Q3 analysis and the chain logic; assumptions 5-6 and
+  symbols for Q3; the evidence table (9.1) is re-cut by class with a Q3 row;
+  Q3 sensitivity and error paragraphs; a cross-question synthesis
+  (Section 10.1); Q3 strengths, weaknesses and extensions; Q2 now hands over to
+  Q3 explicitly.
+- **Title, abstract, keywords**: final; every abstract and synthesis number is
+  also printed in the body (checked by script).
+- **Numbering**: equations, tables and figures within sections; appendix A.1;
+  appendix hyperlink anchors separated (their bookmarks had pointed at section 1).
+- **Citations**: superscript bracketed numbers through natbib (`super`,
+  `square`, `sort&compress`); author-led wording replaced "文献[n]".
+- **Tables**: numeric and short categorical columns centred, prose columns
+  left-aligned; Tables 4.1, 5.1, 5.2, 6.1, 6.2 realigned; Table 7.1 regime
+  labels shortened to avoid fragmented cells.
+- **AI-use subsection removed** with its heading and body; the appendix is now
+  A.1 environment and seeds, A.2 entry points, A.3 figure/table-to-artifact
+  map; no gap, no bookmark, no dangling reference.
+- **Advisory file**: `main-format-structure-audit.md` was not found in the
+  repository, on any branch, or on the execution host. Its findings listed in
+  v4 section 15 were applied as the checklist (Q3 completion, placeholders,
+  numbering, superscript citations, symbols, interval semantics, column-semantic
+  alignment, figure/table introductions, appendix, reference formatting,
+  widow/orphan control). Not adopted: a table of contents (the official rule
+  puts the body on the page after the abstract) and any aesthetic change not in
+  the official material. Findings the file may contain beyond that list were
+  not assessable.
+
+### F. Build, visual audit, submission dry run
+
+- `scripts/build_paper.ps1 -Clean`: exit 0, **26 pages**, 0 overfull boxes,
+  0 undefined references or citations, 0 `Missing character`, 0 bookmark-string
+  warnings (the class's `\thinskip` is disabled in bookmarks).
+- Every page rendered and inspected; after the final anchor-only change all 26
+  pages were shown pixel-identical to the inspected renders.
+- `-Submission` without an identity file: exit 1, PDF still written (26 pages,
+  A4, 1,427,886 bytes); the only failing check is the absent identity file.
+  With a temporary fixture identity (deleted afterwards): exit 0, all checks
+  pass, the five fixture strings appear on page 1 only, not in metadata or
+  bookmarks. The official specification defines no file-name convention; the
+  build output is `paper/build/main.pdf`. Nothing was uploaded.
+
+### G. Traceability and scans
+
+- Manuscript -> accepted artifacts: 431 numbers matched, 0 unmatched
+  (scientific values matched as whole values, so a wrong exponent fails).
+  Stage-A value corrected: the C1 Average identity now prints the accepted
+  1.42e-14 instead of the bound 1.5e-14. Two declared exceptions: the Q2 seed
+  20260923 (a code constant) and the 30000 parity identity.
+- Abstract and synthesis -> body: 48 numbers, all printed in the body.
+- Q3 tables -> JSON cell by cell: 35 cells, 0 mismatches.
+- The audit was mutation-tested: a changed cell, a wrong exponent, two swapped
+  rows and an abstract-only number all fail it. The visible-text scan (task,
+  interface and member ids, workflow words, local paths, placeholders, AI-use
+  heading, pending-Q3 wording) reports 0 hits and fails on each of five
+  planted hits. The audit scripts are local (`scratch/`).
+
+### H. Remaining risks
+
+1. The Q3 allocations are conditional on the classic law, whose B1 fit is a
+   generator recovery; stated in the text.
+2. No Q2 figure (no accepted per-row predictions).
+3. Decorative cover labels fall back to FandolHei where LiSu is absent
+   (unchanged T-014 ambiguity 2).
+4. The advisory audit file was unavailable (E).
+5. The number-trace and vocabulary scans live in ignored `scratch/`; they are
+   not a tracked gate.
+
+### I. Validation actually run
+
+`git diff --check` clean and PreCommit PASS before every commit; PrePush PASS
+before the push; `scripts/paper_figures.py` twice (byte-identical);
+`scripts/paper_figures_selftest.py` (10/10 killed); `scripts/q3_selftest.py`
+(PASS 187) and `scripts/selftest_interfaces.py` (PASS 21) in the updated
+environment; the builds and scans above.
+
+### J. Next action
+
+Final independent audit of the pushed head of PR #18. PR #18 is not merged and
+T-012 is not marked done in this stage.
+
+---
+
+# Stage A (v3): accepted-content manuscript fast-track — historical record
+
+The Stage-A record below is retained unchanged. Its status lines describe the
+branch before Stage B.
+
+| Field (Stage A) | Value |
+| --- | --- |
+| Status then | `todo`; Stage A complete; final integration blocked on T-010 |
+| Specification | `worklog/specs/T-012.md` v3 (L3) |
+| Timestamp | 2026-09-27T01:40:37+08:00 |
+| Base | `583b8db` |
 
 ## Stage A (T-012 v3)
 
