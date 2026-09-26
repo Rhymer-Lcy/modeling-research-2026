@@ -3,9 +3,15 @@
 Technical integration document for T-012. **Not manuscript prose**, and not a
 results document: nothing here is a scientific finding.
 
-**Status: pre-integration readiness. Final T-012 integration has not started
-and remains blocked by T-010 and T-011.** The dependency graph in `TASKS.md`
-is authoritative and unchanged:
+**Status update (T-012 v4, Stage B, 2026-09-27): historical.** T-010 and
+T-011 are accepted and on `main`, and final integration has been carried out
+under `worklog/specs/T-012.md` v4. The gate states below describe `main` as of
+2026-09-24 and are kept unchanged as the pre-integration record; the current
+integration evidence is `reviews/T-012/HANDOVER.md`.
+
+**Status then: pre-integration readiness. Final T-012 integration had not
+started and was blocked by T-010 and T-011.** The dependency graph in
+`TASKS.md` is authoritative and unchanged:
 
 ```
 T-007 -> T-008

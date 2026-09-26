@@ -40,10 +40,10 @@ third-party class stays ignored and unmodified.
 | 11 | Abstract covers modelling idea, methods, models, results and conclusions, innovations, keywords | spec text | placeholder abstract already has this shape | compliant (structure) | none — content is owned by T-012 | rendered page 2 |
 | 12 | Abstract normally at most two pages | spec text | placeholder abstract is well under one page | compliant | none; a content-time constraint | rendered page 2 |
 | 13 | No English translation of the abstract required | spec text | none present | compliant | none | rendered page 2 |
-| 14 | Bracketed numeric citations in the text | spec text | `natbib` with the `numbers` option and the `gmcm` style yields `[1]` | compliant | none | rendered page 3 shows `[1]` |
+| 14 | Bracketed numeric citations in the text | spec text | `natbib` with the `numbers` option and the `gmcm` style yields `[1]`; since T-012 v4 the brackets are kept and superscripted (`\setcitestyle{super,square,comma}`, `sort&compress`) | compliant | house style keeps the required brackets | rendered pages show superscript `[1]`, `[2]` |
 | 15 | References ordered by first citation | spec text | `gmcm.bst` numbers by first citation, not alphabetically | compliant | none | two-entry fixture: an author sorting last alphabetically, cited first, received `[1]` |
 | 16 | Book citations include page information | spec text | the placeholder book entry carried no page range, so the rendered reference omitted it | **non-compliant** | added a `pages` field to the tracked example, and a note in `references.bib` that book entries must carry one | rendered reference now reads `... Press, 127-134, 2004.` |
-| 17 | Book / journal / web reference formats | spec text | `gmcm.bst` renders the prescribed field order for books | compliant | none; journal and web entries are not yet exercised | rendered reference compared with the specification's pattern |
+| 17 | Book / journal / web reference formats | spec text | `gmcm.bst` renders the prescribed field order for books, and (T-012 v4) for journal and proceedings entries: author, title, venue, volume(issue): pages, year | compliant | conference papers use the journal pattern with the proceedings as venue; no web entry is cited | rendered reference list inspected |
 | 18 | Cover shows the correct 2026 competition edition | Word template, and the cover of the spec document | the class's title asset **does** carry the correct 2026 edition | compliant | none — see ambiguity A below for the asset that was not; the 2026 logo row is covered in the section below | title asset rendered and read directly |
 | 19 | Four-question manuscript structure | problem statement | `main.tex` wired Q1-Q3 only | **non-compliant** | added `paper/sections/05-4-model-q4.tex`, wired after Q3 and before validation | rendered page 4 shows section 8 问题四 |
 
@@ -137,9 +137,14 @@ changed to imitate the template's incidental `0`.
    read as governing body text rather than the template's own structural
    labels, and the class follows the template here. Left as the class has it,
    and recorded as a discrepancy rather than silently normalised.
-3. **Journal and web reference formats.** Requirement 17 is only exercised for
-   a book entry, because the bibliography currently holds one. The journal and
-   web patterns are unverified against a rendered example.
+3. **Journal and web reference formats.** *Journal pattern resolved in T-012
+   v4.* Requirement 17 was then only exercised for a book entry; the journal
+   pattern now has thirteen rendered entries. The web pattern is still
+   unexercised, because no web resource is cited.
+4. **Bibliography style versus a GB/T 7714 layout (T-012 v4).** The official
+   specification's journal pattern places the year last and carries no
+   document-type mark. It is followed as written; a GB/T 7714 layout (year
+   before volume, `[J]`/`[C]` marks) is not applied where it conflicts.
 
 ## Effect on the build
 
