@@ -269,8 +269,10 @@ def _touch_docx(worktree: Path) -> None:
 def _alter_loo(worktree: Path) -> None:
     path = worktree / LOO_SOURCE
     data = path.read_bytes()
-    assert data.count(b"| 406.636 |") == 1
-    path.write_bytes(data.replace(b"| 406.636 |", b"| 406.637 |"))
+    row = b"| 0.070542 | 1.68983 | 406.636 |"
+    if data.count(row) != 1:
+        raise RuntimeError("LOO probe row is not unique in the working copy")
+    path.write_bytes(data.replace(row, b"| 0.070542 | 1.68983 | 406.637 |"))
 
 
 PROBES: tuple[Probe, ...] = (
@@ -286,7 +288,7 @@ PROBES: tuple[Probe, ...] = (
           "REJECTED", "SourceReceiptError", _append_c7_row, (C7,)),
     Probe("P12", "DOCX bytes altered without changing any verified value", "scripts/q3_allocate.py", ALLOCATION,
           "REJECTED", "SourceReceiptError", _touch_docx, (DOCX,)),
-    Probe("P13", "LOO working copy altered (A 406.636 -> 406.637)", "scripts/q3_loo_robustness.py", LOO_TABLE,
+    Probe("P13", "LOO working copy altered (trajectory 0.070542: A 406.636 -> 406.637)", "scripts/q3_loo_robustness.py", LOO_TABLE,
           "REJECTED", "TrackedInputIdentityError", _alter_loo, (LOO_SOURCE,)),
 )
 
