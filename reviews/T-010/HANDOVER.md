@@ -8,7 +8,7 @@
 | Timestamp | 2026-09-26T12:05:51+08:00 |
 | Base | `2ca83455a39128d970ba588108a99ec7b3437a56` |
 | HEAD | `fa458f87ce30009329eb2c84cbeec8ce70715502` |
-| Branch / PR | `exp/m2-T010-q3-allocation` / Draft PR pending |
+| Branch / PR | `exp/m2-T010-q3-allocation` / Draft PR #17 |
 
 ## Scope
 
