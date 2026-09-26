@@ -5,11 +5,11 @@
 | Task | T-010 — Q3 compute-constrained resource optimization |
 | Owner | M4 (execution transferred from M2 by T-010 v3) |
 | Status | wip — awaiting supervisory review |
-| Timestamp | 2026-09-27T02:20:00+08:00 |
+| Timestamp | 2026-09-27T03:11:00+08:00 |
 | Specification | `worklog/specs/T-010.md` v1 (scientific), v2 (authoritative correction), v3 (ownership / controlled draft handoff); remediation of the supervisory re-audit is an L1 instruction (not archived) |
 | Synchronized main | `583b8db6660ac852e62642e7f9c38f1773b9a528` (unchanged at the last fetch before this package) |
 | Branch | `exp/m4-T010-q3-allocation`; no replacement PR yet (the supervisor audits the pushed head directly) |
-| Scientific validation candidate | `f262cebbd03e02a5c119e359fdcba7802950e830` (all code and artifacts; this package is the receipt commit after it) |
+| Scientific validation candidate | `21cc4cd0ced7a7d2aec6ffc1cec7be7b0ba15de2` (all code and artifacts; this package is the receipt commit after it; supersedes candidate `f262ceb`) |
 
 ## Four states, kept apart
 
@@ -18,7 +18,8 @@
 | Historical M2 checkpoint | Draft PR #17 head `2047c336bf7ac75bf4020b3d79806cc9249bc6b1` | Reviewed v1 checkpoint; untouched, Draft, unmerged |
 | Frozen unreviewed M2 draft | local package `scratch/t010-m2-takeover/` (M2 local HEAD `30143c35d69ca4b2dd363dc1a07c18560210e615`) | Implementation material only; no result, test or conclusion inherited |
 | M4-reviewed implementation | code `37803c5`, tables `4a39d6e`, package `b589f22`, on base `4558cd8` (= `2047c33` + normal merge of main `583b8db`) | Audited; blocked on four v2-compliance findings |
-| M4 remediation | `c6d17d0`, `5f5060f`, `ae5427f`, `17aca9f`, `21138f6`, candidate `f262ceb` | The evidence this package describes |
+| M4 remediation | `c6d17d0`, `5f5060f`, `ae5427f`, `17aca9f`, `21138f6`, candidate `f262ceb`, package `68f8905` | Audited; two validation defects found |
+| M4 validation correction | `ef0369d`, candidate `21cc4cd` | The evidence this package describes |
 | Final live branch head | reported separately after push | Includes this package; not self-referenced here |
 
 ## Supervisory re-audit of `b589f22`: findings and dispositions
@@ -27,10 +28,19 @@
 | --- | --- | --- | --- |
 | 1 | The source receipt authenticated itself: eta, its `verified_value` and parity could be forged together, and `262144` added to the context grid could reach the solver | **CLOSED** (`5f5060f`) | `load_source_receipt`, used by every allocation script, now re-verifies the DOCX and re-derives the C7 grid itself; forgeries A1-A8 are rejected by the self-test and, through the real scripts, by probes P01-P10 of [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md); mutants M10-M12 restore the old behaviour and are killed |
 | 2 | The LOO receipt recorded `ac21054b…`, a hash of the CRLF working copy, as the Git blob id | **CLOSED** (`5f5060f`) | Now bound to Git blob `d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020` of accepted T-008 commit `b18967c76395ab7d9a336f957e74cd6b4e8d3a99`, obtained with `git rev-parse b18967c…:results/tables/q2-uncertainty-robustness.md`; vectors are parsed from the Git object; probe P13 and mutants M13-M15 |
-| 3 | The mutation validation and PrePush evidence were prose only | **CLOSED** (`ae5427f`, `17aca9f`, `21138f6`, candidate `f262ceb`) | `scripts/q3_mutation_validation.py` produces [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md) inside the two-pass reproduction; the PrePush receipt is under Gate record below |
+| 3 | The mutation validation and PrePush evidence were prose only | **CLOSED** (`ae5427f`, `17aca9f`, `21138f6`; corrected by `ef0369d`, candidate `21cc4cd`) | `scripts/q3_mutation_validation.py` produces [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md) inside the two-pass reproduction; the PrePush receipts are under Gate record below |
 | 4 | The ledger stated "saturation holds only for C < C_box" | **CLOSED** (`c6d17d0`) | Ledger item S1 and `q3-allocation.md` now state saturation for `C_min <= C <= C_box`, the saturating upper corner at `C = C_box`, and slack above; an artifact check and mutant M22 guard it |
 
 **No core scientific number changed.** Compared with `b589f22` as parsed JSON, the allocation rows, context rows and brackets, regime analyses, raw-g analysis, LOO rows, summaries, thresholds and parameter vectors, source-verification records and receipt terms are all identical; only the provenance identities (`loo_evidence`, `authorized_inputs`), the ledger wording and the new validation artifacts changed.
+
+## Validation correction (re-check of `68f8905`)
+
+| # | Defect | Disposition | Evidence |
+| --- | --- | --- | --- |
+| V1 | M17 (DOCX whole-file SHA-256 pin skipped) was declared a redundant survivor, but its only detector, probe P12, fed the allocation consumer an old receipt; the receipt generator uses the same verifier and, without the pin, records the changed DOCX hash, so the consumer's receipt/DOCX hash comparison is not an independent second anchor | **CLOSED** (`ef0369d`) | New probe P14 feeds a value-preserving DOCX byte change to `scripts/q3_source_receipt.py` itself: unmutated, it fails closed with `SourceVerificationError` before touching its outputs; with the M17 mutation it accepts the input and M17 is now KILLED. P12 is kept and described as receipt/source consistency. M18 stays killed via P12; M08 is the only redundant survivor, backed by the independent allowed-kind list |
+| V2 | `run_mutant` did not fail closed: a redundant survivor passed on any "not killed" result (including exit 1 with no report), and probe-detected mutants discarded the probe's exception, output-integrity and restoration evidence | **CLOSED** (`ef0369d`) | A self-test survivor now needs exit 0, no failed check, a complete successful report of the baseline size and verified restoration. Probe evidence is classified as `ACCEPTED`, `REJECTED_AS_DECLARED` (exact exception, outputs unchanged), `UNEXPECTED_REJECTION` or `INTEGRITY_FAILURE`, and kept in full in each mutant record; consumer outputs as well as inputs are restored and verified. 20 runner self-checks, recorded in the artifact, feed synthetic records through the same functions; the exit-1/empty-report survivor and the wrong-exception probe both yield an overall FAIL. With the previous classification swapped back in (a scratch check), 9 of the 20 runner checks fail |
+
+Only `results/tables/q3-mutation-validation.*` and `results/tables/q3-reproduction.*` changed; every other Q3 artifact is byte-identical to `68f8905`, and all scientific arrays and numbers are identical as parsed JSON.
 
 ## Takeover record
 
@@ -75,11 +85,12 @@ New in M4's implementation: `src/alloc/inputguard.py`, `sourcedocx.py`, `quality
 
 ```text
 conda run -n modeling-research-2026 --no-capture-output python scripts/q3_reproduce.py
-# (sources at 21138f6; its outputs are the artifacts committed as f262ceb)
+# (sources at ef0369d; its outputs are the artifacts committed as 21cc4cd; exit 0)
 # two passes identical: True; LF-only: True; inputs unchanged: True;
 # interfaces unchanged: True; guard denials: 0; runtime matches pins: True
 # includes scripts/q3_mutation_validation.py in both passes:
-# mutants killed: 23/25 (M08, M17 intentionally redundant); data probes passed: 14/14; overall: PASS
+# mutants killed 24/25 (outcomes KILLED 24, SURVIVED_CLEAN 1 = M08); data probes passed 15/15;
+# runner checks passed 20/20; overall: PASS
 conda run -n modeling-research-2026 --no-capture-output python scripts/q3_selftest.py
 # CATEGORIES {"ARTIFACT": 13, "BOUNDARY": 75, "CONSISTENCY": 7, "ORACLE": 56, "REGRESSION": 36}
 # PASS 187 checks
@@ -144,7 +155,7 @@ Elasticities: interior 0.451526 (N) / 0.548474 (D); `D_max` regime 1 / 0; slack 
 
 Acceptance rests on the ORACLE and BOUNDARY checks. The previous package's figure of 170 assertions mixed these categories; the self-comparisons it contained now count as CONSISTENCY or REGRESSION only.
 
-**Executable mutation validation.** `scripts/q3_mutation_validation.py` runs in a temporary detached Git worktree whose sources are verified byte-identical to their committed blobs, supplied with copies of the local-only allowlisted inputs; the working tree is never modified, and every mutated file or probed input is restored and verified by SHA-256 and `git diff`. Result, reproduced identically in both reproduction passes: 25 code mutants, 23 killed by their declared detectors; M08 and M17 each remove one layer of a deliberately layered defence, survive as declared, and their full-removal pairs M09 and M18 are killed. 14 data probes feed forged receipts (A1-A8, A6 also to the context script), a C7 file with a `262144` row, a value-preserving DOCX change and an altered LOO working copy to the real scripts; every one is rejected with `SourceReceiptError` or `TrackedInputIdentityError` and leaves the consumer's output untouched, and the unforged control succeeds. Overall: **PASS**. The first runs of the suite exposed two defects in the suite itself (a CRLF worktree checkout, a non-unique probe row), fixed in `17aca9f` and `21138f6`.
+**Executable mutation validation.** `scripts/q3_mutation_validation.py` runs in a temporary detached Git worktree whose sources are verified byte-identical to their committed blobs, supplied with copies of the local-only allowlisted inputs; the working tree is never modified, and every mutated file or probed input is restored and verified by SHA-256 and `git diff`. Classification fails closed (see Validation correction). Result, reproduced identically in both reproduction passes: 25 code mutants, 24 expected killed and 24 killed by their declared detectors; M08 (the ledger's forbidden-kind list) is the only redundant layer, survives cleanly with a complete 187-check report, and its full-removal pair M09 is killed. 15 data probes feed forged receipts (A1-A8, A6 also to the context script), a C7 file with a `262144` row, a value-preserving DOCX change (to the allocation consumer, P12, and to the receipt generator, P14) and an altered LOO working copy to the real scripts; every forged input is rejected with the exact expected exception (`SourceReceiptError`, `SourceVerificationError` or `TrackedInputIdentityError`), leaves the consumer's outputs untouched and is restored by hash, and the unforged control succeeds. The DOCX whole-file SHA-256 pin is the only accepted-source identity anchor for the DOCX; P12's remaining receipt/DOCX hash comparison is receipt/source consistency. 20 of 20 runner self-checks pass. Overall: **PASS**. The first runs of the suite exposed two defects in the suite itself (a CRLF worktree checkout, a non-unique probe row), fixed in `17aca9f` and `21138f6`; the supervisory re-check exposed V1 and V2, fixed in `ef0369d`.
 
 Committed T-010 blobs at the candidate were checked byte-for-byte: all 16 artifacts match the reproduction receipt and contain no CR.
 
@@ -152,7 +163,8 @@ Committed T-010 blobs at the candidate were checked byte-for-byte: all 16 artifa
 
 | Gate | Exact command | Tested head | Started (UTC+8) | Exit | Result |
 | --- | --- | --- | --- | ---: | --- |
-| PrePush on the scientific candidate | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check_public_safe.ps1 -Mode PrePush` | `f262cebbd03e02a5c119e359fdcba7802950e830` | 2026-09-27T02:15:58+08:00 | 0 | `RESULT: PASS` — 214 files examined, 65 commits scanned, 7 addresses checked (4 by approved suffix, 2 by approved exact rule), 1 of 1 listed history exception waived |
+| PrePush on the superseded candidate | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check_public_safe.ps1 -Mode PrePush` | `f262cebbd03e02a5c119e359fdcba7802950e830` | 2026-09-27T02:15:58+08:00 | 0 | `RESULT: PASS` — 214 files examined, 65 commits scanned, 7 addresses checked (4 by approved suffix, 2 by approved exact rule), 1 of 1 listed history exception waived |
+| PrePush on the current scientific candidate | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check_public_safe.ps1 -Mode PrePush` | `21cc4cd0ced7a7d2aec6ffc1cec7be7b0ba15de2` | 2026-09-27T03:10:28+08:00 | 0 | `RESULT: PASS` — 214 files examined, 75 commits scanned, 7 addresses checked (4 by approved suffix, 2 by approved exact rule), 1 of 1 listed history exception waived |
 
 This package is committed after the candidate; PreCommit runs on this receipt commit and PrePush runs again on the final live head before push, and those two results are reported with the pushed head rather than recorded here (to avoid a self-referencing SHA).
 
@@ -186,6 +198,7 @@ T-012 **must not**: present any result as empirical or as guidance for real trai
 - The guard covers file access from Python in Q3 processes; it is not an operating-system sandbox. The LOO Git binding runs `git` subprocesses, whose reads of the object store and of the tracked working file the Python guard does not see.
 - The LOO and receipt bindings need `git` and the repository history (commit `b18967c`) to be present; without them loading fails closed.
 - The mutation suite shows that the listed defects are detected; it is not a proof that no other defect exists. Its code mutants are killed by the self-test or by named data probes; three layers of the C7 binding (intake hash, manifest byte count, row-count note) are exercised together by probe P11, not one at a time.
+- The canonical DOCX has a single accepted-source identity anchor, its pinned whole-file SHA-256; the receipt's recorded DOCX hash only ties a receipt to the DOCX it was generated from.
 - Receipt-forgery evidence covers the listed forgeries and any receipt that differs from the independent regeneration; it relies on the canonical DOCX and C7 bytes themselves being the accepted ones, which their pinned SHA-256 values establish.
 
 ## Next action
