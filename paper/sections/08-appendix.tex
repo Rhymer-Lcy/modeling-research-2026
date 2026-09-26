@@ -1,7 +1,38 @@
 \appendix
-\section{附录}
+\section{复现与补充说明}
+% Appendix-local numbering: the class restarts the section counter at \appendix
+% but not the table counter, which printed "1.1" subsections and a "1.10" table.
+\renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+\setcounter{table}{0}
+\renewcommand{\thetable}{\Alph{section}\arabic{table}}
 
-\subsection{源程序清单}
+\subsection{复现说明}
 
-程序源码位于仓库的 \texttt{src/} 与 \texttt{scripts/} 目录，配置位于
-\texttt{configs/}。本附录列出复现结果所需的入口脚本及其调用方式。
+全部结果由提交材料中的程序生成，运行环境为 Python 3.11.16、NumPy 2.4.6、SciPy 1.17.1、
+pandas 3.0.6、PyYAML 6.0.3，所用随机数种子均为固定值。各问的入口程序如下；其中三个复现
+入口会完整运行两遍并逐字节比较结果，面板构建程序生成的各表由问题四的复现入口核对不变：
+
+\begin{table}[htbp]
+  \centering
+  \caption{复现入口}
+  \label{tab:repro}
+  \begin{tabular}{ll}
+    \toprule
+    内容 & 入口程序 \\
+    \midrule
+    问题一：质量评价、冲突与配比 & \texttt{scripts/q1\_reproduce.py} \\
+    问题二：标度律与广义形式检验 & \texttt{scripts/q2\_reproduce.py} \\
+    问题四：排行榜面板 & \texttt{scripts/q4\_panel\_build.py} \\
+    问题四：分解与前沿预测 & \texttt{scripts/q4\_evolution\_reproduce.py} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+% STAGE B: add the Question 3 entry point after T-010 is accepted.
+
+\subsection{人工智能工具使用说明}
+% STAGE A: structure only. The content of this subsection must follow the
+% organizer's official 2026 regulation on the use of AI tools. That document is
+% not in the project's local archive of official material (only the format
+% specification and the Word template are), so no rule is inferred from any
+% secondary source, and no declaration - of use or of non-use - is written
+% here until the official regulation has been obtained and read.

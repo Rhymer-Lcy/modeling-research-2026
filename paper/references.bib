@@ -9,15 +9,80 @@
 % citation to state its pages. Keep the `pages` field populated for every
 % book entry, or the rendered reference list silently drops it.
 %
+% Every entry below was checked against a primary bibliographic record
+% before inclusion (Crossref for DOIs, the arXiv API for preprints, the
+% publisher's proceedings page for PMLR). A reference whose full page range
+% could not be verified was omitted rather than completed from memory.
+% Only entries cited in the manuscript are kept; the list is ordered by
+% first citation by the bibliography style.
+%
 % Note: BibTeX has no comment syntax. It scans for an entry wherever it sees
 % an at-sign, including inside a line that starts with a percent sign, so an
 % at-sign must never appear in these notes.
 
-@book{boyd2004convex,
-  author    = {Boyd, Stephen and Vandenberghe, Lieven},
-  title     = {Convex Optimization},
-  publisher = {Cambridge University Press},
-  address   = {Cambridge},
-  pages     = {127--134},
-  year      = {2004}
+@article{zhuang2025metarater,
+  author  = {Zhuang, Xinlin and Peng, Jiahui and Ma, Ren and Wang, Yinfan and others},
+  title   = {Meta-rater: A Multi-dimensional Data Selection Method for Pre-training Language Models},
+  journal = {arXiv preprint arXiv:2504.14194},
+  year    = {2025}
+}
+
+@article{rae2021gopher,
+  author  = {Rae, Jack W. and Borgeaud, Sebastian and Cai, Trevor and others},
+  title   = {Scaling Language Models: Methods, Analysis {\&} Insights from Training Gopher},
+  journal = {arXiv preprint arXiv:2112.11446},
+  year    = {2021}
+}
+
+@article{liu2024regmix,
+  author  = {Liu, Qian and Zheng, Xiaosen and Muennighoff, Niklas and others},
+  title   = {RegMix: Data Mixture as Regression for Language Model Pre-training},
+  journal = {arXiv preprint arXiv:2407.01492},
+  year    = {2024}
+}
+
+@article{hoerl1970ridge,
+  author  = {Hoerl, Arthur E. and Kennard, Robert W.},
+  title   = {Ridge Regression: Biased Estimation for Nonorthogonal Problems},
+  journal = {Technometrics},
+  volume  = {12},
+  number  = {1},
+  pages   = {55--67},
+  year    = {1970}
+}
+
+@article{hoffmann2022chinchilla,
+  author  = {Hoffmann, Jordan and Borgeaud, Sebastian and Mensch, Arthur and others},
+  title   = {Training Compute-Optimal Large Language Models},
+  journal = {arXiv preprint arXiv:2203.15556},
+  year    = {2022}
+}
+
+@article{biderman2023pythia,
+  author  = {Biderman, Stella and Schoelkopf, Hailey and Anthony, Quentin and others},
+  title   = {Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling},
+  journal = {Proceedings of Machine Learning Research (ICML 2023)},
+  volume  = {202},
+  pages   = {2397--2430},
+  year    = {2023}
+}
+
+@article{huber1964robust,
+  author  = {Huber, Peter J.},
+  title   = {Robust Estimation of a Location Parameter},
+  journal = {The Annals of Mathematical Statistics},
+  volume  = {35},
+  number  = {1},
+  pages   = {73--101},
+  year    = {1964}
+}
+
+@article{byrd1995lbfgsb,
+  author  = {Byrd, Richard H. and Lu, Peihuang and Nocedal, Jorge and Zhu, Ciyou},
+  title   = {A Limited Memory Algorithm for Bound Constrained Optimization},
+  journal = {SIAM Journal on Scientific Computing},
+  volume  = {16},
+  number  = {5},
+  pages   = {1190--1208},
+  year    = {1995}
 }

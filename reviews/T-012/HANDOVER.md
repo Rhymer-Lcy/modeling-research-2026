@@ -1,18 +1,236 @@
-# T-012 handover — pre-integration readiness
+# T-012 handover
 
 | Field | Value |
 | --- | --- |
 | Task | T-012 |
 | Owner | M1 |
-| Status | **PRE-INTEGRATION CHECKPOINT REVIEWED — ACCEPTED FOR MERGE**; final T-012 remains dependency-blocked |
-| Disposition | Supervisory review passed at `36abefc`. See "Final disposition" below. |
+| Status | `todo` in `TASKS.md`. **Stage A (v3) manuscript fast-track complete; T-012 final integration remains blocked on T-010.** |
+| Specification | `worklog/specs/T-012.md` v3 (L3), archived prospectively on this branch |
+| Timestamp | 2026-09-27T01:40:37+08:00 (Stage A) |
+| Base | `583b8db` (accepted `main`; unchanged at the end of Stage A) |
+| Branch / PR | `docs/m1-T012-manuscript-stage-a` / Draft PR (opened after the push; see the PR itself for its number) |
+
+**T-012 final integration remains blocked on T-010.** Stage A drafts only what
+accepted evidence supports and resolves the 2026 LaTeX template question. It is
+not final integration: no final abstract, no Question 3 content, no
+cross-question synthesis. The dependency `T-010 + T-011 -> T-012` is unchanged.
+
+## Stage A (T-012 v3)
+
+### A. Scope
+
+Two objectives, per v3: (1) arbitrate the 2026 LaTeX implementation among the
+current `gmcmthesis` build, the M3-contributed template and a hybrid, against
+the two official 2026 organizer files; (2) draft every manuscript component
+that accepted evidence supports, without consuming pending Question 3 work.
+
+### B. Accepted evidence consumed
+
+All from accepted `main` at `583b8db`:
+
+- Q1 (T-007): `reviews/T-007/HANDOVER.md`; `results/tables/q1-scalarization-contract.md`,
+  `q1-transform-contract.md`, `q1-quality-analysis.md`, `q1-a1-a3-comparison.md`,
+  `q1-a16-coverage.md`, `q1-conflict-analysis.md`, `q1-method-sensitivity.md`,
+  `q1-missingness-sensitivity.md`, `q1-input-audit.md`, `q1-mixture-selection.md`,
+  `q1-mixture-validation.md`, `q1-cross-scale.md`, `q1-extrapolation.md`,
+  `q1-mixture-effects.md`, `q1-if1-summary.md`, `q1-if2-summary.md`; `configs/q1.yaml`
+  (family definition, selection rule).
+- Q2 (T-008): `reviews/T-008/HANDOVER.md`; `results/tables/q2-classic-fit.md`,
+  `q2-uncertainty-robustness.md`, `q2-final-closure.md`, `q2-quality-data-audit.md`,
+  `q2-substitution.md` (analytical identities only; its B7-based numbers are not used).
+- Q4 panel (T-009): `results/tables/q4-model-strata.md`, `q4-eligibility.md`,
+  `q4-c8-reconciliation.md`, `q4-detailed-task-analysis.md`.
+- Q4 (T-011): `reviews/T-011/HANDOVER.md` (including its T-012 consume / preserve /
+  must-not contract); `results/tables/q4-evolution-population.md`, `q4-bridge.md`,
+  `q4-decomposition.md`, `q4-frontier-forecast.md`, `q4-forecast-robustness.md`.
+- Official problem wording: the canonical local problem statement (DOCX), read for
+  the restatement only.
+
+Two accepted-artifact facts a reader should know:
+
+- The model-clustered bootstrap intervals in `q2-classic-fit.md` and
+  `q2-uncertainty-robustness.md` differ slightly (e.g. A: [405.541, 406.784] vs
+  [405.477, 406.776]). Both scripts request 400 replicates but use different
+  seeds (the configured seed vs `20260923`); the difference is Monte Carlo, the
+  point estimates are identical. The manuscript quotes
+  `q2-uncertainty-robustness.md` throughout, as the T-008 handover designates.
+  Not a load-bearing disagreement.
+- The C8 reconciliation on `main` now reproduces **five** of six dimensions
+  (GPQA included); `paper/INTEGRATION_PLAN.md` still records the older "4 of 6".
+
+### C. Pending evidence deliberately NOT consumed
+
+- T-010 in any form: the M4 branch `exp/m4-T010-q3-allocation` (observed to exist
+  on the remote; **not opened, not read**), the old Draft PR #17 and its M2
+  branch, and the M2 frozen handoff draft. **No Question 3 number, method or
+  conclusion entered the manuscript.**
+- The quarantined original data-description PDF and the sanitized derivative
+  PDF (neither opened).
+- Social-media screenshots and other teams' estimates.
+
+### D. Root-file archival receipts
+
+| Incoming root file | Bytes | SHA-256 | Canonical destination | Action |
+| --- | ---: | --- | --- | --- |
+| official format specification (DOCX) | 93,167 | `46d2e2a8…0e16` | `docs_local/gmcm-2026/source/paper_format_specification.official.docx` | byte-identical to the T-014 canonical copy; canonical kept, root copy removed |
+| official Word template (DOC) | 894,976 | `195b06cf…2e29` | `docs_local/gmcm-2026/source/paper_template.official.doc` | byte-identical to the T-014 canonical copy; canonical kept, root copy removed |
+| M3 LaTeX template (ZIP) | 2,145,953 | `71f4b24c…586c` | `docs_local/gmcm-2026/contrib/m3_latex_template.contributed.zip` | new; copied, re-hashed equal, root copy removed |
+
+All three canonical files re-hashed equal after archival. None of the three
+original filenames remains at the repository root; none was ever staged. No
+conflict, so `incoming-conflict/` was not needed.
+
+### E. M3 package
+
+Hash equals the supervisor-inspected reference (`71f4b24c…586c`,
+2,145,953 bytes). 33 members, 29 files: sources (`main.tex`, `setup.tex`,
+`config.tex`, `fonts.tex`, `fonts-overleaf.tex`, `latexmkrc`, `README.md`,
+five `sections/*.tex`), four `assets/*` images, `fonts/README.md` (no fonts
+shipped), build output (`main.pdf/.log/.aux/.out`), and eight `(1)` duplicates
+(seven byte-identical, `config(1).tex` empty). Extracted only to
+`docs_local/gmcm-2026/audit/m3-latex-template/`. Classified as contributed,
+unofficial implementation evidence. Its geometry values were treated as
+unverified; its placeholder references and prose were not used.
+
+### F-H. Template decision: **HYBRID**
+
+Full comparison in `paper/TEMPLATE_DECISION_2026.md`. In short: the current
+build already met every explicit textual rule (re-tested); its one deviation
+from the official cover was the missing four-logo row. M3 surfaced that row;
+the four images were verified against the official Word template (two
+byte-identical embedded images, the sponsor mark pixel-identical to its
+embedded JPEG (M3's file is that stream plus 17 trailing bytes), the 2026
+host-university seal as a lossless crop of the embedded composite; no
+stale edition, no text layer, no team identity) and then **extracted directly
+from the official template** into the ignored
+`docs_local/gmcm-2026/cover-assets/`. Rendered at 300 dpi, the row matches the
+official cover within 0.7 mm (positions) and 1.4 mm (widths). Everything else
+M3 offers is equivalent or rests on unverified values and manual reference
+ordering, so ADOPT M3 CORE was rejected.
+
+Files changed: `paper/format_2026.tex` (optional official logo row replacing the
+stale class row; explicit empty PDF metadata), `scripts/build_paper.ps1`
+(`-Submission` mode; readiness report on every build; a submission build is
+always clean), `paper/FORMAT_2026.md` (2026 update section; T-014 history kept),
+`paper/TEMPLATE_DECISION_2026.md` (new). `scripts/setup_template.ps1` unchanged.
+
+### I. Rendered-build audit
+
+- `scripts/build_paper.ps1 -Clean`: exit 0, **17 pages**, 0 undefined references
+  or citations, 0 `Missing character`, 0 overfull boxes.
+- Every page rendered and inspected. Defects found and fixed during the audit:
+  a decomposition table clipped at the right margin (transposed); three further
+  overfull tables (fixed column widths / shorter labels); justified CJK text in
+  fixed-width columns (ragged-right); appendix numbering printing "1.1" and
+  "表 1.10" (appendix-local numbering); a BibTeX stack error from an
+  `@inproceedings` entry (re-entered in the journal pattern PMLR itself uses).
+- Submission gate: with a temporary fixture `paper/team.tex` (deleted
+  afterwards), `-Submission` passed every check; the five fixture identity
+  strings appeared on page 1 only, and in neither the document metadata nor
+  the bookmarks. The asset guard was mutation-tested (a hidden asset fires both
+  the hash check and the "row not drawn" check on a clean build; the cover then
+  has no row at all).
+- Text layer: no previous edition, no previous host, no fixture residue.
+- F1-F16: all satisfied for a local submission build, **except that the
+  AI-use section cannot yet be written** (see M). F15 verified: a clean clone
+  builds with no logo row and says so.
+
+### J. Sections drafted (all from accepted evidence)
+
+| Section | Content | Evidence |
+| --- | --- | --- |
+| 01 restatement | background, four questions, evidence classes | problem statement |
+| 02 analysis | Q1, Q2, Q4 analysis (Q3 subsection empty) | problem statement; the accepted handovers |
+| 03 assumptions | seven assumptions; notation | the accepted rules they encode |
+| 04 preprocessing | indicator scalarisation and direction; recipe data; B-table roles; panel, C8 reconciliation, MATH quarantine, C3 audit, C4 coverage | T-007, T-008, T-009, T-011 tables |
+| 05-1 Q1 | quality model and domain Q; conflict definition, measurement, rule, extension check; mixture model, selection, validation by role, 1M effects; Q with p; extrapolation | T-007 tables, `q2-final-closure.md` (Q(p)) |
+| 05-2 Q2 | classic fit with three uncertainty families; generator-recovery finding; external validation and validity box; candidate quality form, gates, **not adopted**; marginal effects, elasticities and the parameter-equivalence condition as analytical identities | T-008 tables |
+| 05-4 Q4 | population and the four required declarations; loss-to-score mapping (degenerate, no slope); parameter vs compute decomposition; the three forecast kinds with date-clock sensitivity beside the headline; uncertainty components and backtest; BBH/MUSR task-level analysis; C3/C4 statements | T-009 and T-011 tables and the T-011 contract |
+| 06 validation | evidence-type table; sensitivity; error analysis | as above |
+| 07 evaluation | strengths, weaknesses, extensions (Q1/Q2/Q4) | as above |
+| 08 appendix | reproduction entry points; AI-use subsection as structure only | repository |
+| references | 8 verified entries, all cited | Crossref, arXiv API, PMLR page |
+
+The T-011 contract was followed item by item: 50.89 / 60.80 are the historical
+continuation (not a compute-slowdown answer); the parameter-scale scenarios are
+labelled non-binding; the compute answer is only "在给定转移假设下的敏感性结果";
+IF4 is degenerate with no slope; no bridge-based forecast; C3, C4 (94 / 62) and
+T-009 BBH/MUSR are all stated; MATH C8 children are excluded; the frontier-set
+split is labelled post-failure.
+
+### K. Still blocked on T-010
+
+`05-3-model-q3.tex` (six subsection headings, comments only), the Question 3
+subsection of `02-analysis.tex`, the Question 3 rows of the validation tables,
+`00-abstract.tex` (not finalized; placeholders only), and any cross-question
+conclusion in `07-evaluation.tex`. A local-only abstract scaffold with a
+`Q3 BLOCKED` slot exists outside the repository.
+
+### L. Page count
+
+17 pages in the current build (mechanical fact).
+
+### M. Remaining manuscript risks
+
+1. **AI-use disclosure.** The organizer's 2026 AI-use regulation is not in the
+   local archive of official material, so appendix A.2 is structure only and no
+   declaration is written. The official document must be obtained before
+   submission.
+2. **Conflict causes.** The accepted Q1 artifacts measure conflict thoroughly
+   but contain no pair-level cause analysis; the manuscript states the observed
+   pattern and labels the construct explanation as untested.
+3. **References.** Two candidate references (quantile regression, block
+   bootstrap) were omitted because their full page ranges could not be verified.
+   The problem statement's own reference list misattributes RegMix (actual
+   authors Liu, Zheng, Muennighoff et al.; ICLR 2025) and pairs the arXiv title
+   of Hoffmann et al. with the NeurIPS venue, whose published title differs; the
+   manuscript cites the verified arXiv records instead.
+4. **No figures.** No accepted figure exists (T-011 had no plotting library).
+   Stage B may add figures only through an `environment.yml` decision.
+5. **Decorative cover labels** still fall back to FandolHei where LiSu is absent
+   (T-014 retained ambiguity 2, unchanged).
+6. **Number trace is local.** The manuscript-to-artifact number check
+   (283/283 tokens matched; two planted errors caught) and the identifier scan
+   live in ignored `scratch/`; Stage B should decide whether to track them for
+   gate G7. The trace cannot detect a valid artifact number placed in the wrong
+   clause; that relationship was reviewed by hand.
+7. `paper/INTEGRATION_PLAN.md` gate states are stale (written before T-007,
+   T-008, T-009 and T-011 closed); refresh at Stage B.
+
+### N. Stage B trigger
+
+**T-010 accepted and merged to `main` after independent supervisory review.**
+Then: write Question 3, the Question 3 rows and subsections, the final abstract
+(at most two pages) and the cross-question synthesis; refresh the integration
+plan; re-run the full format, number-trace and visual audit; build with
+`-Submission`.
+
+### Validation actually run
+
+`git diff --check` clean before every commit; `scripts/check_public_safe.ps1`
+PreCommit PASS before every commit and PrePush PASS before the push;
+`scripts/build_paper.ps1 -Clean` and `-Submission` (fixture identity) as in I;
+number trace (283/283, mutation-tested); visible-text identifier scan (0 hits,
+mutation-tested); a review of every Chinese-numeral quantity against what it
+counts (one miscount fixed).
+
+---
+
+# Earlier stages (v1 / v2): pre-integration readiness — historical record
+
+The sections below are the accepted pre-integration record, retained unchanged.
+Their gate states describe `main` as of 2026-09-24.
+
+| Field | Value |
+| --- | --- |
+| Status then | **PRE-INTEGRATION CHECKPOINT REVIEWED — ACCEPTED FOR MERGE** |
+| Disposition | Supervisory review passed at `36abefc`. |
 | Timestamp | 2026-09-24T11:30:00+08:00 |
-| Base | `87fbce3` (accepted `main`) |
+| Base | `87fbce3` |
 | Branch / PR | `chore/m1-T012-preintegration` / draft PR |
 
-**This package describes preparatory work only.** No scientific integration was
-performed. T-012 stays `todo` in `TASKS.md`, and the dependency
-`T-010 + T-011 -> T-012` is unchanged.
+**This part describes preparatory work only.** No scientific integration was
+performed.
 
 ## Scope
 

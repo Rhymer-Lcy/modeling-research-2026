@@ -2,6 +2,32 @@
 
 \subsection{模型的优点}
 
+\begin{enumerate}
+  \item \textbf{证据分级贯穿全文。}观测验证、半合成校准、估算参照与外推始终分开表述；
+        在拟合前检验主数据的性质，避免把生成公式的恢复误认为新规律的发现。
+  \item \textbf{判据预先设定。}配比模型的选择规则、广义标度律的采纳条件、分析总体与时间口径
+        都在查看结果之前固定，否定性结论（广义形式不采纳、跨规模不迁移、映射无斜率）同样作为
+        结果报告。
+  \item \textbf{不确定性按数据结构度量。}质量评分按文档自助、标度律按训练轨迹重抽样、
+        前沿按整月块自助，并把时间口径、总体定义等方法选择的影响单独列出。
+\end{enumerate}
+
 \subsection{模型的不足}
 
+\begin{enumerate}
+  \item 质量评分是相对代理量，冲突成因的解释来自领域分布模式，未对具体指标对逐一检验。
+  \item 配比响应面只在 1M 规模上可作绝对预测，现有数据不足以支持向 10B/70B 的外推。
+  \item 质量未能以可检验的方式进入标度律；经典标度律的经验支持只来自两张较小的独立观测表。
+  \item 前沿预测依赖 9 个月的密集历史和线性趋势假设，时间口径的影响大于模型本身的不确定性；
+        算力放缓情景依赖从预训练子集转移而来的占比。
+\end{enumerate}
+
 \subsection{模型的推广}
+
+体系平衡的质量聚合与冲突度量适用于任何多打分器的数据筛选场景；在拟合前用已发表公式检验
+数据是否由公式生成的做法，可推广到一切使用组织方或第三方汇编数据的建模任务；把以参数量与
+以训练算力为尺度的分解并列，可用于评估其他领域中规模扩张的贡献。
+
+% STAGE B: cross-question synthesis and any conclusion that depends on
+% Question 3 are written only after T-010 is accepted and merged. Until then
+% this section deliberately covers Questions 1, 2 and 4 only.

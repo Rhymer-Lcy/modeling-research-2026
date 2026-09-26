@@ -52,7 +52,61 @@
 \AtBeginDocument{\pagestyle{plain}}
 
 % ---------------------------------------------------------------------------
-% 3. Drop the stale cover logo row.
+% 3. Replace the stale cover logo row with the official 2026 row, or nothing.
+%
+% History (T-014): the class's own logo asset was found to be stale, so the row
+% was dropped. That finding still stands and the stale asset is still removed.
+%
+% 2026 update (T-012 v3): the official 2026 Word template's cover carries a
+% four-logo row - the competition series mark, the contest emblem, the sponsor
+% mark and this year's host-university seal. Those four images were extracted
+% from the organizer's own template file into the git-ignored local directory
+%
+%     docs_local/gmcm-2026/cover-assets/
+%
+% (two byte-identical to the embedded images, the sponsor mark as its exact
+% embedded stream, the seal as a lossless crop of the embedded composite; see
+% paper/TEMPLATE_DECISION_2026.md). They are organizer material and are never
+% tracked or redistributed through this repository.
+%
+% Behaviour:
+%   - all four local files present -> the official row is drawn;
+%   - any file missing (for example in a clean public clone) -> NO row at all,
+%     never a stale or partial one, and a loud warning is written to the log.
+%     scripts/build_paper.ps1 -Submission then exits non-zero (the PDF is
+%     still written, for inspection only).
+%
+% Widths are the image-frame widths that reproduce the official cover: the
+% visible-ink extents of the rendered row were measured against the official
+% template's rendered cover (see paper/TEMPLATE_DECISION_2026.md).
+% ---------------------------------------------------------------------------
+\newcommand*{\format@coverdir}{../docs_local/gmcm-2026/cover-assets/}
+\newif\ifformat@coverlogos
+\format@coverlogostrue
+\@for\format@asset:={cpipc.png,modeling.png,huawei.jpeg,xjtu.png}\do{%
+  \IfFileExists{\format@coverdir\format@asset}{}{\global\format@coverlogosfalse}%
+}
+\newcommand*{\format@coverlogorow}{%
+  \ifformat@coverlogos
+    \includegraphics[width=35.8mm]{\format@coverdir cpipc.png}\hspace{4mm}%
+    \includegraphics[width=27.4mm]{\format@coverdir modeling.png}\hspace{6mm}%
+    \includegraphics[width=27.8mm]{\format@coverdir huawei.jpeg}\hspace{4mm}%
+    \includegraphics[width=23.9mm]{\format@coverdir xjtu.png}%
+  \fi
+}
+\AtBeginDocument{%
+  \ifformat@coverlogos
+    \typeout{format2026: official 2026 cover logo row present}%
+  \else
+    \ClassWarningNoLine{format2026}{%
+      OFFICIAL 2026 COVER LOGO ROW NOT PROVISIONED. The cover is built without
+      a logo row. Provision docs_local/gmcm-2026/cover-assets/ before building
+      a submission; see paper/TEMPLATE_DECISION_2026.md}%
+  \fi
+}
+
+% The stale-row analysis below is the historical T-014 record and still
+% describes why the class's own asset is never used.
 %
 % The class draws paper/template/figures/logo.pdf across the top of the
 % identity cover. That asset belongs to the PREVIOUS edition of the
@@ -76,10 +130,10 @@
 % The cover TITLE is a separate asset and is NOT dropped: it was rendered and
 % inspected, shows the correct 2026 edition, and carries no text layer.
 %
-% Consequence recorded in paper/FORMAT_2026.md: the competition cover carries
-% no logo row. The organizer's own 2026 logo row cannot be redistributed
-% through this repository, and showing the previous host's seal would be a
-% factual error on the cover of a 2026 submission.
+% T-014 consequence, now superseded by the 2026 update above: the cover then
+% carried no logo row at all. The organizer's own 2026 row is still never
+% redistributed through this repository; it is drawn only from the local
+% official assets, and showing the previous host's seal remains excluded.
 % ---------------------------------------------------------------------------
 \@ifundefined{ge@maketitle}{%
   \ClassError{format2026}{%
@@ -91,8 +145,8 @@
 }{%
   \patchcmd{\ge@maketitle}%
     {{\includegraphics{logo}}}%
-    {}%
-    {\typeout{format2026: cover logo row removed}}%
+    {{\format@coverlogorow}}%
+    {\typeout{format2026: stale class cover logo row replaced}}%
     {\ClassError{format2026}{%
        could not remove the cover logo row%
      }{%
@@ -101,5 +155,15 @@
        paper/FORMAT_2026.md before building a submission.%
      }}%
 }
+
+% ---------------------------------------------------------------------------
+% 4. Keep team identity out of the PDF metadata.
+%
+% Official rule: nothing in the paper may indicate who wrote it; identity
+% appears only in the cover fields. The class sets no title or author metadata,
+% and this makes that explicit, so a later package or option cannot copy the
+% cover fields or the paper title into the document properties.
+% ---------------------------------------------------------------------------
+\AtBeginDocument{\hypersetup{pdfauthor={},pdftitle={},pdfsubject={},pdfkeywords={}}}
 
 \makeatother
