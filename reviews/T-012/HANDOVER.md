@@ -98,8 +98,9 @@ Full comparison in `paper/TEMPLATE_DECISION_2026.md`. In short: the current
 build already met every explicit textual rule (re-tested); its one deviation
 from the official cover was the missing four-logo row. M3 surfaced that row;
 the four images were verified against the official Word template (two
-byte-identical embedded images, the sponsor mark as its exact embedded stream,
-the 2026 host-university seal as a lossless crop of the embedded composite; no
+byte-identical embedded images, the sponsor mark pixel-identical to its
+embedded JPEG (M3's file is that stream plus 17 trailing bytes), the 2026
+host-university seal as a lossless crop of the embedded composite; no
 stale edition, no text layer, no team identity) and then **extracted directly
 from the official template** into the ignored
 `docs_local/gmcm-2026/cover-assets/`. Rendered at 300 dpi, the row matches the
