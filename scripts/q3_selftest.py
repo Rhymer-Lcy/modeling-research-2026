@@ -36,6 +36,7 @@ from scipy.optimize import brentq  # noqa: E402
 from src.alloc import (  # noqa: E402
     ACCEPTED_CLASSIC_IF3_SHA256,
     ACCEPTED_INTERFACE_SHA256,
+    ACCEPTED_TRACKED_BLOBS,
     AUTHORIZED_Q3_INPUTS,
     B8_PATH,
     C7_PATH,
@@ -52,6 +53,7 @@ from src.alloc import (  # noqa: E402
     IF2ScopeError,
     IdentityOnlyInterfaceError,
     InterfaceIdentityReceipt,
+    LOO_PATH,
     LOORobustnessError,
     NoValidityBoxAllocation,
     ProvenanceError,
@@ -59,6 +61,7 @@ from src.alloc import (  # noqa: E402
     SensitivityClassicLaw,
     SourceReceiptError,
     SourceVerificationError,
+    TrackedInputIdentityError,
     UnauthorizedQ3Input,
     analyze_regime_thresholds,
     baseline_closed_form,
@@ -304,11 +307,52 @@ def main() -> int:
     def term(payload: dict[str, Any], name: str) -> dict[str, Any]:
         return next(item for item in payload["terms"] if item["name"] == name)["supported_value_or_grid"]
 
-    # These fixtures keep the 6/eta parity term consistent, so only the source-value cross-check can catch them.
-    receipt_mutation("receipt eta mutation is rejected", lambda item: (
-        term(item, "attention_compute").update(eta=3e-4), term(item, "attention_cost_parity_identity").update(parity_tokens=20000.0)))
-    receipt_mutation("receipt coefficient mutation is rejected", lambda item: (
-        term(item, "base_training_compute").update(coefficient=8), term(item, "attention_cost_parity_identity").update(parity_tokens=40000.0)))
+    # Anti-forgery fixtures A1-A8: each edits receipt data only and keeps the receipt internally
+    # consistent (verified_value, structured math, parity, C7 support), so only the consumer's
+    # independent regeneration from the DOCX and the C7 bytes can reject it.
+    def record(payload: dict[str, Any], key: str) -> dict[str, Any]:
+        return next(item for item in payload["source_verification"]["records"] if item["key"] == key)
+
+    def forge_eta(item: dict[str, Any], value: float, math_text: str) -> None:
+        term(item, "attention_compute").update(eta=value)
+        term(item, "attention_cost_parity_identity").update(eta=value, parity_tokens=6.0 / value)
+        record(item, "attention_eta").update(verified_value=value, structured_math=math_text)
+
+    def forge_grid(item: dict[str, Any], grid: list[int]) -> None:
+        support = term(item, "context_length")
+        known = {regime["context_tokens"]: regime for regime in support["representative_operating_regimes"]}
+        support["observed_grid_tokens"] = grid
+        support["observed_range_tokens"] = [grid[0], grid[-1]]
+        support["observed_frequency"] = {str(value): known[value]["observed_model_count"] if value in known else 1 for value in grid}
+        support["representative_operating_regimes"] = [known.get(value, {
+            "context_tokens": value, "observed_model_count": 1, "observed_models": ["forged/model"],
+            "provenance_status": "observed"}) for value in grid]
+
+    receipt_mutation("A1 forged eta with consistent verified_value and parity is rejected",
+                     lambda item: forge_eta(item, 3e-4, "η=3×{10}^{−4}"))
+    receipt_mutation("A2 forged coefficient with consistent verified_value and parity is rejected", lambda item: (
+        term(item, "base_training_compute").update(coefficient=8),
+        term(item, "attention_cost_parity_identity").update(parity_tokens=8 / 2e-4),
+        record(item, "base_training_coefficient").update(verified_value=8, structured_math="{C}_{train}=8ND")))
+    receipt_mutation("A3 forged budget with consistent verified_value is rejected", lambda item: (
+        term(item, "compute_budget").update(representative_budgets_flops=[1e19, 1e22, 1e25]),
+        record(item, "representative_budget_high").update(verified_value=1e25, structured_math="{10}^{25}")))
+    receipt_mutation("A4 forged g(Q) coefficient with consistent verified_value is rejected", lambda item: (
+        term(item, "quality_cost_families")["power"].update(gamma=6e9),
+        record(item, "g_power_gamma").update(verified_value=6e9, structured_math="γ=6×{10}^{9}")))
+    receipt_mutation("A5 forged locator and verified value together are rejected", lambda item: (
+        forge_eta(item, 3e-4, "η=3×{10}^{−4}"),
+        record(item, "attention_eta").update(locator="w:body/w:p[33]", math_locator="w:body/w:p[33]/m:oMath[1]")))
+    receipt_mutation("A6 forged context 262144 in the receipt grid is rejected",
+                     lambda item: forge_grid(item, [2048, 4096, 8192, 32768, 131072, 262144]))
+    receipt_mutation("A7 a receipt grid differing from the C7 bytes is rejected",
+                     lambda item: forge_grid(item, [2048, 4096, 8192, 32768]))
+    receipt_mutation("A8a a duplicate verification record cannot shadow the canonical one", lambda item: (
+        forge_eta(item, 2e-4, "η=2×{10}^{−4}"),
+        item["source_verification"]["records"].append({**record(item, "attention_eta"), "verified_value": 3e-4}),
+        term(item, "attention_compute").update(eta=3e-4)))
+    receipt_mutation("A8b an unexpected verification key is rejected", lambda item: item["source_verification"]["records"].append(
+        {**record(item, "attention_eta"), "key": "attention_eta_override", "verified_value": 3e-4}))
     receipt_mutation("receipt budget mutation is rejected",
                      lambda item: term(item, "compute_budget").update(representative_budgets_flops=[1e19, 1e22, 1e25]))
     receipt_mutation("receipt family mutation is rejected", lambda item: term(item, "quality_cost_families")["power"].update(gamma=6e9))
@@ -354,9 +398,9 @@ def main() -> int:
     reads = set(record["guard"]["reads"]) if record else set()
     check("guard: the authorized workflow runs with the guard active", status == "NO_EXCEPTION" and record is not None)
     check("guard: the workflow had no denials", record is not None and record["guard"]["denied"] == [])
-    check("guard: the workflow opened only allowlisted inputs",
-          reads and reads <= {item.key for item in AUTHORIZED_Q3_INPUTS} and "canonical_problem_statement_docx" in reads
-          and "accepted_q2_loo_evidence" in reads)
+    check("guard: the workflow opened only allowlisted inputs, including the receipt consumer's own sources",
+          reads and reads <= {item.key for item in AUTHORIZED_Q3_INPUTS}
+          and {"canonical_problem_statement_docx", "c7_model_architecture_metadata", "intake_sha256_manifest"} <= reads)
     check("guard: the workflow reaches the corrected 1e24 regime", record is not None and record["regime"] == "SLACK:N_max+D_max")
 
     # ---- compute semantics, closed form and the stationary identity
@@ -497,8 +541,23 @@ def main() -> int:
         check("fixture corners are exactly saturating (" + low_bound + ")", at_corners[0] == "SATURATED:N_min+D_min"
               and at_corners[1] == "SATURATED:N_max+D_max")
 
-    # ---- LOO evidence and robustness laws
-    markdown = loo.path.read_text(encoding="utf-8")
+    # ---- LOO evidence: Git object identity, then content
+    relative = "results/tables/q2-uncertainty-robustness.md"
+    accepted_blob = subprocess.run(["git", "-C", str(REPO), "rev-parse", "b18967c76395ab7d9a336f957e74cd6b4e8d3a99:" + relative],
+                                   capture_output=True, text=True).stdout.strip()
+    check("LOO: bound to the Git blob of the accepted T-008 commit", loo.git_blob_id == accepted_blob
+          == "d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020" and loo.accepted_commit == "b18967c76395ab7d9a336f957e74cd6b4e8d3a99")
+    blob = subprocess.run(["git", "-C", str(REPO), "cat-file", "blob", accepted_blob], capture_output=True).stdout
+    check("LOO: content hash is of the Git blob bytes", loo.blob_content_sha256 == hashlib.sha256(blob).hexdigest())
+    expect_raise("LOO: a tracked input has no working-copy byte identity", lambda: sha256_authorized_q3_input(LOO_PATH),
+                 TrackedInputIdentityError)
+    pinned = ACCEPTED_TRACKED_BLOBS["accepted_q2_loo_evidence"]
+    try:
+        ACCEPTED_TRACKED_BLOBS["accepted_q2_loo_evidence"] = (pinned[0], "0" * 40)
+        expect_raise("LOO: a blob other than the pinned one is rejected", load_loo_robustness, TrackedInputIdentityError)
+    finally:
+        ACCEPTED_TRACKED_BLOBS["accepted_q2_loo_evidence"] = pinned
+    markdown = blob.decode("utf-8")
     check("LOO: eight complete ordered vectors", len(loo.vectors) == 8 and all(tuple(v.parameters) == ("E", "A", "alpha", "B", "beta") for v in loo.vectors))
     check("LOO: label states published precision", loo.precision_label == "leave-one-trajectory-out robustness at published parameter precision")
     check("LOO: half unit of 406.26 is 0.0005 (six significant digits)",
@@ -591,7 +650,7 @@ def main() -> int:
     check("reject_forbidden_q3_input is lexical", reject_forbidden_q3_input(temp / "plain.json") == temp / "plain.json")
 
     directory_handle.cleanup()
-    expected = 170
+    expected = 181
     for name, passed in RESULTS:
         print(("PASS " if passed else "FAIL ") + name)
     failures = [name for name, passed in RESULTS if not passed]

@@ -19,6 +19,7 @@ import hashlib
 import json
 import math
 import os
+import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping
@@ -202,14 +203,108 @@ def repo_relative(path: Path | str) -> str:
 
 
 def sha256_authorized_q3_input(path: Path | str) -> str:
-    """Hash one explicit authorized input after its pre-read authorization check."""
-    source = require_authorized_q3_input(path)
-    return hashlib.sha256(source.read_bytes()).hexdigest()
+    """Hash one explicit local-only authorized input after its pre-read check.
+
+    Tracked upstream artifacts are refused: their working-copy bytes depend on
+    checkout line endings, so their identity is their Git blob
+    (:func:`bind_tracked_input`), never a hash of the working file.
+    """
+    entry = authorized_input(path)
+    if entry.kind == "tracked_upstream_artifact":
+        raise TrackedInputIdentityError(
+            entry.relative_path + " is a tracked input; use its accepted Git blob identity"
+        )
+    return hashlib.sha256(entry.path.read_bytes()).hexdigest()
 
 
 def git_blob_sha1(data: bytes) -> str:
-    """Return the Git blob object id of ``data`` (a tracked-file content reference)."""
+    """Return the Git blob object id that ``data`` would have if stored verbatim."""
     return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
+
+
+#: Accepted Git object identity of each tracked upstream input: (accepted commit, blob id).
+#: The T-008 closure commit b18967c is where q2-uncertainty-robustness.md was accepted.
+ACCEPTED_TRACKED_BLOBS = {
+    "accepted_q2_loo_evidence": (
+        "b18967c76395ab7d9a336f957e74cd6b4e8d3a99",
+        "d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020",
+    ),
+}
+
+
+class TrackedInputIdentityError(ValueError):
+    """A tracked upstream input does not resolve to its accepted Git blob."""
+
+
+@dataclass(frozen=True)
+class TrackedInput:
+    """A tracked upstream input bound to its accepted Git blob object.
+
+    ``content`` is read from the Git object store, so it is the accepted blob
+    byte for byte whatever line endings the working copy was checked out with.
+    ``content_sha256`` is the SHA-256 of those blob bytes; it is not a hash of
+    the working-tree file, which may differ by checkout line endings.
+    """
+
+    key: str
+    relative_path: str
+    accepted_commit: str
+    git_blob_id: str
+    content: bytes
+    content_sha256: str
+
+
+def _git(*args: str) -> bytes:
+    completed = subprocess.run(["git", "-C", str(REPO_ROOT), *args], capture_output=True)
+    if completed.returncode != 0:
+        raise TrackedInputIdentityError(
+            "git " + args[0] + " failed: " + completed.stderr.decode("utf-8", "replace").strip()[:200]
+        )
+    return completed.stdout
+
+
+def bind_tracked_input(key: str) -> TrackedInput:
+    """Require a tracked input to be its accepted Git blob, then return that blob.
+
+    Three Git-computed identities must all equal the pinned blob id: the file at
+    the accepted commit, the file at the current ``HEAD``, and Git's own object
+    id for the working-tree file (``git hash-object``, i.e. what ``git add``
+    would store under the repository's attributes).  No line-ending
+    normalization is performed here.
+    """
+    entry = next((item for item in AUTHORIZED_Q3_INPUTS if item.key == key), None)
+    if entry is None or entry.kind != "tracked_upstream_artifact" or key not in ACCEPTED_TRACKED_BLOBS:
+        raise TrackedInputIdentityError("not an accepted tracked upstream input: " + repr(key))
+    authorized_input(entry.path)
+    commit, blob = ACCEPTED_TRACKED_BLOBS[key]
+    relative = entry.relative_path
+    observed = {
+        "accepted commit": _git("rev-parse", commit + ":" + relative).decode("ascii").strip(),
+        "HEAD": _git("rev-parse", "HEAD:" + relative).decode("ascii").strip(),
+        "working tree": _git("hash-object", "--", relative).decode("ascii").strip(),
+    }
+    for where, identity in observed.items():
+        if identity != blob:
+            raise TrackedInputIdentityError(
+                relative + " at " + where + " is Git blob " + identity + ", not the accepted " + blob
+            )
+    content = _git("cat-file", "blob", blob)
+    if git_blob_sha1(content) != blob:
+        raise TrackedInputIdentityError("Git object store returned bytes that are not blob " + blob)
+    return TrackedInput(key, relative, commit, blob, content, hashlib.sha256(content).hexdigest())
+
+
+def input_identity(entry: AuthorizedInput) -> dict[str, str]:
+    """Checkout-independent identity of one allowlisted input.
+
+    Local-only inputs are identified by the SHA-256 of their bytes; tracked
+    upstream artifacts by their accepted Git blob and the SHA-256 of its content.
+    """
+    if entry.kind == "tracked_upstream_artifact":
+        tracked = bind_tracked_input(entry.key)
+        return {"accepted_commit": tracked.accepted_commit, "git_blob_id": tracked.git_blob_id,
+                "blob_content_sha256": tracked.content_sha256}
+    return {"sha256": sha256_authorized_q3_input(entry.path)}
 
 
 @dataclass(frozen=True)
@@ -402,7 +497,12 @@ def verify_accepted_hash_receipts(
 __all__ = [
     "ACCEPTED_INTERFACE_RECEIPTS",
     "ACCEPTED_INTERFACE_SHA256",
+    "ACCEPTED_TRACKED_BLOBS",
     "AUTHORIZED_Q3_INPUTS",
+    "TrackedInput",
+    "TrackedInputIdentityError",
+    "bind_tracked_input",
+    "input_identity",
     "AcceptedInterface",
     "AcceptedInterfaceError",
     "AcceptedInterfaceHashMismatch",

@@ -36,9 +36,9 @@ sys.path.insert(0, str(REPO))
 from src.alloc import (  # noqa: E402
     ACCEPTED_INTERFACE_SHA256,
     AUTHORIZED_Q3_INPUTS,
+    input_identity,
     install_q3_input_guard,
     load_all_accepted_interfaces,
-    sha256_authorized_q3_input,
     verify_accepted_hash_receipts,
 )
 from src.alloc.inputguard import LOG_ENVIRONMENT_VARIABLE  # noqa: E402
@@ -90,12 +90,15 @@ def runtime_versions() -> dict[str, str]:
 
 
 def input_snapshot() -> dict[str, dict[str, Any]]:
-    """Content, size and modification time of every allowlisted input (local check only)."""
+    """Identity, size and modification time of every allowlisted input.
+
+    The identity (SHA-256 for local-only inputs, accepted Git blob for tracked
+    ones) is published; size and mtime are compared locally only.
+    """
     output = {}
     for entry in AUTHORIZED_Q3_INPUTS:
         stat = entry.path.stat()
-        output[entry.key] = {"sha256": sha256_authorized_q3_input(entry.path), "bytes": stat.st_size,
-                             "mtime_ns": stat.st_mtime_ns}
+        output[entry.key] = {"identity": input_identity(entry), "bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns}
     return output
 
 
@@ -158,11 +161,13 @@ def markdown(payload: Mapping[str, Any]) -> str:
         + "-file allowlist below; the",
         "historical whole-tree count of the reviewed checkpoint is not carried forward.",
         "",
-        "| Key | Path | SHA-256 |",
+        "| Key | Path | Identity |",
         "| --- | --- | --- |",
     ]
     for entry in payload["authorized_inputs"]:
-        lines.append("| `" + entry["key"] + "` | `" + entry["path"] + "` | `" + entry["sha256"] + "` |")
+        identity = entry["identity"]
+        shown = identity.get("sha256") or ("Git blob " + identity["git_blob_id"])
+        lines.append("| `" + entry["key"] + "` | `" + entry["path"] + "` | `" + shown + "` |")
     lines += [
         "",
         "## Artifacts",
@@ -215,7 +220,7 @@ def main() -> int:
         "two_passes_byte_identical": first_hashes == second_hashes,
         "lf_only": not first_cr and not second_cr,
         "authorized_inputs": [{"key": entry.key, "path": entry.relative_path, "kind": entry.kind,
-                               "sha256": after_inputs[entry.key]["sha256"]} for entry in AUTHORIZED_Q3_INPUTS],
+                               "identity": after_inputs[entry.key]["identity"]} for entry in AUTHORIZED_Q3_INPUTS],
         "authorized_inputs_unchanged": before_inputs == after_inputs,
         "inputs_opened_by_generator": reads,
         "inputs_opened_identical_across_passes": all(

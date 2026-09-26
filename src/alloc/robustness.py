@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import itertools
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Any, Mapping
 
 from .loo import (
@@ -103,9 +102,9 @@ def build_loo_sensitivity_models(classic: Any, evidence: LOORobustnessEvidence) 
     return tuple(models)
 
 
-def load_loo_sensitivity_models(classic: Any, path: Path | None = None) -> tuple[LOOSensitivityModel, ...]:
-    """Load the authorized LOO evidence and return every sensitivity model."""
-    return build_loo_sensitivity_models(classic, load_loo_robustness(path))
+def load_loo_sensitivity_models(classic: Any) -> tuple[LOOSensitivityModel, ...]:
+    """Load the Git-bound LOO evidence and return every sensitivity model."""
+    return build_loo_sensitivity_models(classic, load_loo_robustness())
 
 
 def rounding_corner_laws(classic: Any, vector: PublishedParameterVector) -> tuple[SensitivityClassicLaw, ...]:

@@ -1,10 +1,11 @@
 """Receipt-bound baseline Q3 compute semantics.
 
-Only the Q3 source receipt may supply the budget grid, the C7 context grid and
-the compute coefficients, and the receipt is accepted only if every one of
-those values agrees with its value-level verification against the canonical
-DOCX.  The accepted classic IF3 law is allocated at its semantic baseline
-``Q0`` only, so quality preprocessing compute is exactly zero.
+The Q3 source receipt is accepted only when it matches an independent
+regeneration at the consumer boundary: the canonical DOCX is re-verified value
+by value and the observed C7 grid is re-derived from the accepted C7 bytes, and
+every receipt value must equal those authoritative values.  The accepted
+classic IF3 law is allocated at its semantic baseline ``Q0`` only, so quality
+preprocessing compute is exactly zero.
 
 Two budget roles are kept distinct.  A *source-supported* budget is one of the
 organizer's representative budgets.  A *model-conditional continuation* budget
@@ -23,8 +24,9 @@ from typing import Any, Mapping
 
 from src.paths import TABLES, require
 
+from .c7 import C7SupportError, derive_c7_support
 from .classic import BaselineScopeError, SourceReceiptError, require_baseline_quality
-from .sourcedocx import ACCEPTED_DOCX_SHA256, SOURCE_CHECKS
+from .sourcedocx import SourceVerificationError, verified_values, verify_source_values
 
 RECEIPT_FILENAME = "q3-source-receipt.json"
 RECEIPT_SCHEMA_VERSION = "q3-source-receipt-v3"
@@ -185,38 +187,58 @@ def _require_gate(payload: Mapping[str, Any], lane: str, expected: str) -> None:
         )
 
 
-def _verified(payload: Mapping[str, Any]) -> Mapping[str, Any]:
-    """Return verified values after checking the receipt's verification block."""
-    block = payload.get("source_verification")
-    if not isinstance(block, dict):
-        raise SourceReceiptError("source receipt lacks its value-level source verification")
-    if block.get("docx_sha256") != ACCEPTED_DOCX_SHA256:
-        raise SourceReceiptError("source verification does not bind the accepted canonical DOCX")
-    records = block.get("records")
-    if not isinstance(records, list):
-        raise SourceReceiptError("source verification records must be a list")
-    by_key = {record.get("key"): record for record in records if isinstance(record, dict)}
-    missing = {check.key for check in SOURCE_CHECKS} - set(by_key)
-    if missing:
-        raise SourceReceiptError("source verification lacks records " + repr(sorted(missing)))
-    for key, record in by_key.items():
-        if record.get("status") != "VERIFIED":
-            raise SourceReceiptError("source verification record " + repr(key) + " is not VERIFIED")
-        if not str(record.get("locator", "")).startswith("w:body/"):
-            raise SourceReceiptError("source verification record " + repr(key) + " lacks a DOCX locator")
-    return {key: record.get("verified_value") for key, record in by_key.items()}
-
-
-def _require_equal(label: str, observed: object, verified: object) -> None:
-    if observed != verified:
+def _require_canonical_verification(recorded: object, canonical: Mapping[str, Any]) -> None:
+    """Require the receipt's verification block to be the independent regeneration, exactly."""
+    if not isinstance(recorded, dict) or set(recorded) != {"docx_sha256", "records"}:
+        raise SourceReceiptError("receipt source verification is missing or has unexpected fields")
+    if recorded["docx_sha256"] != canonical["docx_sha256"]:
+        raise SourceReceiptError("receipt source verification is not bound to the accepted canonical DOCX")
+    records = recorded["records"]
+    if not isinstance(records, list) or not all(isinstance(record, dict) for record in records):
+        raise SourceReceiptError("receipt source verification records must be a list of objects")
+    keys = [str(record.get("key")) for record in records]
+    canonical_keys = [record["key"] for record in canonical["records"]]
+    if keys != canonical_keys:
+        duplicated = sorted({key for key in keys if keys.count(key) > 1})
         raise SourceReceiptError(
-            "receipt " + label + " " + repr(observed) + " disagrees with its verified source value "
-            + repr(verified)
+            "receipt verification keys differ from the independent DOCX verification: extra="
+            + repr(sorted(set(keys) - set(canonical_keys))) + " missing="
+            + repr(sorted(set(canonical_keys) - set(keys))) + " duplicated=" + repr(duplicated)
+        )
+    for record, expected in zip(records, canonical["records"]):
+        if record != expected:
+            fields = sorted(field for field in set(record) | set(expected) if record.get(field) != expected.get(field))
+            raise SourceReceiptError(
+                "receipt verification record " + expected["key"]
+                + " differs from the independent DOCX verification in " + repr(fields)
+            )
+
+
+def _require_equal(label: str, observed: object, authoritative: object) -> None:
+    if observed != authoritative:
+        raise SourceReceiptError(
+            "receipt " + label + " " + repr(observed)[:120] + " differs from the independently derived "
+            + repr(authoritative)[:120]
         )
 
 
 def load_source_receipt(path: Path | None = None) -> SourceReceipt:
-    """Load the Q3 receipt and require every load-bearing value to be source-verified."""
+    """Load the Q3 receipt only if it matches an independent regeneration from the sources.
+
+    The receipt is never its own authority.  This consumer re-verifies the
+    allowlisted canonical DOCX (accepted whole-file SHA-256 first, then every
+    value at its paragraph and OMML locator) and re-derives the observed C7 grid
+    from the accepted C7 bytes, then requires the receipt to agree with both.
+    The returned lane is built from the independently derived values, not from
+    receipt fields.  ``path`` selects which receipt bytes are checked; the
+    authoritative sources are always the canonical allowlisted inputs.
+    """
+    try:
+        canonical = verify_source_values()
+        c7 = derive_c7_support()
+    except (SourceVerificationError, C7SupportError) as exc:
+        raise SourceReceiptError("authoritative Q3 sources cannot be verified: " + str(exc)) from exc
+    values = verified_values(canonical)
     source = require(path or (TABLES / RECEIPT_FILENAME))
     try:
         payload = json.loads(source.read_text(encoding="utf-8"))
@@ -231,7 +253,7 @@ def load_source_receipt(path: Path | None = None) -> SourceReceipt:
     _require_gate(payload, "canonical_baseline_nd_allocation", "PASS")
     _require_gate(payload, "nonbaseline_quality_cost_scenarios", "BLOCKED_UNTIL_Q0_DECLARED")
     _require_gate(payload, "cross_scale_quality_benefit", "PROHIBITED")
-    verified = _verified(payload)
+    _require_canonical_verification(payload.get("source_verification"), canonical)
 
     terms = _terms_by_name(payload)
     required = {
@@ -256,67 +278,39 @@ def load_source_receipt(path: Path | None = None) -> SourceReceipt:
     families = _support(terms["quality_cost_families"], "quality_cost_families")
     parity = _support(terms["attention_cost_parity_identity"], "attention_cost_parity_identity")
 
-    _require_equal("base coefficient", base.get("coefficient"), verified["base_training_coefficient"])
-    eta = _positive_finite(attention.get("eta"), "receipt eta")
-    _require_equal("eta", eta, verified["attention_eta"])
-
-    contexts = context.get("observed_grid_tokens")
-    if not isinstance(contexts, list) or not contexts:
-        raise SourceReceiptError("Q3 source receipt has no observed context grid")
-    try:
-        context_grid = tuple(int(value) for value in contexts)
-    except (TypeError, ValueError) as exc:
-        raise SourceReceiptError("receipt context grid must contain integer token counts") from exc
-    if tuple(sorted(set(context_grid))) != context_grid or any(value <= 0 for value in context_grid):
-        raise SourceReceiptError("receipt context grid must be sorted, unique positive integers")
-
-    budgets = budget.get("representative_budgets_flops")
-    if not isinstance(budgets, list) or not budgets:
-        raise SourceReceiptError("Q3 source receipt has no supported budget grid")
-    budget_grid = tuple(_positive_finite(value, "receipt budget") for value in budgets)
-    _require_equal(
-        "representative budgets",
-        budget_grid,
-        (
-            verified["representative_budget_low"],
-            verified["representative_budget_medium"],
-            verified["representative_budget_high"],
-        ),
+    coefficient = values["base_training_coefficient"]
+    eta = values["attention_eta"]
+    budget_grid = (
+        values["representative_budget_low"],
+        values["representative_budget_medium"],
+        values["representative_budget_high"],
     )
-
+    family_values = {
+        name: {"gamma": values["g_" + name + "_gamma"], "lambda": values["g_" + name + "_lambda"]}
+        for name in ("exponential", "power", "logarithmic")
+    }
+    _require_equal("base coefficient", base.get("coefficient"), coefficient)
+    _require_equal("eta", attention.get("eta"), eta)
+    _require_equal("observed C7 context support", dict(context), c7)
+    _require_equal("representative budgets", budget.get("representative_budgets_flops"), list(budget_grid))
+    _require_equal("budget constraint", budget.get("constraint"), values["budget_inequality"])
     if baseline.get("numeric_global_Q0") is not None:
         raise SourceReceiptError("baseline-only receipt must not claim a numeric global Q0")
-    _require_equal("Q0 source options", baseline.get("source_options"), verified["q0_source_semantics"])
-
-    family_values: dict[str, dict[str, float]] = {}
-    for name, key in (("exponential", "g_exponential"), ("power", "g_power"), ("logarithmic", "g_logarithmic")):
-        family = families.get(name)
-        if not isinstance(family, dict):
-            raise SourceReceiptError("quality-cost family " + name + " is missing")
-        gamma = _positive_finite(family.get("gamma"), name + " gamma")
-        lam = _positive_finite(family.get("lambda"), name + " lambda")
-        _require_equal(name + " gamma", gamma, verified[key + "_gamma"])
-        _require_equal(name + " lambda", lam, verified[key + "_lambda"])
-        family_values[name] = {"gamma": gamma, "lambda": lam}
-    if set(families) != {"exponential", "power", "logarithmic"}:
-        raise SourceReceiptError("quality-cost families must be exactly the three organizer families")
-    domain = dict(_support(terms["quality_domain"], "quality_domain"))
-    _require_equal("quality domain", domain, verified["quality_domain"])
-
-    parity_tokens = _positive_finite(parity.get("parity_tokens"), "receipt parity context")
-    if not math.isclose(parity_tokens, float(base["coefficient"]) / eta, rel_tol=0.0, abs_tol=1e-9):
-        raise SourceReceiptError("receipt cost-parity identity does not equal 6 / eta")
+    _require_equal("Q0 source options", baseline.get("source_options"), values["q0_source_semantics"])
+    _require_equal("quality-cost families", dict(families), family_values)
+    _require_equal("quality domain", dict(_support(terms["quality_domain"], "quality_domain")), values["quality_domain"])
+    _require_equal("parity context", parity.get("parity_tokens"), coefficient / eta)
 
     return SourceReceipt(
         path=source,
         payload=payload,
         budgets_flops=budget_grid,
-        contexts_tokens=context_grid,
-        base_coefficient=float(base["coefficient"]),
+        contexts_tokens=tuple(c7["observed_grid_tokens"]),
+        base_coefficient=float(coefficient),
         eta=eta,
-        parity_tokens=parity_tokens,
+        parity_tokens=coefficient / eta,
         quality_families=family_values,
-        quality_domain=domain,
+        quality_domain=values["quality_domain"],
     )
 
 

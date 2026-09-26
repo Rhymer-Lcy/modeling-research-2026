@@ -169,8 +169,9 @@ def build_ledger() -> list[dict[str, Any]]:
          "derivation": "accepted bytes hash-checked and shared contract validated; Q=[1,1] is a no-quality sentinel",
          "status": "VERIFIED", "limitation": "B1 generator recovery; not precise empirical knowledge of real scaling"},
         {"id": "L1", "category": "robustness_input", "value": [vector.label for vector in loo.vectors],
-         "sources": [{"kind": "tracked_upstream_artifact", "path": loo.relative_path, "sha256": loo.sha256,
-                      "git_blob_sha1": loo.git_blob_sha1, "locator": "Per-trajectory detail"}],
+         "sources": [{"kind": "tracked_upstream_artifact", "path": loo.relative_path,
+                      "git_blob_id": loo.git_blob_id, "accepted_commit": loo.accepted_commit,
+                      "blob_content_sha256": loo.blob_content_sha256, "locator": "Per-trajectory detail"}],
          "derivation": "eight complete five-parameter vectors parsed at their printed .6g precision",
          "status": "VERIFIED", "limitation": "robustness ranges only; published precision limits the loss ranges"},
     ]

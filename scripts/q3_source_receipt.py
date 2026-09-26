@@ -20,12 +20,9 @@ Run through the declared environment:
 
 from __future__ import annotations
 
-import csv
 import json
-import re
 import sys
 import zipfile
-from collections import Counter
 from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree as ET
@@ -36,115 +33,21 @@ sys.path.insert(0, str(REPO))
 from src.alloc import (  # noqa: E402
     ACCEPTED_INTERFACE_SHA256,
     AUTHORIZED_Q3_INPUTS,
-    C7_PATH,
     DOCX_PATH,
-    INTAKE_MANIFEST_PATH,
-    MANIFEST_PATH,
     SourceVerificationError,
+    input_identity,
     install_q3_input_guard,
     load_all_accepted_interfaces,
     repo_relative,
-    require_authorized_q3_input,
-    sha256_authorized_q3_input,
     verified_values,
     verify_source_values,
 )
+from src.alloc.c7 import C7SupportError, derive_c7_support  # noqa: E402
 from src.alloc.report import write_artifacts  # noqa: E402
-
-C7_MANIFEST_NAME = "C_efficiency_evolution/model_architecture_metadata.csv"
-MANIFEST_INTAKE_NAME = "source_manifest.json"
 
 
 class ReceiptError(RuntimeError):
     """Raised when required first-party evidence cannot support the receipt."""
-
-
-def read_intake_hashes() -> dict[str, tuple[int, str]]:
-    """Return the T-006 intake ``relative_path -> (bytes, sha256)`` record."""
-    source = require_authorized_q3_input(INTAKE_MANIFEST_PATH)
-    with source.open("r", encoding="utf-8", newline="") as handle:
-        rows = list(csv.DictReader(handle, delimiter="\t"))
-    if not rows or set(rows[0]) != {"relative_path", "bytes", "sha256"}:
-        raise ReceiptError("intake SHA-256 manifest has an unexpected header")
-    return {row["relative_path"]: (int(row["bytes"]), row["sha256"]) for row in rows}
-
-
-def read_c7_context() -> dict[str, Any]:
-    """Return observed C7 context support with its direct-data provenance."""
-    context_path = require_authorized_q3_input(C7_PATH)
-    manifest_path = require_authorized_q3_input(MANIFEST_PATH)
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    records = manifest.get("files", manifest) if isinstance(manifest, dict) else manifest
-    if not isinstance(records, list):
-        raise ReceiptError("source_manifest.json must contain a list of source records")
-    matching = [record for record in records if record.get("file") == C7_MANIFEST_NAME]
-    if len(matching) != 1:
-        raise ReceiptError("expected exactly one C7 record in the organizer manifest")
-    manifest_record = matching[0]
-
-    raw = context_path.read_bytes()
-    c7_sha256 = sha256_authorized_q3_input(context_path)
-    manifest_sha256 = sha256_authorized_q3_input(manifest_path)
-    intake = read_intake_hashes()
-    if intake.get(C7_MANIFEST_NAME) != (len(raw), c7_sha256):
-        raise ReceiptError("C7 bytes or SHA-256 differ from the accepted T-006 intake record")
-    if intake.get(MANIFEST_INTAKE_NAME) != (manifest_path.stat().st_size, manifest_sha256):
-        raise ReceiptError("organizer manifest differs from the accepted T-006 intake record")
-    if int(manifest_record.get("bytes", -1)) != len(raw):
-        raise ReceiptError("C7 byte count differs from the organizer manifest")
-
-    rows = list(csv.DictReader(raw.decode("utf-8").splitlines()))
-    if not rows or "max_position_embeddings" not in rows[0] or "model_name" not in rows[0]:
-        raise ReceiptError("C7 metadata lacks max_position_embeddings or model_name")
-    try:
-        values = [int(row["max_position_embeddings"]) for row in rows]
-    except (KeyError, TypeError, ValueError) as exc:
-        raise ReceiptError("C7 context values must be integer token counts") from exc
-    if any(value <= 0 for value in values):
-        raise ReceiptError("C7 context values must be positive")
-    expected_rows = re.search(r"(\d+)个主流", str(manifest_record.get("note", "")))
-    if expected_rows is None or len(rows) != int(expected_rows.group(1)):
-        raise ReceiptError("C7 row count differs from the organizer manifest note")
-
-    counts = Counter(values)
-    grid = sorted(counts)
-    models: dict[int, list[str]] = {value: [] for value in grid}
-    for row, value in zip(rows, values):
-        name = row["model_name"].strip()
-        if not name:
-            raise ReceiptError("C7 metadata has a context row without model_name")
-        models[value].append(name)
-    return {
-        "path": repo_relative(context_path),
-        "sha256": c7_sha256,
-        "bytes": len(raw),
-        "rows": len(rows),
-        "field": "max_position_embeddings",
-        "unit": "tokens",
-        "observed_grid_tokens": grid,
-        "observed_frequency": {str(value): counts[value] for value in grid},
-        "observed_range_tokens": [grid[0], grid[-1]],
-        "representative_operating_regimes": [
-            {"context_tokens": value, "observed_model_count": counts[value],
-             "observed_models": sorted(models[value]), "provenance_status": "observed"}
-            for value in grid
-        ],
-        "regime_selection_rule": (
-            "One observed regime per unique C7 context value; all source rows are retained. "
-            "No preferred subset, interpolation or extrapolation is inferred."
-        ),
-        "direct_data_provenance": {
-            "organizer_manifest_record": manifest_record,
-            "organizer_manifest": {"path": repo_relative(manifest_path), "sha256": manifest_sha256},
-            "intake_record": {
-                "path": repo_relative(INTAKE_MANIFEST_PATH),
-                "sha256": sha256_authorized_q3_input(INTAKE_MANIFEST_PATH),
-                "c7_bytes_and_sha256_match": True,
-                "organizer_manifest_bytes_and_sha256_match": True,
-            },
-            "row_count_matches_manifest_note": True,
-        },
-    }
 
 
 def docx_source(keys: list[str], sha: str) -> dict[str, Any]:
@@ -155,7 +58,7 @@ def build_receipt() -> dict[str, Any]:
     verification = verify_source_values()
     values = verified_values(verification)
     docx_sha = verification["docx_sha256"]
-    c7 = read_c7_context()
+    c7 = derive_c7_support()
     interfaces = load_all_accepted_interfaces()
     if {kind: item.sha256 for kind, item in interfaces.items()} != ACCEPTED_INTERFACE_SHA256:
         raise ReceiptError("accepted interface identities changed")
@@ -324,7 +227,7 @@ def build_receipt() -> dict[str, Any]:
         "source_verification": verification,
         "authorized_inputs": [
             {"key": entry.key, "path": entry.relative_path, "kind": entry.kind, "role": entry.role,
-             "sha256": sha256_authorized_q3_input(entry.path)}
+             "identity": input_identity(entry)}
             for entry in AUTHORIZED_Q3_INPUTS
         ],
         "quarantined_material": {
@@ -355,6 +258,12 @@ def markdown_receipt(receipt: dict[str, Any]) -> str:
         "(`w:body/w:p[i]`) and Office Math zone (`m:oMath[j]`) with exponent structure preserved, after",
         "the whole-file SHA-256 check. C7 is observed direct data. Neither PDF was opened.",
         "",
+        "This receipt is not its own authority. Its consumer (`load_source_receipt`, used by every",
+        "allocation script) re-verifies the canonical DOCX and re-derives the C7 grid from the accepted",
+        "C7 bytes, and rejects the receipt on any difference, including extra, duplicate or relocated",
+        "verification records. Local-only inputs are identified by SHA-256; the tracked upstream input",
+        "is identified by its accepted Git blob, never by working-copy bytes.",
+        "",
         "## Gates",
         "",
         "| Lane | Result | Disposition |",
@@ -366,12 +275,15 @@ def markdown_receipt(receipt: dict[str, Any]) -> str:
         "",
         "## Authorized inputs (complete Q3 allowlist)",
         "",
-        "| Key | Path | Kind | Role | SHA-256 |",
+        "| Key | Path | Kind | Role | Identity |",
         "| --- | --- | --- | --- | --- |",
     ]
     for entry in receipt["authorized_inputs"]:
+        identity = entry["identity"]
+        shown = ("SHA-256 `" + identity["sha256"] + "`" if "sha256" in identity
+                 else "Git blob `" + identity["git_blob_id"] + "` (accepted at `" + identity["accepted_commit"][:7] + "`)")
         lines.append("| `" + entry["key"] + "` | `" + entry["path"] + "` | " + entry["kind"] + " | "
-                     + entry["role"] + " | `" + entry["sha256"] + "` |")
+                     + entry["role"] + " | " + shown + " |")
     lines += [
         "",
         "Allowlisted files: " + str(len(receipt["authorized_inputs"])) + ". No directory is traversed. The historical",
@@ -425,7 +337,8 @@ def main() -> int:
     install_q3_input_guard()
     try:
         receipt = build_receipt()
-    except (OSError, ValueError, zipfile.BadZipFile, ET.ParseError, ReceiptError, SourceVerificationError) as exc:
+    except (OSError, ValueError, zipfile.BadZipFile, ET.ParseError, ReceiptError, SourceVerificationError,
+            C7SupportError) as exc:
         print("SOURCE RECEIPT FAIL-CLOSED: " + str(exc), file=sys.stderr)
         return 1
     write_artifacts("q3-source-receipt", receipt, markdown_receipt(receipt))

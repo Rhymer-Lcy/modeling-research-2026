@@ -54,8 +54,8 @@ def _check_source(item_id: str, source: Mapping[str, Any]) -> None:
         raise ProvenanceError(item_id + ": PDF or image path cannot carry load-bearing provenance")
     if not path or path.startswith("/") or ":" in path.split("/", 1)[0]:
         raise ProvenanceError(item_id + ": source path must be repository-relative")
-    if not any(source.get(key) for key in ("sha256", "git_blob_sha1", "locator")):
-        raise ProvenanceError(item_id + ": source needs a SHA-256, Git blob reference or locator")
+    if not any(source.get(key) for key in ("sha256", "git_blob_id", "locator")):
+        raise ProvenanceError(item_id + ": source needs a SHA-256, Git blob id or locator")
 
 
 def validate_ledger(items: Iterable[Mapping[str, Any]], *, require_all_verified: bool = True) -> int:

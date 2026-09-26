@@ -14,16 +14,16 @@ strings are retained so that each value's half-unit rounding interval is known.
 
 from __future__ import annotations
 
-import hashlib
 import math
 import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping
 
-from .receipts import LOO_PATH, git_blob_sha1, repo_relative, require_authorized_q3_input
+from .receipts import LOO_PATH, bind_tracked_input
 
 LOO_SOURCE_PATH = LOO_PATH
+LOO_INPUT_KEY = "accepted_q2_loo_evidence"
 PRECISION_LABEL = "leave-one-trajectory-out robustness at published parameter precision"
 LOO_HEADER = "| Trajectory dropped (N, billions) | E | A | alpha | B | beta |"
 FULL_FIT_HEADER = (
@@ -76,8 +76,9 @@ class LOORobustnessEvidence:
 
     path: Path
     relative_path: str
-    sha256: str
-    git_blob_sha1: str
+    accepted_commit: str
+    git_blob_id: str
+    blob_content_sha256: str
     vectors: tuple[PublishedParameterVector, ...]
     published_full_fit: PublishedParameterVector
     precision_label: str
@@ -155,20 +156,25 @@ def _parse_vectors(markdown: str) -> tuple[tuple[PublishedParameterVector, ...],
     return tuple(vectors), full_fit
 
 
-def load_loo_robustness(path: Path | None = None) -> LOORobustnessEvidence:
-    """Load the published LOO vectors through the explicit Q3 input boundary."""
-    source = require_authorized_q3_input(path or LOO_SOURCE_PATH)
-    raw = source.read_bytes()
+def load_loo_robustness() -> LOORobustnessEvidence:
+    """Load the published LOO vectors from their accepted T-008 Git blob.
+
+    The tracked file must resolve to the accepted blob at the accepted T-008
+    commit, at ``HEAD`` and in the working tree; the vectors are then parsed from
+    the blob bytes in the Git object store, never from the working copy.
+    """
+    tracked = bind_tracked_input(LOO_INPUT_KEY)
     try:
-        markdown = raw.decode("utf-8")
+        markdown = tracked.content.decode("utf-8")
     except UnicodeDecodeError as exc:
         raise LOORobustnessError("cannot read published Q2 LOO evidence as UTF-8") from exc
     vectors, full_fit = _parse_vectors(markdown)
     return LOORobustnessEvidence(
-        path=source,
-        relative_path=repo_relative(source),
-        sha256=hashlib.sha256(raw).hexdigest(),
-        git_blob_sha1=git_blob_sha1(raw),
+        path=LOO_SOURCE_PATH,
+        relative_path=tracked.relative_path,
+        accepted_commit=tracked.accepted_commit,
+        git_blob_id=tracked.git_blob_id,
+        blob_content_sha256=tracked.content_sha256,
         vectors=vectors,
         published_full_fit=full_fit,
         precision_label=PRECISION_LABEL,
