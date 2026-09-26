@@ -8,6 +8,8 @@ records the allowlisted inputs it opened and would have raised on any PDF,
 non-allowlisted local file, traversal or write.  The run fails unless both
 passes are byte-identical and LF-only, no guard denial occurred, every read was
 allowlisted, and the authorized inputs and interfaces are unchanged afterwards.
+The last generator is the mutation validation, which requires committed T-010
+sources and takes several minutes per pass.
 
 Writes:
     results/tables/q3-reproduction.json
@@ -53,6 +55,7 @@ GENERATORS = (
     "q3_quality_cost_sensitivity.py",
     "q3_loo_robustness.py",
     "q3_provenance_ledger.py",
+    "q3_mutation_validation.py",
 )
 STEMS = (
     "q3-source-receipt",
@@ -62,6 +65,7 @@ STEMS = (
     "q3-quality-cost-sensitivity",
     "q3-loo-robustness",
     "q3-provenance-ledger",
+    "q3-mutation-validation",
 )
 ARTIFACTS = tuple(TABLES / (stem + suffix) for stem in STEMS for suffix in (".json", ".md"))
 PINNED_PACKAGES = ("python", "numpy", "scipy", "pandas", "pyyaml")
