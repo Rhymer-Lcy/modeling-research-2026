@@ -2,7 +2,7 @@
 
 \subsection{质量指标的标量化与方向统一}
 
-A 组质量信号来自多维数据质量评分框架\cite{zhuang2025metarater}，赛题规定的指标体系
+A 组质量信号来自 Zhuang 等提出的多维数据质量评分框架 Meta-rater\cite{zhuang2025metarater}，赛题规定的指标体系
 共 22 个：14 个以标量存储，8 个以多维列表存储，须先压缩为标量。压缩规则依据各打分器
 自身的说明确定，而不是按字段名推断：二分类器（流畅度、广告）取 softmax 后“合意类”的
 概率——广告指标的元素顺序为“有广告、无广告”，故取第二个元素，压缩后已是“越高越好”；
@@ -21,7 +21,7 @@ A1 中有 18 条、A3 中有 1 条记录含字面 NaN（每条均为一个多维
 
 \subsection{配方数据}
 
-A4--A15 来自以回归方法研究数据配比的系列训练实验\cite{liu2024regmix}，每一行是一次训练
+A4--A15 来自 Liu 等以回归方法研究数据配比的 RegMix 系列训练实验\cite{liu2025regmix}，每一行是一次训练
 实验的 17 域配比及其在各领域验证集上的损失。17 个领域中有
 13 个带有验证损失列，其余 4 个（NIH ExPorter、PhilPapers、Enron Emails、EuroParl）没有
 对应损失，只作为配比的组成部分参与建模，不视为“效应为零”。配比按行正分量之和归一，
@@ -36,7 +36,7 @@ B 组各表来源性质不同，其用途在建模前即按表\ref{tab:btables}�
   \centering
   \caption{B 组数据的角色划分}
   \label{tab:btables}
-  \begin{tabular}{>{\raggedright\arraybackslash}p{6.2cm}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{5.2cm}}
+  \begin{tabular}{>{\raggedright\arraybackslash}p{6.6cm}>{\centering\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}p{4.5cm}}
     \toprule
     数据 & 性质 & 在本文中的用途 \\
     \midrule

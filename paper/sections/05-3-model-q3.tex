@@ -1,35 +1,234 @@
-% Question 3: CONTROLLED STRUCTURAL PLACEHOLDER (T-012 v3, Stage A).
-%
-% Question 3 is owned by T-010, which is still under execution and has not been
-% accepted. Nothing in this file may state a Question 3 result: no budget
-% allocation, no 1e24 figure, no regime threshold, no leave-one-out range, no
-% quality-cost crossing and no context-length conclusion. Values seen on any
-% unreviewed branch are not manuscript evidence.
-%
-% Stage B trigger: T-010 accepted and merged to main after independent
-% supervisory review. Only then is each subsection below written, from the
-% accepted T-010 review package and its tracked result tables.
-
 \section{问题三的模型建立与求解}
+\label{sec:q3}
 
 \subsection{求解思路}
-% STAGE B: overall approach, after T-010 acceptance.
 
-\subsection{模型建立}
-% STAGE B: objective, decision variables and the compute-cost model, from the
-% accepted T-010 evidence and the organizer's Appendix B.
+问题三在问题二采纳的经典标度律 \eqref{eq:classic} 上求解算力约束下的资源配置。先按赛题给出的
+三项开销建立算力成本模型；再在经典标度律的有效域内求解“损失最小、总算力不超过预算”的优化问题，
+区分无可行解、预算用尽与预算有剩余三种情形；然后以最优解的约束激活状态定义“结构性转移”，在赛题
+给出的预算范围内逐一识别；最后分析上下文长度、参数估计与质量成本函数对结论的影响。本节所有
+数值都是已采纳标度律在有效域内的模型条件推论（B 类），描述模型给出的最优配置，而不是对真实
+训练的观测或建议。
 
-\subsection{约束与有效域}
-% STAGE B: the budget constraint and the validity box inherited from the
-% classic scaling law of Question 2.
+\subsection{算力成本模型}
 
-\subsection{结构转移判据}
-% STAGE B: the mathematical definition of a structural transition and how it
-% is identified, as accepted in T-010.
+按赛题给出的开销结构，训练、长文本注意力与质量提升三项开销分别为
+\begin{equation}
+  C_{\mathrm{train}}=6ND,\qquad
+  C_{\mathrm{attn}}=\eta N D L_{\mathrm{ctx}},\qquad
+  C_{Q}=D\left[g(Q)-g(Q_0)\right]_{+},
+  \label{eq:q3-costs}
+\end{equation}
+其中 $\eta=2\times10^{-4}$，$[x]_{+}=\max\{x,0\}$，$g(Q)$ 是把单位 Token 的质量由基线 $Q_0$ 提升到
+$Q$ 的成本函数（FLOPs/Token）。训练开销 $6ND$ 与 Hoffmann 等\cite{hoffmann2022chinchilla}求解
+算力最优配置时采用的近似一致。总开销不得超过预算：
+\begin{equation}
+  C_{\mathrm{total}}=D\left[(6+\eta L_{\mathrm{ctx}})N+\left[g(Q)-g(Q_0)\right]_{+}\right]\le C .
+  \label{eq:q3-budget}
+\end{equation}
+模型中的全部系数均与赛题原文逐项核对。记 $\kappa=6+\eta L_{\mathrm{ctx}}$，它是每个参数处理
+每个 Token 所需的算力。在质量基线 $Q=Q_0$ 下 $[g(Q_0)-g(Q_0)]_{+}=0$，质量开销恰为零，约束化为
+$\kappa ND\le C$。
 
-\subsection{稳健性分析}
-% STAGE B: sensitivity to the context length, the cost function and parameter
-% uncertainty, as accepted in T-010.
+在已花费的算力中，训练与注意力开销的占比分别为 $6/\kappa$ 与 $\eta L_{\mathrm{ctx}}/\kappa$，
+只取决于上下文长度而与预算无关：$L_{\mathrm{ctx}}=4096$ 时为 88.0\% 与 12.0\%，
+$L_{\mathrm{ctx}}=131072$ 时为 18.6\% 与 81.4\%。二者在 $L_{\mathrm{ctx}}=6/\eta=30000$ 时相等。
+这只是一个成本恒等式：30000 不是最优上下文长度，不是区间转换点，也不是优化得到的临界值，
+它本身也不是 C7 中出现的取值（观测值 8192 与 32768 位于其两侧）。
 
-\subsection{结果与讨论}
-% STAGE B: results only after T-010 acceptance.
+\subsection{优化模型与可行域}
+
+经典标度律只在其拟合数据覆盖的范围内得到识别，本文把这一范围作为决策变量的可行域（有效域），
+其边界为 $N_{\min}=7.054\times10^{7}$、$N_{\max}=1.197\times10^{10}$、$D_{\min}=1.340\times10^{8}$、
+$D_{\max}=2.999\times10^{11}$（第 \ref{sec:q2-validity} 节）。在质量基线下，优化问题为
+\begin{equation}
+  \begin{aligned}
+    \min_{N,D}\quad & L(N,D)=E+A N^{-\alpha}+B D^{-\beta}\\
+    \text{s.t.}\quad & \kappa N D\le C,\qquad N_{\min}\le N\le N_{\max},\qquad D_{\min}\le D\le D_{\max}.
+  \end{aligned}
+  \label{eq:q3-problem}
+\end{equation}
+记 $C_{\min}=\kappa N_{\min}D_{\min}$ 与 $C_{\mathrm{box}}=\kappa N_{\max}D_{\max}$ 分别为有效域
+下角点与上角点处的算力。由于 $L$ 对 $N$ 与 $D$ 都严格递减，问题 \eqref{eq:q3-problem} 的解分为
+三种情形：
+\begin{enumerate}
+  \item $C<C_{\min}$：有效域内没有可行点；
+  \item $C_{\min}\le C\le C_{\mathrm{box}}$：最优解使预算恰好用尽（$\kappa N^*D^*=C$），
+        $C=C_{\mathrm{box}}$ 时它就是上角点；
+  \item $C>C_{\mathrm{box}}$：有效域内的最优解是上角点 $(N_{\max},D_{\max})$，其余
+        $C-C_{\mathrm{box}}$ 的预算未被使用。
+\end{enumerate}
+第三种情形是约束写成不等式的原因：若要求预算必须用尽，高预算下的解会被迫离开有效域，而在有效域
+以外标度律没有得到识别。上角点只是有效域内的最优解，模型不给出有效域以外的最优配置，未使用的
+预算也不意味着有用算力存在物理上限；本文不对未使用部分作任何外推或用途安排。
+
+\subsection{求解方法与结构性转移的定义}
+
+预算用尽时 $D=C/(\kappa N)$，问题化为关于 $N$ 的一维问题。其驻点为
+\begin{equation}
+  N_s=\left(\frac{\alpha A}{\beta B}\right)^{\frac{1}{\alpha+\beta}}
+      \left(\frac{C}{\kappa}\right)^{\frac{\beta}{\alpha+\beta}},\qquad
+  D_s=\frac{C}{\kappa N_s},
+  \label{eq:q3-stationary}
+\end{equation}
+只有当驻点落在有效域内时它才是最优解；否则在有效域边界上求约束最优解，例如数据量取上界时
+$D^*=D_{\max}$、$N^*=C/(\kappa D_{\max})$。求解结果与不使用任何解析候选的数值搜索一致，
+$N^*$、$D^*$ 的相对差异不超过 $2.65\times10^{-10}$，并经有效域上的穷举网格检验。
+
+\textbf{结构性转移的定义。}在给定上下文长度下，预算 $C$ 的\emph{区间}定义为：$C<C_{\min}$ 时为
+“不可行”，否则为二元组（预算是否用尽，最优解处激活的全部有效域边界）。区间发生改变的预算称为
+\textbf{结构性转移点}。在同一区间内最优解是预算的固定幂函数，因此转移点等价于预算弹性
+$\mathrm{d}\ln N^*/\mathrm{d}\ln C$ 与 $\mathrm{d}\ln D^*/\mathrm{d}\ln C$ 的跳变点。
+候选点为 $C_{\min}$、$C_{\mathrm{box}}$ 与驻点路径到达各边界时的预算；只有当约束最优解在候选点两侧
+相对偏移 $\pm10^{-6}$ 处的区间确实不同时，候选点才被确认为转移点。分析范围限于赛题给出的预算
+范围 $[10^{19},10^{24}]$ FLOPs，其中 $10^{19}$、$10^{22}$、$10^{24}$ 三个代表性预算为主要结果，
+其间的连续预算用于识别转移点。
+
+\subsection{配置结果}
+
+表\ref{tab:q3-alloc}给出 $L_{\mathrm{ctx}}=4096$ 时三个代表性预算下的最优配置，图\ref{fig:q3-allocation}
+给出五个上下文长度下最优配置随预算的变化。
+
+\begin{table}[htbp]
+  \centering
+  \caption{代表性预算下的最优配置（$L_{\mathrm{ctx}}=4096$，$\kappa=6.8192$，质量基线）}
+  \label{tab:q3-alloc}
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{ccccccc}
+    \toprule
+    预算 $C$ & $N^*$ & $D^*$ & 预测损失 & 区间 & 未用算力 & 利用率 \\
+    \midrule
+    $10^{19}$ & $2.152\times10^{8}$ & $6.814\times10^{9}$ & 3.0114 & 内点最优 & 0 & 1 \\
+    $10^{22}$ & $4.890\times10^{9}$ & $2.999\times10^{11}$ & 2.1475 & 数据量取上界 & 0 & 1 \\
+    $10^{24}$ & $1.197\times10^{10}$ & $2.999\times10^{11}$ & 2.0934 & 上角点，有剩余 & $9.755\times10^{23}$ & 0.0245 \\
+    \bottomrule
+    \multicolumn{7}{l}{\footnotesize 注：预算与算力单位为 FLOPs，$N^*$ 单位为个，$D^*$ 单位为 Token；三行的质量开销均为 0。}
+  \end{tabular}
+\end{table}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{paper-q3-allocation}
+  \caption{最优参数量与数据量随算力预算的变化（五个观测上下文长度；实心标记为代表性预算下的解，
+           空心标记为区间转换点）}
+  \label{fig:q3-allocation}
+\end{figure}
+
+\textbf{$10^{19}$ FLOPs：内点最优。}驻点落在有效域内，预算用尽，$N^*=2.152\times10^{8}$，
+$D^*=6.814\times10^{9}$，预测损失 3.0114。此时 $N^*$ 与 $D^*$ 对预算的弹性分别为
+$\beta/(\alpha+\beta)=0.4515$ 与 $\alpha/(\alpha+\beta)=0.5485$，即预算每增加 1\%，最优参数量约增加
+0.45\%，最优数据量约增加 0.55\%。
+
+\textbf{$10^{22}$ FLOPs：数据量达到有效域上界。}驻点所需的数据量已超过 $D_{\max}$，约束最优解取
+$D^*=D_{\max}=2.999\times10^{11}$，$N^*=C/(\kappa D_{\max})=4.890\times10^{9}$，预算仍然用尽，
+预测损失 2.1475。此区间内新增算力全部用于增加参数量（弹性为 1 与 0）。
+
+\textbf{$10^{24}$ FLOPs：预算有剩余。}有效域上角点所需算力 $C_{\mathrm{box}}=2.447\times10^{22}$
+远小于预算，最优解为上角点 $N^*=1.197\times10^{10}$、$D^*=2.999\times10^{11}$，预测损失 2.0934，
+算力利用率为 0.0245，其余 $9.755\times10^{23}$ FLOPs 未被使用。赛题给出的最高预算已超过有效域
+上角点所需的算力：在有效域内继续增加预算不再改变最优解，而有效域以外的配置不能由现有数据识别。
+
+\textbf{结构性转移。}如图\ref{fig:q3-regimes}与表\ref{tab:q3-transitions}所示，在
+$[10^{19},10^{24}]$ 内每个观测上下文长度都恰有两个转移点。第一个是驻点路径到达 $D_{\max}$ 的预算，
+最优解由“内点最优”转为“数据量取上界”，预算弹性由 $(0.4515, 0.5485)$ 跳变为 $(1, 0)$；第二个是
+$C_{\mathrm{box}}$，最优解到达上角点，此后预算出现剩余，弹性变为 $(0,0)$。前者是有效域边界
+导致的约束激活变化，后者是有效域上界处开始出现预算剩余；$10^{19}$ 与 $10^{24}$ 只是分析范围的端点。
+两类转移都是已采纳标度律有效域的性质，是模型内的陈述，本文不据此断言真实训练中存在物理意义上的
+相变。$C_{\min}$（$6.06\times10^{16}$--$3.05\times10^{17}$）与驻点路径离开 $N_{\min}$ 的预算
+（$7.95\times10^{17}$--$3.99\times10^{18}$）都低于 $10^{19}$，只作记录不作分析；范围内的每个
+预算都有可行解。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{paper-q3-regimes}
+  \caption{各观测上下文长度下最优解所处区间随预算的变化（上下文长度各占一行，行间不插值；
+           竖实线为区间转换点，竖点线为三个代表性预算）}
+  \label{fig:q3-regimes}
+\end{figure}
+
+\begin{table}[htbp]
+  \centering
+  \caption{各观测上下文长度下的结构性转移点（单位：FLOPs）}
+  \label{tab:q3-transitions}
+  \begin{tabular}{ccccc}
+    \toprule
+    \makecell{$L_{\mathrm{ctx}}$\\（Token）} & $\kappa$ & \makecell{内点最优 $\to$\\数据量取上界} &
+    \makecell{数据量取上界 $\to$ 预算有剩余\\（即 $C_{\mathrm{box}}$）} & \makecell{$10^{24}$ FLOPs\\时的利用率} \\
+    \midrule
+    2048 & 6.4096 & $9.326\times10^{21}$ & $2.300\times10^{22}$ & 0.0230 \\
+    4096 & 6.8192 & $9.922\times10^{21}$ & $2.447\times10^{22}$ & 0.0245 \\
+    8192 & 7.6384 & $1.111\times10^{22}$ & $2.741\times10^{22}$ & 0.0274 \\
+    32768 & 12.5536 & $1.827\times10^{22}$ & $4.505\times10^{22}$ & 0.0450 \\
+    131072 & 32.2144 & $4.687\times10^{22}$ & $1.156\times10^{23}$ & 0.1156 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{上下文长度的敏感性}
+
+上下文长度只通过 $\kappa$ 进入模型：$L_{\mathrm{ctx}}$ 越大，每个参数处理每个 Token 的开销越高，
+同一预算可支持的 $N D$ 越小。本文在 C7 中出现的 5 个上下文长度上逐一求解，不对上下文长度寻优，
+也不在观测取值之间插值。在 $10^{19}$ FLOPs 下，$N^*$ 由 $2.213\times10^{8}$（2048）降至
+$1.068\times10^{8}$（131072），$D^*$ 由 $7.050\times10^{9}$ 降至 $2.908\times10^{9}$，预测损失由
+2.9989 升至 3.3672；两个转移点随上下文长度增大而移向更高的预算（表\ref{tab:q3-transitions}）。
+因此在 $10^{22}$ FLOPs 下，上下文长度为 2048 与 4096 时数据量已取上界，而 8192 及以上时仍为内点
+最优：观测值 4096 与 8192 夹住了这一区间变化，但现有网格不能确定变化发生在哪一个连续的上下文
+长度上。在 $10^{24}$ FLOPs 下各上下文长度的最优解都是同一个上角点，算力利用率由 0.0230 升至
+0.1156，差别只来自 $C_{\mathrm{box}}$ 随 $\kappa$ 增大。
+
+\subsection{参数估计的稳健性}
+
+问题二发布了 8 组“删去一条训练轨迹”后重新拟合的参数（6 位有效数字）。把每组参数代入同一有效域
+与同一优化问题重新求解，得到最优配置的删一稳健性范围。$N^*$、$D^*$ 不受边界约束时，其相对范围为
+$1.6\times10^{-4}$ 至 $3.8\times10^{-4}$，在发布精度下可以分辨；受边界约束时二者由边界确定，不随
+参数变化。预测损失的相对范围为 $3.1\times10^{-6}$ 至 $1.8\times10^{-5}$，与把一组参数按 6 位有效数字
+舍入所能造成的变化同量级，因此\textbf{在发布精度下无法分辨}，本文不就损失的差异下结论。第一个转移点
+的相对范围为 $7.0\times10^{-4}$，没有一个范围包含代表性预算，名义拟合与 8 组删一拟合把每个代表性
+预算都判入同一区间。
+
+这些是删一稳健性范围，不是置信区间、自助法区间或后验区间。问题二只发布了各参数的边际自助法区间，
+没有联合抽样，本文不从边际区间合成联合抽样，也不把剖面诊断转换为配置的界限。还需注意，问题二的
+主拟合数据与已发表公式逐点一致，这些范围描述的是估计对删去单条轨迹的敏感性，不代表真实模型的
+规模规律被确定到同样的精度。
+
+\subsection{数据质量成本的处理}
+
+赛题给出三族质量成本函数，$Q\in(0,1]$，单位为 FLOPs/Token：指数型 $\gamma e^{\lambda Q}$
+（$\gamma=10^{7}$，$\lambda=6$）、幂函数型 $\gamma Q^{\lambda}$（$\gamma=5\times10^{9}$，$\lambda=4$）与
+对数渐近型 $\gamma\ln(1+\lambda Q)$（$\gamma=2\times10^{9}$，$\lambda=10$）。围绕质量需要区分三个问题：
+\begin{enumerate}
+  \item \textbf{比较三族原始成本 $g(Q)$：可以完成。}这一比较不需要 $Q_0$，结果见下文与
+        图\ref{fig:q3-quality}；
+  \item \textbf{在配置中计入非基线的质量开销 $D[g(Q)-g(Q_0)]_{+}$：不能完成。}赛题只在语义上
+        规定 $Q_0$ 取自附件 A 的质量评分或合理假设，没有给出全局数值；问题一的质量评分只覆盖
+        17 个配比领域中的 6 个（已映射份额平均 0.5646），且是相对秩评分，本文既不把它当作 $Q_0$，
+        也不为未映射的领域插补质量；
+  \item \textbf{优化非平凡的质量水平：模型不支持。}已采纳的经典标度律不含质量项，把质量提高到
+        $Q_0$ 以上只会占用本可用于 $N$ 与 $D$ 的算力，而不会降低模型预测的损失。这是模型形式的
+        结果，不是“数据质量不重要”的判断；问题二中质量进入标度律的候选形式未能通过采纳检验，
+        质量的收益因而无法以跨规模的方式计入。
+\end{enumerate}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.74\textwidth]{paper-q3-quality-cost}
+  \caption{三族质量成本函数的原始取值及其两两交点（双对数坐标，横轴只显示 $Q\in[10^{-4},1]$；
+           为原始成本比较，不涉及 $Q_0$，也不是质量收益模型）}
+  \label{fig:q3-quality}
+\end{figure}
+
+在 $(0,1]$ 上每两族恰好相交一次（图\ref{fig:q3-quality}）：指数型与对数渐近型交于
+$Q=5.03\times10^{-4}$，指数型与幂函数型交于 $Q=0.366$，幂函数型与对数渐近型交于 $Q=0.989$。
+交点个数由各对数差函数的单调分段解析确定，而非网格搜索。按原始成本由低到高，
+$(0,5.03\times10^{-4})$ 上依次为幂函数型、对数渐近型、指数型；$(5.03\times10^{-4},0.366)$ 上为
+幂函数型、指数型、对数渐近型；$(0.366,0.989)$ 上为指数型、幂函数型、对数渐近型；$(0.989,1]$ 上
+为指数型、对数渐近型、幂函数型。没有一族在整个定义域上成本最低。原始成本的排序不等于配置所需的
+增量成本 $g(Q)-g(Q_0)$ 的排序，后者取决于每一族在 $Q_0$ 与 $Q$ 之间的增量，在 $Q_0$ 确定之前
+无法比较。
+
+\subsection{结果的适用范围}
+
+问题三的全部结论都以问题二采纳的经典标度律为前提，而该标度律在主拟合数据上只证明了生成公式
+可以恢复；转移点描述的是标度律得到识别的范围，而不是训练在范围以外的行为。上下文长度的结论只
+限于 5 个观测取值，区间变化只能被夹住而不能被定位；质量只在基线水平上计入，非基线的质量配置
+须待 $Q_0$ 的数值确定后才能计算。

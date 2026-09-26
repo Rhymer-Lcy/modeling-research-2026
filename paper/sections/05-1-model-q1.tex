@@ -27,7 +27,7 @@ PRRC），体系 $f$ 含指标集合 $J_f$。记录 $i$ 的质量评分取\textb
   \centering
   \caption{域级质量评分（体系平衡平均）}
   \label{tab:q1-domain}
-  \begin{tabular}{lrrrl}
+  \begin{tabular}{lcccl}
     \toprule
     领域 & 记录数 & $Q_d$ & 95\% 区间 & 扩展集对照 \\
     \midrule
@@ -99,7 +99,7 @@ GitHub 为 31 对），冲突率曲线的最大变化不超过 0.005，主要结
   \centering
   \caption{配比模型按检验角色的验证结果（13 个目标的宏平均）}
   \label{tab:q1-validation}
-  \begin{tabular}{llrrrr}
+  \begin{tabular}{clcccc}
     \toprule
     检验集 & 检验的命题 & RMSE & $R^2$ & Spearman & 平均相对误差 \\
     \midrule
@@ -115,6 +115,22 @@ GitHub 为 31 对），冲突率曲线的最大变化不超过 0.005，主要结
 去掉各目标的均值后 $R^2$ 为 0.632，即\textbf{响应面的形状基本迁移而水平不迁移}。在 1B 上
 规模与设计同时改变，去均值后的归一化 RMSE 为 2.208，超过预先设定的上限 2.0，形状也未能迁移。
 因此该响应面只在 1M 规模上用于绝对预测，不作跨规模的绝对使用。
+
+宏平均会掩盖目标之间的差异，图\ref{fig:q1-transfer}逐目标给出同一冻结模型在三类检验集上的
+表现。同规模留出集上的平均相对误差为 1.6\%（Pile-CC）至 34.0\%（DM Mathematics）；到 60M 时
+上升为 21.7\%--100.1\%，到 1B 时为 69.1\%--362.8\%，每个目标在 60M 与 1B 上的误差都高于其在
+同规模留出集上的误差。与此
+同时，预测与观测在各设计之间的 Spearman 秩相关，除 1B 上的 HackerNews（0.66）外均不低于 0.72。
+两幅子图合起来说明了问题一结论的适用边界：配比响应面能够在规模变化后保留设计之间的相对
+优劣，却不能给出损失的绝对水平。
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{paper-q1-transfer}
+  \caption{配比模型在三类检验集上的逐目标表现：(a) 平均绝对相对误差（对数刻度）；
+           (b) 预测值与观测值在设计之间的 Spearman 秩相关}
+  \label{fig:q1-transfer}
+\end{figure}
 
 \textbf{领域效应。}在 A4 配比中心把 0.01 的份额由 Pile-CC 转给某一领域，该领域自身的验证
 损失在全部 12 个可计算的情形中都下降，降幅为 0.0305（Wikipedia）至 0.1686（DM Mathematics）；

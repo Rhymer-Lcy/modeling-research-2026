@@ -1,16 +1,44 @@
 \appendix
+% The appendix restarts the section counter, so its hyperlink anchors must be
+% named apart from the body's, or its bookmarks resolve to section 1.
+\renewcommand{\theHsection}{appendix.\Alph{section}}
+\renewcommand{\theHsubsection}{appendix.\Alph{section}.\arabic{subsection}}
+\renewcommand{\theHtable}{appendix.\Alph{section}.\arabic{table}}
+\renewcommand{\theHfigure}{appendix.\Alph{section}.\arabic{figure}}
+\renewcommand{\theHequation}{appendix.\Alph{section}.\arabic{equation}}
 \section{复现与补充说明}
-% Appendix-local numbering: the class restarts the section counter at \appendix
-% but not the table counter, which printed "1.1" subsections and a "1.10" table.
+% Appendix-local numbering. The class restarts the section counter at
+% \appendix, but ctex prints \thesection there as the full "附录 A" label, so
+% subsections, tables, figures and equations are numbered A.1, A.2 explicitly.
 \renewcommand{\thesubsection}{\Alph{section}.\arabic{subsection}}
+\renewcommand{\thetable}{\Alph{section}.\arabic{table}}
+\renewcommand{\thefigure}{\Alph{section}.\arabic{figure}}
+\renewcommand{\theequation}{\Alph{section}.\arabic{equation}}
 \setcounter{table}{0}
-\renewcommand{\thetable}{\Alph{section}\arabic{table}}
+\setcounter{figure}{0}
+\setcounter{equation}{0}
 
-\subsection{复现说明}
+\subsection{运行环境、随机数种子与路径约定}
 
-全部结果由提交材料中的程序生成，运行环境为 Python 3.11.16、NumPy 2.4.6、SciPy 1.17.1、
-pandas 3.0.6、PyYAML 6.0.3，所用随机数种子均为固定值。各问的入口程序如下；其中三个复现
-入口会完整运行两遍并逐字节比较结果，面板构建程序生成的各表由问题四的复现入口核对不变：
+全部结果由提交材料中的程序生成。运行环境由 \texttt{environment.yml} 定义：Python 3.11.16、
+NumPy 2.4.6、SciPy 1.17.1、pandas 3.0.6、PyYAML 6.0.3，作图另用 matplotlib-base 3.11.2。
+问题一、问题二的主拟合与问题四的自助法使用 \texttt{configs/default.yaml} 中的种子 42，问题二的
+不确定性与稳健性分析使用种子 20260923；问题三的求解程序与作图程序不使用随机数。
+
+所有路径都相对于仓库根目录。原始附件只读，位于
+\texttt{data\_local/\allowbreak problem-f/\allowbreak raw/}；生成的表格写入
+\texttt{results/\allowbreak tables/}，图写入 \texttt{results/\allowbreak figures/}。
+
+\subsection{复现入口}
+
+各问的入口程序见表\ref{tab:repro}，均以如下命令运行：
+\begin{center}
+  \texttt{conda run -n modeling-research-2026 python} \textit{入口程序}
+\end{center}
+四个复现入口都会完整运行两遍、
+逐字节比较生成结果，并核对原始输入在运行前后未被改动；问题三与问题四的入口还要求运行环境与
+\texttt{environment.yml} 中固定的版本一致。面板构建程序生成的各表由问题四的复现入口核对不变。
+作图程序在绘图前逐项核对所画数值与结果表一致，并附有植入错误的自检程序。
 
 \begin{table}[htbp]
   \centering
@@ -22,17 +50,37 @@ pandas 3.0.6、PyYAML 6.0.3，所用随机数种子均为固定值。各问的�
     \midrule
     问题一：质量评价、冲突与配比 & \texttt{scripts/q1\_reproduce.py} \\
     问题二：标度律与广义形式检验 & \texttt{scripts/q2\_reproduce.py} \\
+    问题三：配置与结构性转移 & \texttt{scripts/q3\_reproduce.py} \\
     问题四：排行榜面板 & \texttt{scripts/q4\_panel\_build.py} \\
     问题四：分解与前沿预测 & \texttt{scripts/q4\_evolution\_reproduce.py} \\
+    正文图 & \texttt{scripts/paper\_figures.py} \\
+    正文图的自检 & \texttt{scripts/paper\_figures\_selftest.py} \\
     \bottomrule
   \end{tabular}
 \end{table}
-% STAGE B: add the Question 3 entry point after T-010 is accepted.
 
-\subsection{人工智能工具使用说明}
-% STAGE A: structure only. The content of this subsection must follow the
-% organizer's official 2026 regulation on the use of AI tools. That document is
-% not in the project's local archive of official material (only the format
-% specification and the Word template are), so no rule is inferred from any
-% secondary source, and no declaration - of use or of non-use - is written
-% here until the official regulation has been obtained and read.
+\subsection{正文图表与结果文件的对应}
+
+正文中的数值均取自 \texttt{results/tables/} 下的结果文件，主要对应关系见表\ref{tab:artifacts}。
+五幅图的输入与输出的 SHA-256 记录在 \texttt{results/tables/paper-figures.md} 中。
+
+\begin{table}[htbp]
+  \centering
+  \caption{正文图表与结果文件的对应}
+  \label{tab:artifacts}
+  \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{12.2cm}}
+    \toprule
+    正文图表 & 结果文件（\texttt{results/tables/} 下） \\
+    \midrule
+    表\ref{tab:q1-domain} & \texttt{q1-quality-analysis.md}，\texttt{q1-a1-a3-comparison.md} \\
+    表\ref{tab:q1-validation}，图\ref{fig:q1-transfer} & \texttt{q1-mixture-validation.md} \\
+    表\ref{tab:q2-params} & \texttt{q2-classic-fit.md}，\texttt{q2-uncertainty-robustness.md} \\
+    表\ref{tab:q2-validation} & \texttt{q2-classic-fit.md} \\
+    表\ref{tab:q3-alloc}，表\ref{tab:q3-transitions} & \texttt{q3-allocation.md}，\texttt{q3-context-sensitivity.md}，\texttt{q3-regime-thresholds.md} \\
+    图\ref{fig:q3-allocation}，图\ref{fig:q3-regimes} & \texttt{q3-context-sensitivity.json}，\texttt{q3-regime-thresholds.json} \\
+    图\ref{fig:q3-quality} & \texttt{q3-quality-cost-sensitivity.json} \\
+    表\ref{tab:q4-decomp} & \texttt{q4-decomposition.md} \\
+    表\ref{tab:q4-forecast}，图\ref{fig:q4-frontier} & \texttt{q4-frontier-forecast.md}，\texttt{q4-forecast-robustness.md} \\
+    \bottomrule
+  \end{tabular}
+\end{table}

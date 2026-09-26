@@ -9,9 +9,8 @@
 \subsection{经典标度律的估计}
 
 以 $N$（参数个数）与 $D$（Token 数）的原始计数拟合式 \eqref{eq:classic}。沿用
-文献\cite{hoffmann2022chinchilla}的做法，对 $\log L$ 的残差取 Huber 损失
-\cite{huber1964robust}（$\delta=10^{-3}$），并以 L-BFGS-B 算法\cite{byrd1995lbfgsb}
-从 108 个初值出发求全局最优。不采用对数线性最小二乘，因为它隐含 $E=0$，会把不可约损失
+Hoffmann 等\cite{hoffmann2022chinchilla}的做法，对 $\log L$ 的残差取 Huber 损失\cite{huber1964robust}
+（$\delta=10^{-3}$），并以 L-BFGS-B 算法\cite{byrd1995lbfgsb}从 108 个初值出发求全局最优。不采用对数线性最小二乘，因为它隐含 $E=0$，会把不可约损失
 吸收进指数。
 
 B1 由同一模型族的 8 条训练轨迹组成，对应 Pythia 系列的 8 个规模\cite{biderman2023pythia}，
@@ -24,7 +23,7 @@ $1\pm2\%$ 并重新优化其余参数后，目标函数相对最小值的倍数�
   \centering
   \caption{经典标度律参数及三类不确定性诊断}
   \label{tab:q2-params}
-  \begin{tabular}{lrrrr}
+  \begin{tabular}{ccccc}
     \toprule
     参数 & 估计值 & 自助法 95\% 区间 & 删一轨迹范围 & 剖面倍数（$-2\%$/$+2\%$） \\
     \midrule
@@ -44,7 +43,7 @@ $1\pm2\%$ 并重新优化其余参数后，目标函数相对最小值的倍数�
 
 \subsection{主拟合数据的生成公式识别}
 
-上述区间极窄，这正是需要先解释的现象。把文献\cite{hoffmann2022chinchilla}发表的常数
+上述区间极窄，这正是需要先解释的现象。把 Hoffmann 等\cite{hoffmann2022chinchilla}发表的常数
 （$E=1.69$，$A=406.4$，$\alpha=0.34$，$B=410.7$，$\beta=0.28$）不经拟合直接代入 B1，
 其中位绝对相对误差为 $3.24\times10^{-5}$，而 B1 以 4 位小数存储所对应的舍入量级为
 $2.11\times10^{-5}$，二者之比仅 1.54，没有为真实训练噪声留下余地。作为对照，同样的检验在
@@ -56,12 +55,13 @@ $2.11\times10^{-5}$，二者之比仅 1.54，没有为真实训练噪声留下�
 关于真实模型的经验证据只能来自下面的独立验证。
 
 \subsection{外部验证与有效域}
+\label{sec:q2-validity}
 
 \begin{table}[htbp]
   \centering
   \caption{经典标度律的外部验证}
   \label{tab:q2-validation}
-  \begin{tabular}{llrrl}
+  \begin{tabular}{lcccl}
     \toprule
     数据 & 性质 & 行数 & 中位绝对相对误差 & 说明 \\
     \midrule
@@ -87,7 +87,9 @@ B9、B10 讨论百亿参数以上的外推：B9 只给出大模型的规格而�
   L(N,D,Q)=E+A N^{-\alpha}+B\left(Q^{\gamma}D\right)^{-\beta},\qquad \gamma>0,
   \label{eq:candidate}
 \end{equation}
-当 $Q=1$ 时它退化为经典形式。可同时观测 $N,D,Q$ 与损失的只有半合成表：B6 的 360 行
+当 $Q=1$ 时它退化为经典形式。Subramanyam 等\cite{subramanyam2026quality}从有效样本量的角度
+提出的质量感知标度律中，数据项为 $B/(D^{\beta}Q^{\gamma'})$，与式 \eqref{eq:candidate} 在
+$\gamma'=\gamma\beta$ 时相同，二者属于同一函数族。可同时观测 $N,D,Q$ 与损失的只有半合成表：B6 的 360 行
 完全包含于 B7 的 450 行（共享格点上损失完全一致），故只用 B7；B8 的质量方向与 B7 在全部
 150 个审计格点上相反，其语义在现有材料中无法确定，予以隔离，不参与任何拟合。
 
@@ -151,4 +153,5 @@ $A N'^{-\alpha}=A N^{-\alpha}-R$，即
 式 \eqref{eq:equiv} 有限当且仅当 $R<A N^{-\alpha}$：质量提升带来的收益一旦超过参数项
 剩余的全部可下降空间，就不存在与之等价的参数增量。“质量提升 0.1 等价于参数增加多少”
 由此可在给定 $(N,D,Q_0)$ 下直接计算；但由于式 \eqref{eq:candidate} 未被采纳，本文不把
-任何具体数值作为真实模型的结论。单位算力下两条路径的比较还依赖问题三的成本函数。
+任何具体数值作为真实模型的结论。同样的原因使问题三无法在算力上比较“提升质量”与“扩大规模”
+两条路径：在已采纳的经典形式中质量不降低损失，只消耗算力（第 \ref{sec:q3} 节）。

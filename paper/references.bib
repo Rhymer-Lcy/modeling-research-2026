@@ -4,41 +4,68 @@
 %   book    [n] author, title, place: publisher, page range, year.
 %   journal [n] author, title, journal, volume(issue): page range, year.
 %   web     [n] author, resource title, URL, access date (y-m-d).
+% Conference papers are entered in the journal pattern, with the proceedings
+% as the venue, because the specification defines no separate conference form.
 %
 % A book entry must carry a page range: the specification requires a book
 % citation to state its pages. Keep the `pages` field populated for every
 % book entry, or the rendered reference list silently drops it.
 %
-% Every entry below was checked against a primary bibliographic record
-% before inclusion (Crossref for DOIs, the arXiv API for preprints, the
-% publisher's proceedings page for PMLR). A reference whose full page range
-% could not be verified was omitted rather than completed from memory.
-% Only entries cited in the manuscript are kept; the list is ordered by
-% first citation by the bibliography style.
+% Every entry below was checked against a primary bibliographic record before
+% inclusion: the proceedings or publisher page, Crossref, or the arXiv API. A
+% work with a formal version is cited in that version, with that version's
+% metadata only; a work cited from arXiv carries its version number and that
+% version's year. No entry mixes the metadata of two versions. A reference
+% whose full page range could not be verified was omitted rather than
+% completed from memory. The style does not print DOIs or URLs, so none is
+% recorded. Only entries cited in the manuscript are kept; the list is ordered
+% by first citation by the bibliography style.
 %
 % Note: BibTeX has no comment syntax. It scans for an entry wherever it sees
 % an at-sign, including inside a line that starts with a percent sign, so an
 % at-sign must never appear in these notes.
 
+% Verified: Crossref and the NeurIPS 2023 proceedings record.
+@article{muennighoff2023data,
+  author  = {Muennighoff, Niklas and Rush, Alexander M. and Barak, Boaz and others},
+  title   = {Scaling Data-Constrained Language Models},
+  journal = {Advances in Neural Information Processing Systems},
+  volume  = {36},
+  pages   = {50358--50376},
+  year    = {2023}
+}
+
+% Verified: the arXiv API (version 1 is the only version).
+@article{hoffmann2022chinchilla,
+  author  = {Hoffmann, Jordan and Borgeaud, Sebastian and Mensch, Arthur and others},
+  title   = {Training Compute-Optimal Large Language Models},
+  journal = {arXiv preprint arXiv:2203.15556v1},
+  year    = {2022}
+}
+
+% Verified: ACL Anthology record of the ACL 2025 long paper.
 @article{zhuang2025metarater,
-  author  = {Zhuang, Xinlin and Peng, Jiahui and Ma, Ren and Wang, Yinfan and others},
+  author  = {Zhuang, Xinlin and Peng, Jiahui and Ma, Ren and others},
   title   = {Meta-rater: A Multi-dimensional Data Selection Method for Pre-training Language Models},
-  journal = {arXiv preprint arXiv:2504.14194},
+  journal = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages   = {10856--10896},
   year    = {2025}
 }
 
+% Verified: the arXiv API (version 2); no formal version exists.
 @article{rae2021gopher,
   author  = {Rae, Jack W. and Borgeaud, Sebastian and Cai, Trevor and others},
   title   = {Scaling Language Models: Methods, Analysis {\&} Insights from Training Gopher},
-  journal = {arXiv preprint arXiv:2112.11446},
-  year    = {2021}
+  journal = {arXiv preprint arXiv:2112.11446v2},
+  year    = {2022}
 }
 
-@article{liu2024regmix,
+% Verified: the ICLR 2025 conference paper page.
+@article{liu2025regmix,
   author  = {Liu, Qian and Zheng, Xiaosen and Muennighoff, Niklas and others},
   title   = {RegMix: Data Mixture as Regression for Language Model Pre-training},
-  journal = {arXiv preprint arXiv:2407.01492},
-  year    = {2024}
+  journal = {International Conference on Learning Representations},
+  year    = {2025}
 }
 
 @article{hoerl1970ridge,
@@ -49,22 +76,6 @@
   number  = {1},
   pages   = {55--67},
   year    = {1970}
-}
-
-@article{hoffmann2022chinchilla,
-  author  = {Hoffmann, Jordan and Borgeaud, Sebastian and Mensch, Arthur and others},
-  title   = {Training Compute-Optimal Large Language Models},
-  journal = {arXiv preprint arXiv:2203.15556},
-  year    = {2022}
-}
-
-@article{biderman2023pythia,
-  author  = {Biderman, Stella and Schoelkopf, Hailey and Anthony, Quentin and others},
-  title   = {Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling},
-  journal = {Proceedings of Machine Learning Research (ICML 2023)},
-  volume  = {202},
-  pages   = {2397--2430},
-  year    = {2023}
 }
 
 @article{huber1964robust,
@@ -85,4 +96,50 @@
   number  = {5},
   pages   = {1190--1208},
   year    = {1995}
+}
+
+@article{biderman2023pythia,
+  author  = {Biderman, Stella and Schoelkopf, Hailey and Anthony, Quentin and others},
+  title   = {Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling},
+  journal = {Proceedings of Machine Learning Research (ICML 2023)},
+  volume  = {202},
+  pages   = {2397--2430},
+  year    = {2023}
+}
+
+% Verified: the ICLR 2026 conference paper page.
+@article{subramanyam2026quality,
+  author  = {Subramanyam, Anirudh and Chen, Yuxin and Grossman, Robert},
+  title   = {Scaling Laws Revisited: Modeling the Role of Data Quality in Language Model Pretraining},
+  journal = {International Conference on Learning Representations},
+  year    = {2026}
+}
+
+% Verified: Crossref and the NeurIPS 2023 proceedings record.
+@article{schaeffer2023mirage,
+  author  = {Schaeffer, Rylan and Miranda, Brando and Koyejo, Sanmi},
+  title   = {Are Emergent Abilities of Large Language Models a Mirage?},
+  journal = {Advances in Neural Information Processing Systems},
+  volume  = {36},
+  pages   = {55565--55581},
+  year    = {2023}
+}
+
+% Verified: Crossref and the NeurIPS 2024 proceedings record. The title is
+% given as printed on the paper; the proceedings index misspells one word.
+@article{ruan2024observational,
+  author  = {Ruan, Yangjun and Maddison, Chris J. and Hashimoto, Tatsunori},
+  title   = {Observational Scaling Laws and the Predictability of Language Model Performance},
+  journal = {Advances in Neural Information Processing Systems},
+  volume  = {37},
+  pages   = {15841--15892},
+  year    = {2024}
+}
+
+% Verified: the ICLR 2026 conference paper page.
+@article{krajewski2026downstream,
+  author  = {Krajewski, Jakub and Shidani, Amitis and Busbridge, Dan and others},
+  title   = {Revisiting the Scaling Properties of Downstream Metrics in Large Language Model Training},
+  journal = {International Conference on Learning Representations},
+  year    = {2026}
 }

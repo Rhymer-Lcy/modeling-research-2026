@@ -11,6 +11,10 @@
         不加伪计数；每行配比按其观测正分量之和归一化。
   \item \textbf{同一训练轨迹内的检查点不独立。}标度律的不确定性以模型（训练轨迹）为
         重抽样单位，而不以检查点为单位。
+  \item \textbf{算力开销按赛题给出的结构计算，上下文长度外生。}训练、注意力与质量提升三项
+        开销的函数形式与系数取自赛题；上下文长度只取 C7 中出现的值，不参与优化。
+  \item \textbf{资源配置限于标度律的有效域，质量取基线水平。}最优配置只在经典标度律的参数量
+        与数据量有效域内求解；质量取基线水平 $Q=Q_0$，此时质量提升开销为零。
   \item \textbf{开源判定只依据正向信号。}模型须有宽松许可证、公开权重记录或无限制访问
         之一才计为开源；信息缺失记为“未知”并排除，而不记为“闭源”。
   \item \textbf{发布日期缺失时以提交日期代理，且二者不混同。}每个模型保留其日期来源，
@@ -21,24 +25,32 @@
 
 \subsection{符号说明}
 
+主要符号见表\ref{tab:symbols}，其余符号在首次出现处定义。
+
 \begin{table}[htbp]
   \centering
   \caption{主要符号说明}
   \label{tab:symbols}
-  \begin{tabular}{lll}
+  \begin{tabular}{c>{\raggedright\arraybackslash}p{7.2cm}>{\raggedright\arraybackslash}p{4.2cm}}
     \toprule
     符号 & 含义 & 单位或取值 \\
     \midrule
     $N$ & 模型参数量 & 个（原始计数） \\
     $D$ & 训练数据量 & Token（原始计数） \\
-    $C$ & 训练算力 & FLOPs \\
+    $C$ & 算力预算 & FLOPs \\
     $L$ & 验证集交叉熵损失 & 无量纲 \\
-    $E,A,\alpha,B,\beta$ & 经典标度律参数 & $E,A,B>0$，$\alpha,\beta>0$ \\
+    $E,A,\alpha,B,\beta$ & 经典标度律参数 & 均为正数 \\
     $x_{ij}$ & 记录 $i$ 在指标 $j$ 上的方向统一后秩分 & $[0,1]$ \\
     $Q_i$, $Q_d$ & 记录级、域级质量评分 & $[0,1]$，相对量 \\
     $\boldsymbol{p}=(p_1,\dots,p_{17})$ & 17 域配比 & $p_k\ge 0$，$\sum_k p_k=1$ \\
     $m(\boldsymbol{p})$ & 已映射质量域在配比中的质量占比 & $[0,1]$ \\
     $L_{\mathrm{ctx}}$ & 上下文长度（外生给定） & Token \\
+    $\eta$ & 注意力开销系数 & $2\times10^{-4}$ \\
+    $\kappa$ & 单位参数、单位 Token 的算力开销，$\kappa=6+\eta L_{\mathrm{ctx}}$ & FLOPs/（参数$\cdot$Token） \\
+    $g(Q)$, $Q_0$ & 质量提升的单位成本函数、质量基线 & FLOPs/Token；$Q\in(0,1]$ \\
+    $N_{\min},N_{\max},D_{\min},D_{\max}$ & 经典标度律有效域的上下界 & 个；Token \\
+    $C_{\min},C_{\mathrm{box}}$ & 有效域下角点、上角点处的算力 & FLOPs \\
+    $N^*,D^*$ & 给定预算下的最优参数量与数据量 & 个；Token \\
     $S$ & 综合能力得分（六项评测等权平均） & 0--100 \\
     $t$ & 时间 & 年 \\
     \bottomrule
