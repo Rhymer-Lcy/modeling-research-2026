@@ -20,6 +20,12 @@ dependencies:
   - scipy=1.17.1
   - pandas=3.0.6
   - pyyaml=6.0.3
+  # Manuscript result figures (T-012): scripts/paper_figures.py renders
+  # vector PDFs into results/figures/ from accepted tracked result tables.
+  # matplotlib-base is Matplotlib without GUI toolkits; only its non-interactive
+  # PDF backend is used. Added without changing any package pinned above
+  # (verified by a solver dry run and a before/after package-list comparison).
+  - matplotlib-base=3.11.2
 
 # This file is the single canonical dependency definition for the project.
 # There is deliberately no requirements.txt: two hand-edited dependency files
