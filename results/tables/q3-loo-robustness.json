@@ -3,6 +3,8 @@
   "classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
   "label": "leave-one-trajectory-out robustness at published parameter precision",
   "loo_evidence": {
+    "accepted_commit": "b18967c76395ab7d9a336f957e74cd6b4e8d3a99",
+    "blob_content_sha256": "636481ae810a449b814a7817d3559174745eb70abd0bec03bfbd857e707ce133",
     "dropped_trajectories_billions": [
       "0.070542",
       "0.162405",
@@ -13,11 +15,11 @@
       "6.86104",
       "11.965825"
     ],
-    "git_blob_sha1": "ac21054bd0e09f4fd504389fa9a1277dfbb669e5",
+    "git_blob_id": "d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020",
+    "identity_method": "git rev-parse <accepted commit>:<path>, HEAD:<path> and git hash-object of the working file all equal the pinned blob; vectors parsed from git cat-file blob bytes",
     "limitation": "Eight complete alternative fits, each omitting one training trajectory, printed to six significant digits. Their spread measures leave-one-trajectory-out sensitivity only; it is not a confidence interval, posterior interval, bootstrap interval or sampling distribution. The fits share B1, whose loss column is consistent with a deterministic evaluation of a published law, so the spread describes estimator/generator recovery on B1, not how precisely real model scaling is known.",
     "path": "results/tables/q2-uncertainty-robustness.md",
-    "published_format": "format(x, '.6g') in scripts/q2_uncertainty.py",
-    "sha256": "b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43"
+    "published_format": "format(x, '.6g') in scripts/q2_uncertainty.py"
   },
   "models": [
     {

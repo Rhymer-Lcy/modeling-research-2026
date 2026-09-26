@@ -7,6 +7,12 @@ methodological authority. Each load-bearing value below was verified at its exac
 (`w:body/w:p[i]`) and Office Math zone (`m:oMath[j]`) with exponent structure preserved, after
 the whole-file SHA-256 check. C7 is observed direct data. Neither PDF was opened.
 
+This receipt is not its own authority. Its consumer (`load_source_receipt`, used by every
+allocation script) re-verifies the canonical DOCX and re-derives the C7 grid from the accepted
+C7 bytes, and rejects the receipt on any difference, including extra, duplicate or relocated
+verification records. Local-only inputs are identified by SHA-256; the tracked upstream input
+is identified by its accepted Git blob, never by working-copy bytes.
+
 ## Gates
 
 | Lane | Result | Disposition |
@@ -17,16 +23,16 @@ the whole-file SHA-256 check. C7 is observed direct data. Neither PDF was opened
 
 ## Authorized inputs (complete Q3 allowlist)
 
-| Key | Path | Kind | Role | SHA-256 |
+| Key | Path | Kind | Role | Identity |
 | --- | --- | --- | --- | --- |
-| `canonical_problem_statement_docx` | `docs_local/problem-f/source/problem_statement.docx` | organizer_source | canonical methodological authority for every Q3 formula, coefficient, budget and domain | `89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7` |
-| `c7_model_architecture_metadata` | `data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv` | organizer_source | direct observed data: the C7 context-length grid (max_position_embeddings) | `ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc` |
-| `organizer_source_manifest` | `data_local/problem-f/raw/real_attachments/source_manifest.json` | organizer_source | organizer description, byte count and row count of the C7 file | `34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db` |
-| `intake_sha256_manifest` | `data_local/problem-f/raw/attachment_sha256_manifest.tsv` | intake_receipt | accepted T-006 intake SHA-256 record for the C7 file and the organizer manifest | `5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b` |
-| `accepted_if1` | `data_local/problem-f/interfaces/q1-if1-domain-quality.json` | accepted_interface | identity and contract receipt only; content withheld from Q3 | `b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8` |
-| `accepted_if2` | `data_local/problem-f/interfaces/q1-if2-mixture-response.json` | accepted_interface | identity, contract and 1M-scope receipt only; content withheld from Q3 | `9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91` |
-| `accepted_if3` | `data_local/problem-f/interfaces/IF3_classic.json` | accepted_interface | sole canonical loss law and validity box | `720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514` |
-| `accepted_q2_loo_evidence` | `results/tables/q2-uncertainty-robustness.md` | tracked_upstream_artifact | published Q2 leave-one-trajectory-out parameter vectors for robustness propagation | `b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43` |
+| `canonical_problem_statement_docx` | `docs_local/problem-f/source/problem_statement.docx` | organizer_source | canonical methodological authority for every Q3 formula, coefficient, budget and domain | SHA-256 `89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7` |
+| `c7_model_architecture_metadata` | `data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv` | organizer_source | direct observed data: the C7 context-length grid (max_position_embeddings) | SHA-256 `ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc` |
+| `organizer_source_manifest` | `data_local/problem-f/raw/real_attachments/source_manifest.json` | organizer_source | organizer description, byte count and row count of the C7 file | SHA-256 `34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db` |
+| `intake_sha256_manifest` | `data_local/problem-f/raw/attachment_sha256_manifest.tsv` | intake_receipt | accepted T-006 intake SHA-256 record for the C7 file and the organizer manifest | SHA-256 `5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b` |
+| `accepted_if1` | `data_local/problem-f/interfaces/q1-if1-domain-quality.json` | accepted_interface | identity and contract receipt only; content withheld from Q3 | SHA-256 `b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8` |
+| `accepted_if2` | `data_local/problem-f/interfaces/q1-if2-mixture-response.json` | accepted_interface | identity, contract and 1M-scope receipt only; content withheld from Q3 | SHA-256 `9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91` |
+| `accepted_if3` | `data_local/problem-f/interfaces/IF3_classic.json` | accepted_interface | sole canonical loss law and validity box | SHA-256 `720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514` |
+| `accepted_q2_loo_evidence` | `results/tables/q2-uncertainty-robustness.md` | tracked_upstream_artifact | published Q2 leave-one-trajectory-out parameter vectors for robustness propagation | Git blob `d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020` (accepted at `b18967c`) |
 
 Allowlisted files: 8. No directory is traversed. The historical
 whole-tree snapshot of the reviewed checkpoint is not carried forward as current evidence.

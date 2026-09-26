@@ -5,7 +5,7 @@
       "category": "formula",
       "derivation": "organizer wording 'total cost does not exceed C' verified at its paragraph",
       "id": "S1",
-      "limitation": "an inequality; saturation holds only for C < C_box",
+      "limitation": "an inequality: for C_min <= C <= C_box an optimum saturates the budget (at C = C_box it is the saturating upper corner); for C > C_box the upper-corner optimum has slack",
       "sources": [
         {
           "kind": "canonical_docx",
@@ -507,11 +507,12 @@
       "limitation": "robustness ranges only; published precision limits the loss ranges",
       "sources": [
         {
-          "git_blob_sha1": "ac21054bd0e09f4fd504389fa9a1277dfbb669e5",
+          "accepted_commit": "b18967c76395ab7d9a336f957e74cd6b4e8d3a99",
+          "blob_content_sha256": "636481ae810a449b814a7817d3559174745eb70abd0bec03bfbd857e707ce133",
+          "git_blob_id": "d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020",
           "kind": "tracked_upstream_artifact",
           "locator": "Per-trajectory detail",
-          "path": "results/tables/q2-uncertainty-robustness.md",
-          "sha256": "b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43"
+          "path": "results/tables/q2-uncertainty-robustness.md"
         }
       ],
       "status": "VERIFIED",
@@ -1127,7 +1128,7 @@
           "kind": "tracked_q3_artifact",
           "locator": "summaries; thresholds",
           "path": "results/tables/q3-loo-robustness.json",
-          "sha256": "abf9b0c0d01afdc1eb7173a796a7b26078774c041ee483a167c1b096b9fe97ce"
+          "sha256": "2f9c9786d48a395b8202ade76158321444f0da3340707b6b8b8d95b5e0b40d8e"
         }
       ],
       "status": "MODEL_CONDITIONAL",

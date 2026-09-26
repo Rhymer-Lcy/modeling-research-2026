@@ -10,9 +10,10 @@ minimize L(N, D) = E + A N^-alpha + B D^-beta
 subject to kappa N D <= C,  N_min <= N <= N_max,  D_min <= D <= D_max,  kappa = 6 + eta L_ctx
 ```
 
-The budget is an inequality. An optimum spends the whole budget only while `C < C_box =
-kappa N_max D_max`; above `C_box` the accepted-box optimum is the upper corner `(N_max, D_max)`
-and the remainder is unused. `L_ctx = 4096` is an observed compact presentation row, not a
+The budget is an inequality. For `C_min <= C <= C_box`, with `C_box = kappa N_max D_max`, an
+optimum spends the whole budget, and at `C = C_box` it is the saturating upper corner. For
+`C > C_box` the accepted-box optimum is the upper corner `(N_max, D_max)` with the remainder
+unused. `L_ctx = 4096` is an observed compact presentation row, not a
 preferred or optimized context; every observed context is in `q3-context-sensitivity.md`.
 
 | Budget C (FLOPs) | L_ctx | kappa | N* (parameters) | D* (tokens) | Predicted loss | Regime | Spent (FLOPs) | Unused (FLOPs) | Utilization | Base share of spent | Attention share of spent | Base fraction of budget | Attention fraction of budget |

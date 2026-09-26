@@ -1,0 +1,1899 @@
+{
+  "baseline": {
+    "generators": [
+      "scripts/q3_source_receipt.py",
+      "scripts/q3_allocate.py",
+      "scripts/q3_context_sensitivity.py",
+      "scripts/q3_regime_analysis.py",
+      "scripts/q3_quality_cost_sensitivity.py",
+      "scripts/q3_loo_robustness.py",
+      "scripts/q3_provenance_ledger.py"
+    ],
+    "selftest_category_counts": {
+      "ARTIFACT": 13,
+      "BOUNDARY": 75,
+      "CONSISTENCY": 7,
+      "ORACLE": 56,
+      "REGRESSION": 36
+    },
+    "selftest_checks": 187,
+    "selftest_checks_by_category": [
+      {
+        "category": "REGRESSION",
+        "name": "accepted IF3 hash"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "all three interfaces carry their accepted hashes"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "IF1 and IF2 are released as identity receipts only"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF1 content cannot reach Q3 (no IF1 quality coordinate)"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF2 content cannot reach Q3 (no canonical-loss or cross-scale use)"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "IF1 keeps unmapped domains unimputed"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "IF2 scope receipt is 1M-only"
+      },
+      {
+        "category": "ORACLE",
+        "name": "accepted hashes are published in independent tracked upstream receipts"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF2 declared outside 1M is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF2 absolute use outside 1M cannot be enabled"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF1 with imputed unmapped domains is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF3 Q box must stay the [1, 1] no-quality sentinel"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF1 altered bytes are rejected before parsing"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF2 altered bytes are rejected before parsing"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "IF3 altered bytes are rejected before parsing"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "altered IF3 is rejected by the classic loader"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a missing interface is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "an upstream receipt lacking the accepted hash is rejected"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "IF3 N box is in raw parameters"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "IF3 D box is in raw tokens"
+      },
+      {
+        "category": "ORACLE",
+        "name": "LOO trajectory labels are the IF3 N bounds in billions (independent sources agree)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "classic loss uses raw N and D"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "numeric quality 0.5 is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "numeric quality 1.0 (the IF3 sentinel value) is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "numeric quality '1' is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "numeric quality True is rejected"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "the receipt's verification block equals a fresh DOCX verification"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "every source record is VERIFIED"
+      },
+      {
+        "category": "ORACLE",
+        "name": "DOCX budgets equal the specification's 1e19, 1e22, 1e24"
+      },
+      {
+        "category": "ORACLE",
+        "name": "DOCX eta and coefficient equal the specification's 2e-4 and 6"
+      },
+      {
+        "category": "ORACLE",
+        "name": "DOCX g(Q) coefficients equal the specification's audit expectations"
+      },
+      {
+        "category": "ORACLE",
+        "name": "receipt context grid equals an independent read of the C7 CSV"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "DOCX fixture changed eta exponent"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a changed source eta exponent fails verification"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "DOCX fixture changed lambda 6.0"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a changed source lambda 6.0 fails verification"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "DOCX fixture changed budget exponent"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a changed source budget exponent fails verification"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "DOCX verification rejects a PDF path"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a parsed source value that differs from its expectation is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A1 forged receipt rejected by the consumer: eta, its verified_value and parity changed consistently"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A2 forged receipt rejected by the consumer: base coefficient, its verified_value and parity changed consistently"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A3 forged receipt rejected by the consumer: one representative budget and its verified_value changed consistently"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A4 forged receipt rejected by the consumer: one g(Q) coefficient and its verified_value changed consistently"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A5 forged receipt rejected by the consumer: a canonical locator changed together with the verified value"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A6 forged receipt rejected by the consumer: observed context 262144 inserted into the receipt grid"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A7 forged receipt rejected by the consumer: receipt context grid differs otherwise from the C7 bytes"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A8a forged receipt rejected by the consumer: duplicate verification record shadows the canonical eta record"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "A8b forged receipt rejected by the consumer: unexpected verification key added"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "receipt domain mutation is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "receipt numeric Q0 is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "an UNVERIFIED source record is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a receipt bound to another DOCX is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a dropped source record is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "the baseline gate cannot be blocked"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "the nonbaseline gate cannot be opened"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "the cross-scale gate cannot be opened"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "control: an unmodified copy of the receipt is accepted"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "quarantined original PDF name is rejected before any access"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "sanitized PDF name is rejected before any access"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "any PDF is rejected by the interface loader"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "B8 is not an authorized input (rejected before any existence check)"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a non-allowlisted tracked file is rejected"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "the allowlist is exactly eight named inputs"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: opening a PDF-named fixture is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: hashing a PDF-named fixture is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: control fixture with a non-PDF name opens"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: opening B8 is refused before the filesystem is touched"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: listing a local input directory is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: scanning a local input directory is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: opening C7 for writing is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: the authorized workflow runs with the guard active"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: the workflow had no denials"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "guard: the workflow opened only allowlisted inputs, including the receipt consumer's own sources"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "guard: the workflow reaches the corrected 1e24 regime"
+      },
+      {
+        "category": "ORACLE",
+        "name": "kappa = 6 + eta L_ctx"
+      },
+      {
+        "category": "ORACLE",
+        "name": "components reconcile with kappa N D"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "quality compute and share are exactly zero at Q0"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "shares of spent compute sum to one"
+      },
+      {
+        "category": "ORACLE",
+        "name": "base share of spent is 6/kappa"
+      },
+      {
+        "category": "ORACLE",
+        "name": "cost parity identity 6/eta = 30000 gives equal shares"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "interior budget saturates"
+      },
+      {
+        "category": "ORACLE",
+        "name": "closed form equals the independent src.scaling oracle"
+      },
+      {
+        "category": "ORACLE",
+        "name": "numerical root of the stationary condition equals the closed form"
+      },
+      {
+        "category": "ORACLE",
+        "name": "closed form satisfies N^(alpha+beta) = alpha A/(beta B) (C/kappa)^beta"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "relative stationary residual vanishes at the interior optimum"
+      },
+      {
+        "category": "ORACLE",
+        "name": "numerical search agrees at 1e+19"
+      },
+      {
+        "category": "ORACLE",
+        "name": "brute-force 2-D grid never beats the solver at 1e+19"
+      },
+      {
+        "category": "ORACLE",
+        "name": "numerical search agrees at 1e+22"
+      },
+      {
+        "category": "ORACLE",
+        "name": "brute-force 2-D grid never beats the solver at 1e+22"
+      },
+      {
+        "category": "ORACLE",
+        "name": "numerical search agrees at 1e+24"
+      },
+      {
+        "category": "ORACLE",
+        "name": "brute-force 2-D grid never beats the solver at 1e+24"
+      },
+      {
+        "category": "ORACLE",
+        "name": "1e24 is the upper corner with budget slack"
+      },
+      {
+        "category": "ORACLE",
+        "name": "1e24 unused budget is 1e24 - kappa N_max D_max"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "1e24 shares of spent differ from fractions of budget"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "1e24 stationary point is outside the box and diagnostic only"
+      },
+      {
+        "category": "ORACLE",
+        "name": "1e22 at 4096 is D_max-bound and saturating"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "1e22 stationary point lies outside the box"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "every budget in the declared span is feasible"
+      },
+      {
+        "category": "ORACLE",
+        "name": "minimum loss is non-increasing in the budget (feasible sets are nested)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=9 gives hand-derived SATURATED:interior"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=25 gives hand-derived SATURATED:N_max"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=0.75 gives hand-derived SATURATED:N_min"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=25 gives hand-derived SATURATED:D_max"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=0.75 gives hand-derived SATURATED:D_min"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=0.5 gives hand-derived SATURATED:N_min+D_min"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=36 gives hand-derived SATURATED:N_max+D_max"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture C/kappa=72 gives hand-derived SLACK:N_max+D_max"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture slack keeps half the budget unused"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture below C_min is genuinely infeasible"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture minimum loss is non-increasing from C_min to beyond C_box"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=2048: transitions are the D_max onset and the C_box slack onset"
+      },
+      {
+        "category": "ORACLE",
+        "name": "L_ctx=2048: numerical elasticities match each regime's analytic elasticities"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=2048: out-of-span candidates are recorded, not analysed"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=4096: transitions are the D_max onset and the C_box slack onset"
+      },
+      {
+        "category": "ORACLE",
+        "name": "L_ctx=4096: numerical elasticities match each regime's analytic elasticities"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=4096: out-of-span candidates are recorded, not analysed"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=8192: transitions are the D_max onset and the C_box slack onset"
+      },
+      {
+        "category": "ORACLE",
+        "name": "L_ctx=8192: numerical elasticities match each regime's analytic elasticities"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=8192: out-of-span candidates are recorded, not analysed"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=32768: transitions are the D_max onset and the C_box slack onset"
+      },
+      {
+        "category": "ORACLE",
+        "name": "L_ctx=32768: numerical elasticities match each regime's analytic elasticities"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=32768: out-of-span candidates are recorded, not analysed"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=131072: transitions are the D_max onset and the C_box slack onset"
+      },
+      {
+        "category": "ORACLE",
+        "name": "L_ctx=131072: numerical elasticities match each regime's analytic elasticities"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "L_ctx=131072: out-of-span candidates are recorded, not analysed"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "D_max threshold equals its closed form"
+      },
+      {
+        "category": "ORACLE",
+        "name": "brute force confirms the D_max transition: D below D_max before it, D = D_max after it"
+      },
+      {
+        "category": "ORACLE",
+        "name": "brute force confirms slack onset at C_box: spends the budget before it, the corner with slack after it"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "a budget inside one regime is not reported as a transition"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "continuation below the declared span is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "continuation above the declared span is refused"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "continuation budgets are labelled"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "an unsupported primary budget is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "an unobserved context is refused"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "continuation cannot extend the context grid to 262144"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture transitions and both neighbouring regimes match the hand derivation (N_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture regime map starts infeasible below C_min (N_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture corners are exactly saturating, including C = C_box (N_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture transitions and both neighbouring regimes match the hand derivation (D_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture regime map starts infeasible below C_min (D_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "fixture corners are exactly saturating, including C = C_box (D_min)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "LOO: bound to the Git blob of the accepted T-008 commit (independent git rev-parse)"
+      },
+      {
+        "category": "ORACLE",
+        "name": "LOO: content hash is of the Git blob bytes"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: a tracked input has no working-copy byte identity"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: an existing blob other than the pinned one is rejected"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: eight complete ordered vectors"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: label states published precision"
+      },
+      {
+        "category": "ORACLE",
+        "name": "LOO: half unit of 406.26 is 0.0005 (six significant digits)"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: limitation rejects a probabilistic reading"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: nominal model is the accepted object itself"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: alternative fits are not presented as the accepted IF3"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: alternatives keep the accepted validity box"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "LOO: 32 rounding corners per vector"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: reordered vectors are rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: a missing vector is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: a non-canonical printed value is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "LOO: a full fit that is not the accepted IF3 is rejected"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "LOO artifact: 150 individual outcomes and 15 summaries"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "LOO artifact: classified as robustness, not confidence"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "LOO artifact: every primary point has one regime across all fits"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "LOO artifact: upper-corner N and D ranges are degenerate"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "LOO artifact: bound to the accepted Git blob"
+      },
+      {
+        "category": "ORACLE",
+        "name": "quality: independent dense-grid root finding gives the same crossing count per pair"
+      },
+      {
+        "category": "ORACLE",
+        "name": "quality: independent roots agree with the reported crossings to 1e-9"
+      },
+      {
+        "category": "CONSISTENCY",
+        "name": "quality: four ordering intervals on (0, 1]"
+      },
+      {
+        "category": "ORACLE",
+        "name": "quality: the Q->0+ limits are the analytic ones"
+      },
+      {
+        "category": "ORACLE",
+        "name": "quality: a hand-derived convex pair with two crossings is fully resolved"
+      },
+      {
+        "category": "ORACLE",
+        "name": "quality: a hand-placed crossing within 1e-9 of Q = 1 is found"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "quality: a domain admitting Q = 0 is refused"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "quality: raw comparison done while nonbaseline allocation stays blocked"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "ledger: generated ledger validates"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "ledger: budget inequality states saturation through C = C_box"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: PDF-only provenance is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: a PDF path relabelled as the DOCX is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: screenshot-only provenance is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: an AI-produced intermediate is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: an absolute path is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: an UNVERIFIED item blocks acceptance"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: a missing limitation is rejected"
+      },
+      {
+        "category": "BOUNDARY",
+        "name": "ledger: a purely derived item cannot claim VERIFIED"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "artifact: canonical regimes at 1e19/1e22/1e24"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "artifact: every numerical check passed"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "artifact: the withdrawn NO_VALIDITY_BOX_ALLOCATION disposition is gone"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "artifact: no strict C < C_box saturation wording remains"
+      },
+      {
+        "category": "ARTIFACT",
+        "name": "artifact: observed contexts bracket the 1e22 D_max change"
+      },
+      {
+        "category": "REGRESSION",
+        "name": "reject_forbidden_q3_input is lexical"
+      }
+    ],
+    "selftest_exit_code": 0
+  },
+  "data_probes": [
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": null,
+      "exit_code": 0,
+      "expected": "ACCEPTED",
+      "expected_exception": null,
+      "forged_input": "none (control)",
+      "id": "P00",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "ACCEPTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A1: eta, its verified_value and parity changed consistently",
+      "id": "P01",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A2: base coefficient, its verified_value and parity changed consistently",
+      "id": "P02",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A3: one representative budget and its verified_value changed consistently",
+      "id": "P03",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A4: one g(Q) coefficient and its verified_value changed consistently",
+      "id": "P04",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A5: a canonical locator changed together with the verified value",
+      "id": "P05",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A6: observed context 262144 inserted into the receipt grid",
+      "id": "P06",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A7: receipt context grid differs otherwise from the C7 bytes",
+      "id": "P07",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A8a: duplicate verification record shadows the canonical eta record",
+      "id": "P08",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A8b: unexpected verification key added",
+      "id": "P09",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_context_sensitivity.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "receipt forgery A6 (context 262144) fed to the context-sensitivity script",
+      "id": "P10",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_context_sensitivity.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "C7 bytes altered: a model row with context 262144 appended",
+      "id": "P11",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_allocate.py",
+      "consumer_output_unchanged": true,
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "SourceReceiptError",
+      "forged_input": "DOCX bytes altered without changing any verified value",
+      "id": "P12",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    },
+    {
+      "consumer": "scripts/q3_loo_robustness.py",
+      "consumer_output_unchanged": true,
+      "exception": "TrackedInputIdentityError",
+      "exit_code": 1,
+      "expected": "REJECTED",
+      "expected_exception": "TrackedInputIdentityError",
+      "forged_input": "LOO working copy altered (trajectory 0.070542: A 406.636 -> 406.637)",
+      "id": "P13",
+      "inputs_restored_by_hash": true,
+      "observed_command": "python scripts/q3_loo_robustness.py (temporary worktree of the committed sources)",
+      "outcome": "REJECTED",
+      "verdict": "PASS"
+    }
+  ],
+  "main_tree_sources_unchanged": true,
+  "method": "Mutants and probes run in a temporary detached Git worktree of the committed sources, supplied with copies of the local-only allowlisted inputs; production files in the working tree are never modified. Every mutated file and probed input is restored and verified by SHA-256 (and git diff for sources).",
+  "mutants": [
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "guard: opening a PDF-named fixture is refused",
+        "guard: hashing a PDF-named fixture is refused",
+        "guard: opening B8 is refused before the filesystem is touched",
+        "guard: listing a local input directory is refused"
+      ],
+      "failed_checks": [
+        "guard: hashing a PDF-named fixture is refused",
+        "guard: listing a local input directory is refused",
+        "guard: opening B8 is refused before the filesystem is touched",
+        "guard: opening C7 for writing is refused",
+        "guard: opening a PDF-named fixture is refused",
+        "guard: scanning a local input directory is refused",
+        "guard: the workflow opened only allowlisted inputs, including the receipt consumer's own sources"
+      ],
+      "failed_expected_detectors": [
+        "guard: hashing a PDF-named fixture is refused",
+        "guard: listing a local input directory is refused",
+        "guard: opening B8 is refused before the filesystem is touched",
+        "guard: opening a PDF-named fixture is refused"
+      ],
+      "id": "M01",
+      "invariant": "the process-wide input guard intercepts file access",
+      "killed": true,
+      "mutated_behavior": "the audit hook returns before inspecting any event",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "def _hook(event: str, args: tuple[Any, ...]) -> None:\n    return\n    if event == \"open\":",
+          "old": "def _hook(event: str, args: tuple[Any, ...]) -> None:\n    if event == \"open\":"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/inputguard.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "IF1 content cannot reach Q3",
+        "IF2 content cannot reach Q3"
+      ],
+      "failed_checks": [
+        "IF1 content cannot reach Q3 (no IF1 quality coordinate) [no exception]",
+        "IF2 content cannot reach Q3 (no canonical-loss or cross-scale use) [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "IF1 content cannot reach Q3 (no IF1 quality coordinate) [no exception]",
+        "IF2 content cannot reach Q3 (no canonical-loss or cross-scale use) [no exception]"
+      ],
+      "id": "M02",
+      "invariant": "IF1/IF2 content is inaccessible to Q3",
+      "killed": true,
+      "mutated_behavior": "identity receipts return their payload instead of refusing",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    def payload(self) -> Mapping[str, Any]:\n        return {}\n        raise IdentityOnlyInterfaceError(",
+          "old": "    def payload(self) -> Mapping[str, Any]:\n        raise IdentityOnlyInterfaceError("
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "1e24 is the upper corner with budget slack",
+        "section 'budget inequality' completed",
+        "section 'compute and closed form' completed",
+        "guard: the workflow reaches the corrected 1e24 regime"
+      ],
+      "failed_checks": [
+        "L_ctx=2048: transitions are the D_max onset and the C_box slack onset",
+        "check count: expected 187, got 147",
+        "guard: the authorized workflow runs with the guard active",
+        "guard: the workflow had no denials",
+        "guard: the workflow opened only allowlisted inputs, including the receipt consumer's own sources",
+        "guard: the workflow reaches the corrected 1e24 regime",
+        "section 'budget inequality' completed [raised NoValidityBoxAllocation]",
+        "section 'compute and closed form' completed [raised NoValidityBoxAllocation]",
+        "section 'fixtures' completed [raised NoValidityBoxAllocation]",
+        "section 'regimes' completed [raised TypeError]"
+      ],
+      "failed_expected_detectors": [
+        "guard: the workflow reaches the corrected 1e24 regime",
+        "section 'budget inequality' completed [raised NoValidityBoxAllocation]",
+        "section 'compute and closed form' completed [raised NoValidityBoxAllocation]"
+      ],
+      "id": "M03",
+      "invariant": "budgets above C_box keep the feasible upper corner (inequality, not equality)",
+      "killed": true,
+      "mutated_behavior": "the withdrawn equality-only rule: no allocation when no point can spend the whole budget",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "        if budget > c_box:\n            raise NoValidityBoxAllocation('no budget-saturating point')\n        n_upper = min(n_max, budget / (kappa * d_min))\n",
+          "old": "        n_upper = min(n_max, budget / (kappa * d_min))\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/validity.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "any PDF is rejected by the interface loader",
+        "DOCX verification rejects a PDF path"
+      ],
+      "failed_checks": [
+        "DOCX verification rejects a PDF path [raised FileNotFoundError]",
+        "any PDF is rejected by the interface loader [raised AcceptedInterfaceError]"
+      ],
+      "failed_expected_detectors": [
+        "DOCX verification rejects a PDF path [raised FileNotFoundError]",
+        "any PDF is rejected by the interface loader [raised AcceptedInterfaceError]"
+      ],
+      "id": "M04",
+      "invariant": "every *.pdf path is refused before access",
+      "killed": true,
+      "mutated_behavior": "only the two quarantined file names are refused",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "return name in QUARANTINED_PDF_FILENAMES",
+          "old": "return name in QUARANTINED_PDF_FILENAMES or name.endswith(\".pdf\")"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "numerical search agrees at 1e+22",
+        "1e22 at 4096 is D_max-bound and saturating",
+        "brute-force 2-D grid never beats the solver at 1e+22"
+      ],
+      "failed_checks": [
+        "1e22 at 4096 is D_max-bound and saturating",
+        "L_ctx=131072: transitions are the D_max onset and the C_box slack onset",
+        "L_ctx=2048: transitions are the D_max onset and the C_box slack onset",
+        "L_ctx=32768: transitions are the D_max onset and the C_box slack onset",
+        "L_ctx=4096: transitions are the D_max onset and the C_box slack onset",
+        "L_ctx=8192: transitions are the D_max onset and the C_box slack onset",
+        "brute-force 2-D grid never beats the solver at 1e+22",
+        "fixture C/kappa=25 gives hand-derived SATURATED:D_max",
+        "fixture transitions and both neighbouring regimes match the hand derivation (D_min)",
+        "minimum loss is non-increasing in the budget (feasible sets are nested)",
+        "numerical search agrees at 1e+22"
+      ],
+      "failed_expected_detectors": [
+        "1e22 at 4096 is D_max-bound and saturating",
+        "brute-force 2-D grid never beats the solver at 1e+22",
+        "numerical search agrees at 1e+22"
+      ],
+      "id": "M05",
+      "invariant": "the D_max saturation kink is a candidate optimum",
+      "killed": true,
+      "mutated_behavior": "the kink candidate is dropped from the exact solver",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "",
+          "old": "    if box.contains_n(box.saturation_kink_n):\n        candidates.append(box.saturation_kink_n)\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/solver.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "IF2 declared outside 1M is rejected"
+      ],
+      "failed_checks": [
+        "IF2 declared outside 1M is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "IF2 declared outside 1M is rejected [no exception]"
+      ],
+      "id": "M06",
+      "invariant": "IF2 is refused unless released as 1M-only",
+      "killed": true,
+      "mutated_behavior": "the fit_scale check is skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n        raise IF2ScopeError",
+          "old": "    if payload.get(\"fit_scale\") != \"1M\":\n        raise IF2ScopeError"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "ledger: PDF-only provenance is rejected",
+        "ledger: screenshot-only provenance is rejected",
+        "ledger: an absolute path is rejected"
+      ],
+      "failed_checks": [
+        "ledger: PDF-only provenance is rejected [no exception]",
+        "ledger: a PDF path relabelled as the DOCX is rejected [no exception]",
+        "ledger: an AI-produced intermediate is rejected [no exception]",
+        "ledger: an absolute path is rejected [no exception]",
+        "ledger: screenshot-only provenance is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "ledger: PDF-only provenance is rejected [no exception]",
+        "ledger: an absolute path is rejected [no exception]",
+        "ledger: screenshot-only provenance is rejected [no exception]"
+      ],
+      "id": "M07",
+      "invariant": "ledger sources must be authorized, repository-relative and identified",
+      "killed": true,
+      "mutated_behavior": "the per-source check returns immediately",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "def _check_source(item_id: str, source: Mapping[str, Any]) -> None:\n    return\n",
+          "old": "def _check_source(item_id: str, source: Mapping[str, Any]) -> None:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/provenance.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 0,
+      "expectation": "REDUNDANT_SURVIVOR",
+      "expected_detectors": [],
+      "failed_checks": [],
+      "failed_expected_detectors": [],
+      "id": "M08",
+      "invariant": "forbidden provenance kinds are rejected",
+      "killed": false,
+      "mutated_behavior": "the explicit forbidden-kind list is ignored",
+      "note": "backstop: the allowed-kind list still rejects pdf, screenshot and ai_intermediate; M09 removes both",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n",
+          "old": "    if kind in FORBIDDEN_SOURCE_KINDS:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/provenance.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "ledger: PDF-only provenance is rejected",
+        "ledger: screenshot-only provenance is rejected",
+        "ledger: an AI-produced intermediate is rejected"
+      ],
+      "failed_checks": [
+        "ledger: an AI-produced intermediate is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "ledger: an AI-produced intermediate is rejected [no exception]"
+      ],
+      "id": "M09",
+      "invariant": "forbidden provenance kinds are rejected",
+      "killed": true,
+      "mutated_behavior": "both the forbidden-kind list and the allowed-kind list are ignored",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n",
+          "old": "    if kind in FORBIDDEN_SOURCE_KINDS:\n"
+        },
+        {
+          "new": "    if False:\n",
+          "old": "    if kind not in ALLOWED_SOURCE_KINDS:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/provenance.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "A1 forged receipt rejected",
+        "A2 forged receipt rejected",
+        "A3 forged receipt rejected",
+        "A4 forged receipt rejected",
+        "A5 forged receipt rejected",
+        "A8a forged receipt rejected"
+      ],
+      "failed_checks": [
+        "A1 forged receipt rejected by the consumer: eta, its verified_value and parity changed consistently [no exception]",
+        "A2 forged receipt rejected by the consumer: base coefficient, its verified_value and parity changed consistently [no exception]",
+        "A3 forged receipt rejected by the consumer: one representative budget and its verified_value changed consistently [no exception]",
+        "A4 forged receipt rejected by the consumer: one g(Q) coefficient and its verified_value changed consistently [no exception]",
+        "A5 forged receipt rejected by the consumer: a canonical locator changed together with the verified value [no exception]",
+        "A8a forged receipt rejected by the consumer: duplicate verification record shadows the canonical eta record [no exception]",
+        "A8b forged receipt rejected by the consumer: unexpected verification key added [no exception]",
+        "a dropped source record is rejected [no exception]",
+        "a receipt bound to another DOCX is rejected [no exception]",
+        "an UNVERIFIED source record is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "A1 forged receipt rejected by the consumer: eta, its verified_value and parity changed consistently [no exception]",
+        "A2 forged receipt rejected by the consumer: base coefficient, its verified_value and parity changed consistently [no exception]",
+        "A3 forged receipt rejected by the consumer: one representative budget and its verified_value changed consistently [no exception]",
+        "A4 forged receipt rejected by the consumer: one g(Q) coefficient and its verified_value changed consistently [no exception]",
+        "A5 forged receipt rejected by the consumer: a canonical locator changed together with the verified value [no exception]",
+        "A8a forged receipt rejected by the consumer: duplicate verification record shadows the canonical eta record [no exception]"
+      ],
+      "id": "M10",
+      "invariant": "the receipt is not its own authority (defect A)",
+      "killed": true,
+      "mutated_behavior": "the consumer takes verified values from the receipt's own verification block",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    canonical = payload[\"source_verification\"]\n    values = verified_values(canonical)\n",
+          "old": "    _require_canonical_verification(payload.get(\"source_verification\"), canonical)\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/constraint.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "A6 forged receipt rejected",
+        "A7 forged receipt rejected"
+      ],
+      "failed_checks": [
+        "A6 forged receipt rejected by the consumer: observed context 262144 inserted into the receipt grid [no exception]",
+        "A7 forged receipt rejected by the consumer: receipt context grid differs otherwise from the C7 bytes [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "A6 forged receipt rejected by the consumer: observed context 262144 inserted into the receipt grid [no exception]",
+        "A7 forged receipt rejected by the consumer: receipt context grid differs otherwise from the C7 bytes [no exception]"
+      ],
+      "id": "M11",
+      "invariant": "the context grid is the grid derived from the accepted C7 bytes (defect A)",
+      "killed": true,
+      "mutated_behavior": "the C7 comparison is dropped and the receipt's own grid is used",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "\n",
+          "old": "    _require_equal(\"observed C7 context support\", dict(context), c7)\n"
+        },
+        {
+          "new": "        contexts_tokens=tuple(context[\"observed_grid_tokens\"]),",
+          "old": "        contexts_tokens=tuple(c7[\"observed_grid_tokens\"]),"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/constraint.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "A8b forged receipt rejected"
+      ],
+      "failed_checks": [
+        "A8b forged receipt rejected by the consumer: unexpected verification key added [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "A8b forged receipt rejected by the consumer: unexpected verification key added [no exception]"
+      ],
+      "id": "M12",
+      "invariant": "extra or duplicate verification records cannot shadow canonical ones (defect A)",
+      "killed": true,
+      "mutated_behavior": "records are de-duplicated by key and unknown keys are dropped before comparison",
+      "note": "A8a stays rejected under this mutant because values come from the independent regeneration",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    records = list({str(r.get(\"key\")): r for r in records if r.get(\"key\") in {c[\"key\"] for c in canonical[\"records\"]}}.values())\n    keys = [str(record.get(\"key\")) for record in records]\n",
+          "old": "    keys = [str(record.get(\"key\")) for record in records]\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/constraint.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "LOO: an existing blob other than the pinned one is rejected"
+      ],
+      "failed_checks": [
+        "LOO: an existing blob other than the pinned one is rejected [raised LOORobustnessError]"
+      ],
+      "failed_expected_detectors": [
+        "LOO: an existing blob other than the pinned one is rejected [raised LOORobustnessError]"
+      ],
+      "id": "M13",
+      "invariant": "tracked inputs resolve to the pinned Git blob (defect B)",
+      "killed": true,
+      "mutated_behavior": "the accepted-commit, HEAD and working-tree identity comparison is skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    for where, identity in observed.items():\n        if False:\n",
+          "old": "    for where, identity in observed.items():\n        if identity != blob:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "LOO: a tracked input has no working-copy byte identity"
+      ],
+      "failed_checks": [
+        "LOO: a tracked input has no working-copy byte identity [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "LOO: a tracked input has no working-copy byte identity [no exception]"
+      ],
+      "id": "M14",
+      "invariant": "a tracked input has no working-copy byte identity (defect B)",
+      "killed": true,
+      "mutated_behavior": "tracked inputs may again be hashed from their working-copy bytes",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n        raise TrackedInputIdentityError(",
+          "old": "    if entry.kind == \"tracked_upstream_artifact\":\n        raise TrackedInputIdentityError("
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exception": null,
+      "exit_code": 0,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "data probe P13"
+      ],
+      "id": "M15",
+      "invariant": "the LOO working copy must be the accepted blob (defect B)",
+      "killed": true,
+      "mutated_behavior": "the working-tree identity is not checked",
+      "note": "",
+      "observed_command": "python scripts/q3_loo_robustness.py (temporary worktree of the committed sources) with probe P13",
+      "probe_outcome": "ACCEPTED",
+      "replacements": [
+        {
+          "new": "",
+          "old": "        \"working tree\": _git(\"hash-object\", \"--\", relative).decode(\"ascii\").strip(),\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "a parsed source value that differs from its expectation is rejected"
+      ],
+      "failed_checks": [
+        "a parsed source value that differs from its expectation is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "a parsed source value that differs from its expectation is rejected [no exception]"
+      ],
+      "id": "M16",
+      "invariant": "each parsed DOCX value must equal its expectation",
+      "killed": true,
+      "mutated_behavior": "the parsed-value comparison is skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "        if False:\n",
+          "old": "        if extracted != check.expected:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/sourcedocx.py",
+      "verdict": "PASS"
+    },
+    {
+      "exception": "SourceReceiptError",
+      "exit_code": 1,
+      "expectation": "REDUNDANT_SURVIVOR",
+      "expected_detectors": [
+        "data probe P12"
+      ],
+      "id": "M17",
+      "invariant": "the DOCX must be the accepted whole file",
+      "killed": false,
+      "mutated_behavior": "the whole-file SHA-256 pin is skipped",
+      "note": "backstop: the consumer also requires the receipt's recorded DOCX SHA-256; M18 removes both",
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources) with probe P12",
+      "probe_outcome": "REJECTED",
+      "replacements": [
+        {
+          "new": "        if False:\n",
+          "old": "        if digest != ACCEPTED_DOCX_SHA256:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/sourcedocx.py",
+      "verdict": "PASS"
+    },
+    {
+      "exception": null,
+      "exit_code": 0,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "data probe P12"
+      ],
+      "id": "M18",
+      "invariant": "the DOCX must be the accepted whole file",
+      "killed": true,
+      "mutated_behavior": "both the SHA-256 pin and the receipt's DOCX-hash comparison are skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_allocate.py (temporary worktree of the committed sources) with probe P12",
+      "probe_outcome": "ACCEPTED",
+      "replacements": [
+        {
+          "new": "        if False:\n",
+          "old": "        if digest != ACCEPTED_DOCX_SHA256:\n"
+        },
+        {
+          "new": "    if False:\n",
+          "old": "    if recorded[\"docx_sha256\"] != canonical[\"docx_sha256\"]:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/sourcedocx.py + src/alloc/constraint.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "a budget inside one regime is not reported as a transition"
+      ],
+      "failed_checks": [
+        "a budget inside one regime is not reported as a transition"
+      ],
+      "failed_expected_detectors": [
+        "a budget inside one regime is not reported as a transition"
+      ],
+      "id": "M19",
+      "invariant": "a transition is retained only if the regime changes",
+      "killed": true,
+      "mutated_behavior": "every probed candidate is reported as a regime change",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    return below, at, above, True\n",
+          "old": "    return below, at, above, below[\"regime\"] != above[\"regime\"]\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/regime.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "LOO: a non-canonical printed value is rejected"
+      ],
+      "failed_checks": [
+        "LOO: a non-canonical printed value is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "LOO: a non-canonical printed value is rejected [no exception]"
+      ],
+      "id": "M20",
+      "invariant": "LOO values must be canonical .6g output",
+      "killed": true,
+      "mutated_behavior": "the published-format check is skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n",
+          "old": "    if format(value, PUBLISHED_FORMAT) != text:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/loo.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "quality: independent dense-grid root finding",
+        "quality: a hand-derived convex pair",
+        "quality: a hand-placed crossing within 1e-9 of Q = 1 is found"
+      ],
+      "failed_checks": [
+        "quality: a hand-derived convex pair with two crossings is fully resolved",
+        "quality: a hand-placed crossing within 1e-9 of Q = 1 is found",
+        "quality: four ordering intervals on (0, 1]",
+        "quality: independent dense-grid root finding gives the same crossing count per pair"
+      ],
+      "failed_expected_detectors": [
+        "quality: a hand-derived convex pair with two crossings is fully resolved",
+        "quality: a hand-placed crossing within 1e-9 of Q = 1 is found",
+        "quality: independent dense-grid root finding gives the same crossing count per pair"
+      ],
+      "id": "M21",
+      "invariant": "every raw g(Q) crossing is bracketed",
+      "killed": true,
+      "mutated_behavior": "no root is bracketed on any monotone piece",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "            elif False:\n",
+          "old": "            elif _sign(left_value) != _sign(right_value) and _sign(left_value) != 0:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/quality.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "fixture C/kappa=36 gives hand-derived SATURATED:N_max+D_max",
+        "fixture corners are exactly saturating"
+      ],
+      "failed_checks": [
+        "fixture C/kappa=36 gives hand-derived SATURATED:N_max+D_max",
+        "fixture corners are exactly saturating, including C = C_box (D_min)",
+        "fixture corners are exactly saturating, including C = C_box (N_min)"
+      ],
+      "failed_expected_detectors": [
+        "fixture C/kappa=36 gives hand-derived SATURATED:N_max+D_max",
+        "fixture corners are exactly saturating, including C = C_box (D_min)",
+        "fixture corners are exactly saturating, including C = C_box (N_min)"
+      ],
+      "id": "M22",
+      "invariant": "at C = C_box the optimum is the saturating upper corner (defect D)",
+      "killed": true,
+      "mutated_behavior": "a budget equal to C_box is labelled as slack",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    saturation = \"SATURATED\" if saturated and compute.budget_flops < box.c_box_flops * (1.0 - 1e-12) else \"SLACK\"\n",
+          "old": "    saturation = \"SATURATED\" if saturated else \"SLACK\"\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/solver.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "guard: opening C7 for writing is refused"
+      ],
+      "failed_checks": [
+        "guard: opening C7 for writing is refused"
+      ],
+      "failed_expected_detectors": [
+        "guard: opening C7 for writing is refused"
+      ],
+      "id": "M23",
+      "invariant": "allowlisted inputs cannot be opened for writing",
+      "killed": true,
+      "mutated_behavior": "the write-intent check is skipped",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if False:\n",
+          "old": "    if _write_intent(mode, flags):\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/inputguard.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "guard: listing a local input directory is refused",
+        "guard: scanning a local input directory is refused"
+      ],
+      "failed_checks": [
+        "guard: listing a local input directory is refused",
+        "guard: scanning a local input directory is refused"
+      ],
+      "failed_expected_detectors": [
+        "guard: listing a local input directory is refused",
+        "guard: scanning a local input directory is refused"
+      ],
+      "id": "M24",
+      "invariant": "automatic traversal of local input trees is refused",
+      "killed": true,
+      "mutated_behavior": "directory listing and scanning events are ignored",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    elif False:\n",
+          "old": "    elif event in _TRAVERSAL_EVENTS:\n"
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/inputguard.py",
+      "verdict": "PASS"
+    },
+    {
+      "exit_code": 1,
+      "expectation": "KILLED",
+      "expected_detectors": [
+        "B8 is not an authorized input",
+        "a non-allowlisted tracked file is rejected"
+      ],
+      "failed_checks": [
+        "B8 is not an authorized input (rejected before any existence check) [no exception]",
+        "a non-allowlisted tracked file is rejected [no exception]"
+      ],
+      "failed_expected_detectors": [
+        "B8 is not an authorized input (rejected before any existence check) [no exception]",
+        "a non-allowlisted tracked file is rejected [no exception]"
+      ],
+      "id": "M25",
+      "invariant": "only allowlisted inputs pass the input boundary",
+      "killed": true,
+      "mutated_behavior": "an unlisted path is admitted with an ad hoc entry",
+      "note": "",
+      "observed_command": "python scripts/q3_selftest.py (temporary worktree of the committed sources)",
+      "replacements": [
+        {
+          "new": "    if entry is None:\n        return AuthorizedInput(\"unlisted\", Path(os.fspath(path)), \"unlisted\", \"unlisted\")\n        raise UnauthorizedQ3Input(",
+          "old": "    if entry is None:\n        raise UnauthorizedQ3Input("
+        }
+      ],
+      "restored_by_hash_and_git": true,
+      "target": "src/alloc/receipts.py",
+      "verdict": "PASS"
+    }
+  ],
+  "purpose": "T-010 executable evidence that the acceptance checks detect production defects",
+  "redundant_defences": [
+    {
+      "paired_full_removal": "M09",
+      "paired_killed": true,
+      "survived": true,
+      "survivor": "M08"
+    },
+    {
+      "paired_full_removal": "M18",
+      "paired_killed": true,
+      "survived": true,
+      "survivor": "M17"
+    }
+  ],
+  "schema_version": "q3-mutation-validation-v1",
+  "summary": {
+    "data_probes": 14,
+    "data_probes_passed": 14,
+    "expected_killed": 23,
+    "killed": 23,
+    "mutants": 25,
+    "overall": "PASS",
+    "redundant_survivors": [
+      "M08",
+      "M17"
+    ],
+    "unexpected_outcomes": []
+  },
+  "tested_sources": [
+    {
+      "git_blob_id": "7df7b3f2360ed89a93eb7266bd7c464a12d9f6d0",
+      "path": "scripts/q3_allocate.py"
+    },
+    {
+      "git_blob_id": "ce637b0a0056f839fb33cbad26e56d13c309bdaa",
+      "path": "scripts/q3_context_sensitivity.py"
+    },
+    {
+      "git_blob_id": "9b2172a4c2ea78bb4cc23a8ef98849ae0944bf8e",
+      "path": "scripts/q3_loo_robustness.py"
+    },
+    {
+      "git_blob_id": "53519849a6f4f09a476b041ab601a02b01e2306e",
+      "path": "scripts/q3_mutation_validation.py"
+    },
+    {
+      "git_blob_id": "b9a79c0b816520e84994b972c3d118683ef9b671",
+      "path": "scripts/q3_provenance_ledger.py"
+    },
+    {
+      "git_blob_id": "78fc370ac9ebd4d61ba602bc675cdc4c3d1f76ac",
+      "path": "scripts/q3_quality_cost_sensitivity.py"
+    },
+    {
+      "git_blob_id": "bcced45004e0636d971da2ffba5db9e4e22507d5",
+      "path": "scripts/q3_regime_analysis.py"
+    },
+    {
+      "git_blob_id": "31a74c73382dac1bfae07c5641dc60764c4b69d1",
+      "path": "scripts/q3_reproduce.py"
+    },
+    {
+      "git_blob_id": "24a347e5d0220f7dbcc441fcc296dddf00a92609",
+      "path": "scripts/q3_selftest.py"
+    },
+    {
+      "git_blob_id": "1dce8a4020535c386efaafe59908aaab1f93e087",
+      "path": "scripts/q3_source_receipt.py"
+    },
+    {
+      "git_blob_id": "6b60cfc761066a456fe3b71950537681d7b254fb",
+      "path": "src/alloc/__init__.py"
+    },
+    {
+      "git_blob_id": "b4b4a094dd99953485b5aff6dd333122a0fc7d86",
+      "path": "src/alloc/c7.py"
+    },
+    {
+      "git_blob_id": "0ef6f9211fd95f413edc166bf5e2d9d67244af18",
+      "path": "src/alloc/classic.py"
+    },
+    {
+      "git_blob_id": "b149aecb387ebe0d5f9acbb1f54e2cfa0ee9fca0",
+      "path": "src/alloc/constraint.py"
+    },
+    {
+      "git_blob_id": "65fb00d4aa01e6bab587104bc30f00c1423afb6a",
+      "path": "src/alloc/inputguard.py"
+    },
+    {
+      "git_blob_id": "23fe5a3cbfea1de8ff60299e8841c06e7e938dce",
+      "path": "src/alloc/loo.py"
+    },
+    {
+      "git_blob_id": "99e807226e2f93c82530c59b2a56419a032ac7e5",
+      "path": "src/alloc/provenance.py"
+    },
+    {
+      "git_blob_id": "47d5dd17cfb9194c66c79e1f57274853ae343e3d",
+      "path": "src/alloc/quality.py"
+    },
+    {
+      "git_blob_id": "233d4eaaa835047b970f5a96124bdd08838b647f",
+      "path": "src/alloc/receipts.py"
+    },
+    {
+      "git_blob_id": "e0a2b5b80cc1afd0f9c84d9af631a60f4037f2e2",
+      "path": "src/alloc/regime.py"
+    },
+    {
+      "git_blob_id": "48b40883748357fb6f11c2db65de3044a8a79b13",
+      "path": "src/alloc/report.py"
+    },
+    {
+      "git_blob_id": "9f83d0b344fc3687100ae82d4e2782d4827267cf",
+      "path": "src/alloc/robustness.py"
+    },
+    {
+      "git_blob_id": "86e402e8348f75caee55a08e113805b74319e4da",
+      "path": "src/alloc/solver.py"
+    },
+    {
+      "git_blob_id": "2a91aef18542e7f92efb32f84061c531529a95d8",
+      "path": "src/alloc/sourcedocx.py"
+    },
+    {
+      "git_blob_id": "a18c7b84ea857d2be16b668129f870d7c1065f67",
+      "path": "src/alloc/uncertainty.py"
+    },
+    {
+      "git_blob_id": "3f71026ea782843bcf68288b4921cc8bdd3283d4",
+      "path": "src/alloc/validity.py"
+    }
+  ]
+}

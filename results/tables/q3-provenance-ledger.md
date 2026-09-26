@@ -10,7 +10,7 @@ to write a ledger that violates either rule. Hashes and full values are in the J
 
 | Item | Category | Value | Source / locator | Status | Limitation |
 | --- | --- | --- | --- | --- | --- |
-| S1 | formula | `"C_total <= C"` | `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[35]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[29]` | VERIFIED | an inequality; saturation holds only for C < C_box |
+| S1 | formula | `"C_total <= C"` | `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[35]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[29]` | VERIFIED | an inequality: for C_min <= C <= C_box an optimum saturates the budget (at C = C_box it is the saturating upper corner); for C > C_box the upper-corner optimum has slack |
 | S2 | coefficient | `6` | `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[30]/m:oMath[1]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:tbl[1]/w:tr[6]/w:tc[2]/w:p[1]/m:oMath[1]` | VERIFIED | the organizer calls it the Chinchilla approximation |
 | S3 | coefficient | `0.0002` | `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[34]/m:oMath[1]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[34]/m:oMath[2]` | VERIFIED | the organizer calls C_attn a simplified compute proxy |
 | S4 | budget | `[1e+19, 1e+22, 1e+24]` | `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[29]/m:oMath[7]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[29]/m:oMath[8]`; `docs_local/problem-f/source/problem_statement.docx` `w:body/w:p[29]/m:oMath[9]` | VERIFIED | suggested representative budgets; other budgets are model-conditional continuation |
