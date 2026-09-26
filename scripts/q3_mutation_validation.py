@@ -17,10 +17,23 @@ production file in the working tree is ever modified:
    allocation, receipt and LOO scripts, and require each to be rejected;
 6. remove the worktree and verify the working tree's T-010 sources are unchanged.
 
-A mutant expected to be killed must be detected by one of its declared
-detectors.  A mutant marked ``REDUNDANT_SURVIVOR`` removes one layer of a
-deliberately layered defence; it must survive, and its paired mutant that
-removes every layer must be killed.  Any other survivor fails the run.
+Classification fails closed.  A self-test mutant is KILLED only when the
+self-test exits nonzero with one of the mutant's declared detectors among the
+failed checks, and SURVIVED_CLEAN only with exit 0, no failed check and a
+complete, successful report of the baseline size; anything else is
+INCONCLUSIVE.  A probe-detected mutant is KILLED when its declared-invalid input
+is accepted, SURVIVED_CLEAN when the input is rejected with the exact expected
+exception and unchanged outputs, and INCONCLUSIVE otherwise.  Unverified
+restoration of any source, input or output is an INTEGRITY_FAILURE.  A mutant
+passes only with its declared outcome; a ``REDUNDANT_SURVIVOR`` must survive
+cleanly and its paired full-removal mutant must be killed, and only a layer with
+an independent second defence may be declared redundant.  Runner self-checks
+feed synthetic records through the same functions and must show that a bad
+record cannot reach an overall PASS.  The DOCX whole-file SHA-256 pin is the
+only accepted-source identity anchor: probe P14 runs the receipt generator
+itself, so a generator that would record a changed DOCX hash is detected; the
+consumer's receipt/DOCX hash comparison (probe P12) is receipt/source
+consistency, not a second anchor.
 
 Writes:
     results/tables/q3-mutation-validation.json
@@ -75,6 +88,7 @@ TIMEOUT = 1200
 LINE = re.compile(r"^(PASS|FAIL) \[(\w+)\] (.*)$")
 
 RECEIPT = "results/tables/q3-source-receipt.json"
+RECEIPT_MD = "results/tables/q3-source-receipt.md"
 ALLOCATION = "results/tables/q3-allocation.json"
 CONTEXT = "results/tables/q3-context-sensitivity.json"
 LOO_TABLE = "results/tables/q3-loo-robustness.json"
@@ -101,7 +115,7 @@ class Probe:
     identifier: str
     forged_input: str
     consumer: str
-    output: str
+    outputs: tuple[str, ...]
     expected: str
     expected_exception: str | None
     prepare: Callable[[Path], None] = field(repr=False)
@@ -199,10 +213,12 @@ MUTANTS: tuple[Mutant, ...] = (
     Mutant("M17", "src/alloc/sourcedocx.py", "the DOCX must be the accepted whole file",
            "the whole-file SHA-256 pin is skipped",
            (("        if digest != ACCEPTED_DOCX_SHA256:\n", "        if False:\n"),),
-           (), probe="P12", expectation="REDUNDANT_SURVIVOR",
-           note="backstop: the consumer also requires the receipt's recorded DOCX SHA-256; M18 removes both"),
+           (), probe="P14",
+           note="the pin is the only accepted-source identity anchor: the receipt generator uses the same verifier, "
+                "so without the pin it records a changed DOCX hash; the consumer's receipt/DOCX hash comparison is "
+                "receipt/source consistency, not a second anchor"),
     Mutant("M18", "src/alloc/sourcedocx.py + src/alloc/constraint.py", "the DOCX must be the accepted whole file",
-           "both the SHA-256 pin and the receipt's DOCX-hash comparison are skipped",
+           "both the SHA-256 pin and the consumer's receipt/source DOCX-hash consistency comparison are skipped",
            (("        if digest != ACCEPTED_DOCX_SHA256:\n", "        if False:\n"),
             ('    if recorded["docx_sha256"] != canonical["docx_sha256"]:\n', "    if False:\n")),
            (), probe="P12"),
@@ -276,20 +292,24 @@ def _alter_loo(worktree: Path) -> None:
 
 
 PROBES: tuple[Probe, ...] = (
-    Probe("P00", "none (control)", "scripts/q3_allocate.py", ALLOCATION, "ACCEPTED", None, lambda wt: None),
+    Probe("P00", "none (control)", "scripts/q3_allocate.py", (ALLOCATION,), "ACCEPTED", None, lambda wt: None),
 ) + tuple(
-    Probe("P" + format(index, "02d"), "receipt forgery " + case + ": " + description, "scripts/q3_allocate.py", ALLOCATION,
+    Probe("P" + format(index, "02d"), "receipt forgery " + case + ": " + description, "scripts/q3_allocate.py", (ALLOCATION,),
           "REJECTED", "SourceReceiptError", lambda wt, case=case: _write_receipt(wt, case), (RECEIPT,))
     for index, (case, (description, _)) in enumerate(FORGERIES.items(), start=1)
 ) + (
     Probe("P10", "receipt forgery A6 (context 262144) fed to the context-sensitivity script", "scripts/q3_context_sensitivity.py",
-          CONTEXT, "REJECTED", "SourceReceiptError", lambda wt: _write_receipt(wt, "A6"), (RECEIPT,)),
-    Probe("P11", "C7 bytes altered: a model row with context 262144 appended", "scripts/q3_allocate.py", ALLOCATION,
+          (CONTEXT,), "REJECTED", "SourceReceiptError", lambda wt: _write_receipt(wt, "A6"), (RECEIPT,)),
+    Probe("P11", "C7 bytes altered: a model row with context 262144 appended", "scripts/q3_allocate.py", (ALLOCATION,),
           "REJECTED", "SourceReceiptError", _append_c7_row, (C7,)),
-    Probe("P12", "DOCX bytes altered without changing any verified value", "scripts/q3_allocate.py", ALLOCATION,
+    Probe("P12", "DOCX bytes altered without changing any verified value, fed to the allocation consumer with the "
+          "existing receipt (rejected by the accepted-DOCX SHA-256 pin; the receipt's recorded DOCX hash is only a "
+          "receipt/source consistency check)", "scripts/q3_allocate.py", (ALLOCATION,),
           "REJECTED", "SourceReceiptError", _touch_docx, (DOCX,)),
-    Probe("P13", "LOO working copy altered (trajectory 0.070542: A 406.636 -> 406.637)", "scripts/q3_loo_robustness.py", LOO_TABLE,
+    Probe("P13", "LOO working copy altered (trajectory 0.070542: A 406.636 -> 406.637)", "scripts/q3_loo_robustness.py", (LOO_TABLE,),
           "REJECTED", "TrackedInputIdentityError", _alter_loo, (LOO_SOURCE,)),
+    Probe("P14", "DOCX bytes altered without changing any verified value, fed to the receipt generator itself",
+          "scripts/q3_source_receipt.py", (RECEIPT, RECEIPT_MD), "REJECTED", "SourceVerificationError", _touch_docx, (DOCX,)),
 )
 
 
@@ -331,41 +351,64 @@ def run_script(worktree: Path, script: str, *extra: str) -> tuple[int, str, str]
     return completed.returncode, completed.stdout, completed.stderr
 
 
+FAIL_CLOSED = re.compile(r"FAIL-CLOSED: ([A-Za-z_]\w*):")
+REDUNDANT_PAIRS = {"M08": "M09"}
+
+
 def final_exception(stderr: str) -> str | None:
+    """Class name of the exception that ended a consumer run, or None if none is identifiable."""
     for line in reversed(stderr.strip().splitlines()):
-        match = re.match(r"^([A-Za-z_][\w.]*)(?::|$)", line.strip())
-        if match and (match.group(1).endswith("Error") or match.group(1).endswith("Exception")
-                      or "." in match.group(1)):
+        text = line.strip()
+        closed = FAIL_CLOSED.search(text)
+        if closed:
+            return closed.group(1)
+        match = re.match(r"^([A-Za-z_][\w.]*)(?::|$)", text)
+        if match and (match.group(1).endswith("Error") or match.group(1).endswith("Exception") or "." in match.group(1)):
             return match.group(1).rsplit(".", 1)[-1]
     return None
 
 
-def selftest(worktree: Path) -> tuple[int, list[str], list[dict[str, Any]]]:
-    report = worktree.parent / "selftest-report.json"
-    code, stdout, _ = run_script(worktree, SELFTEST, "--report", str(report))
+def selftest(worktree: Path) -> dict[str, Any]:
+    """Run the self-test; return its exit code, FAIL lines and parsed report (None if absent or unreadable)."""
+    report_path = worktree.parent / "selftest-report.json"
+    report_path.unlink(missing_ok=True)
+    code, stdout, _ = run_script(worktree, SELFTEST, "--report", str(report_path))
     failed = sorted(match.group(3) for match in map(LINE.match, stdout.splitlines()) if match and match.group(1) == "FAIL")
-    checks = json.loads(report.read_text(encoding="utf-8"))["checks"] if report.exists() else []
-    report.unlink(missing_ok=True)
-    return code, failed, checks
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        report = None
+    report_path.unlink(missing_ok=True)
+    return {"exit_code": code, "failed_checks": failed, "report": report}
+
+
+def report_complete(report: Any, expected_checks: int) -> bool:
+    """True only for a complete, successful self-test report of the expected size."""
+    if not isinstance(report, dict) or not isinstance(report.get("checks"), list):
+        return False
+    checks = report["checks"]
+    return (report.get("count_ok") is True and report.get("failures") == [] and len(checks) == expected_checks
+            and all(isinstance(item, dict) and item.get("passed") is True for item in checks))
 
 
 def run_probe(worktree: Path, probe: Probe) -> dict[str, Any]:
-    originals = {relative: (worktree / relative).read_bytes() for relative in probe.restore_paths}
-    output_before = sha256(worktree / probe.output)
+    """Run one probe and return its raw evidence.
+
+    Both the altered inputs and the consumer's outputs are snapshotted, restored
+    afterwards and verified by SHA-256, so an accepting consumer cannot leave a
+    changed output behind for later runs.
+    """
+    paths = tuple(dict.fromkeys(probe.restore_paths + probe.outputs))
+    originals = {relative: (worktree / relative).read_bytes() for relative in paths}
     try:
         probe.prepare(worktree)
         code, _, stderr = run_script(worktree, probe.consumer)
+        outputs_unchanged = all(sha256(worktree / relative) == hashlib.sha256(originals[relative]).hexdigest()
+                                for relative in probe.outputs)
     finally:
         for relative, data in originals.items():
             (worktree / relative).write_bytes(data)
-    restored = all(hashlib.sha256((worktree / relative).read_bytes()).hexdigest() == hashlib.sha256(data).hexdigest()
-                   for relative, data in originals.items())
-    outcome = "ACCEPTED" if code == 0 else "REJECTED"
-    exception = None if code == 0 else final_exception(stderr)
-    output_unchanged = sha256(worktree / probe.output) == output_before
-    verdict = outcome == probe.expected and (probe.expected_exception is None or exception == probe.expected_exception)
-    if probe.expected == "REJECTED":
-        verdict = verdict and output_unchanged
+    restored = all(sha256(worktree / relative) == hashlib.sha256(data).hexdigest() for relative, data in originals.items())
     return {
         "id": probe.identifier,
         "forged_input": probe.forged_input,
@@ -374,15 +417,84 @@ def run_probe(worktree: Path, probe: Probe) -> dict[str, Any]:
         "expected": probe.expected,
         "expected_exception": probe.expected_exception,
         "exit_code": code,
-        "outcome": outcome,
-        "exception": exception,
-        "consumer_output_unchanged": output_unchanged,
-        "inputs_restored_by_hash": restored,
-        "verdict": "PASS" if verdict and restored else "FAIL",
+        "exception": None if code == 0 else final_exception(stderr),
+        "outputs_unchanged_by_run": outputs_unchanged,
+        "inputs_and_outputs_restored_by_hash": restored,
     }
 
 
-def run_mutant(worktree: Path, mutant: Mutant) -> dict[str, Any]:
+def classify_probe(evidence: dict[str, Any]) -> str:
+    """ACCEPTED, REJECTED_AS_DECLARED, UNEXPECTED_REJECTION or INTEGRITY_FAILURE.
+
+    A rejection counts as declared only with the exact expected exception and
+    every consumer output unchanged by the run.
+    """
+    if evidence.get("inputs_and_outputs_restored_by_hash") is not True:
+        return "INTEGRITY_FAILURE"
+    if evidence.get("exit_code") == 0:
+        return "ACCEPTED"
+    if (evidence.get("expected_exception") is not None and evidence.get("exception") == evidence["expected_exception"]
+            and evidence.get("outputs_unchanged_by_run") is True):
+        return "REJECTED_AS_DECLARED"
+    return "UNEXPECTED_REJECTION"
+
+
+def probe_verdict(evidence: dict[str, Any]) -> dict[str, Any]:
+    """Verdict of an unmutated data probe against its declared expectation."""
+    classification = classify_probe(evidence)
+    wanted = "ACCEPTED" if evidence.get("expected") == "ACCEPTED" else "REJECTED_AS_DECLARED"
+    return {**evidence, "classification": classification, "verdict": "PASS" if classification == wanted else "FAIL"}
+
+
+def _mutant_verdict(expectation: str, outcome: str) -> str:
+    wanted = "KILLED" if expectation == "KILLED" else "SURVIVED_CLEAN"
+    return "PASS" if outcome == wanted else "FAIL"
+
+
+def classify_selftest_mutant(expectation: str, run: dict[str, Any], detectors: tuple[str, ...], restored: bool,
+                             expected_checks: int) -> dict[str, Any]:
+    """Fail-closed outcome of a self-test-detected mutant.
+
+    KILLED needs a nonzero exit with at least one declared detector among the
+    failed checks.  SURVIVED_CLEAN needs exit 0, no failed check and a complete
+    successful report.  Anything else is INCONCLUSIVE; an unverified restoration
+    is INTEGRITY_FAILURE.  An empty detector list never produces a survivor.
+    """
+    detected_by = sorted(name for name in run["failed_checks"] if any(name.startswith(item) for item in detectors))
+    complete = report_complete(run.get("report"), expected_checks)
+    if not restored:
+        outcome = "INTEGRITY_FAILURE"
+    elif run["exit_code"] != 0 and detected_by:
+        outcome = "KILLED"
+    elif run["exit_code"] == 0 and not run["failed_checks"] and complete:
+        outcome = "SURVIVED_CLEAN"
+    else:
+        outcome = "INCONCLUSIVE"
+    return {"failed_expected_detectors": detected_by, "report_complete": complete, "outcome": outcome,
+            "killed": outcome == "KILLED", "verdict": _mutant_verdict(expectation, outcome)}
+
+
+def classify_probe_mutant(expectation: str, evidence: dict[str, Any], restored: bool) -> dict[str, Any]:
+    """Fail-closed outcome of a probe-detected mutant.
+
+    The declared invalid input being accepted kills the mutant; a rejection with
+    the exact expected exception and unchanged outputs is a clean survival; an
+    unexpected exception or any integrity failure is never a pass.
+    """
+    classification = classify_probe(evidence)
+    if not restored or classification == "INTEGRITY_FAILURE":
+        outcome = "INTEGRITY_FAILURE"
+    elif classification == "ACCEPTED":
+        outcome = "KILLED"
+    elif classification == "REJECTED_AS_DECLARED":
+        outcome = "SURVIVED_CLEAN"
+    else:
+        outcome = "INCONCLUSIVE"
+    return {"probe_classification": classification, "outcome": outcome, "killed": outcome == "KILLED",
+            "verdict": _mutant_verdict(expectation, outcome)}
+
+
+def run_mutant(worktree: Path, mutant: Mutant, expected_checks: int) -> dict[str, Any]:
     targets = [part.strip() for part in mutant.target.split("+")]
     originals = {target: (worktree / target).read_bytes() for target in targets}
     texts = {target: data.decode("utf-8") for target, data in originals.items()}
@@ -394,43 +506,117 @@ def run_mutant(worktree: Path, mutant: Mutant) -> dict[str, Any]:
         if len(owners) != 1:
             raise RuntimeError(mutant.identifier + ": replacement text must occur exactly once in exactly one target")
         texts[owners[0]] = texts[owners[0]].replace(*variants[owners[0]])
+    probe = next((item for item in PROBES if item.identifier == mutant.probe), None) if mutant.probe else None
+    if mutant.probe and (probe is None or probe.expected != "REJECTED"):
+        raise RuntimeError(mutant.identifier + ": a probe detector must be a declared-invalid (REJECTED) probe")
     try:
         for target in targets:
             (worktree / target).write_bytes(texts[target].encode("utf-8"))
-        if mutant.probe is None:
-            code, failed, _ = selftest(worktree)
-            detected_by = sorted(name for name in failed if any(name.startswith(detector) for detector in mutant.detectors))
-            killed = code != 0 and bool(detected_by)
+        if probe is None:
+            run = selftest(worktree)
             command = "python " + SELFTEST + " (temporary worktree of the committed sources)"
-            evidence: dict[str, Any] = {"exit_code": code, "failed_checks": failed, "failed_expected_detectors": detected_by}
         else:
-            probe = next(item for item in PROBES if item.identifier == mutant.probe)
-            result = run_probe(worktree, probe)
-            killed = result["outcome"] == "ACCEPTED"
-            command = result["observed_command"] + " with probe " + probe.identifier
-            evidence = {"exit_code": result["exit_code"], "probe_outcome": result["outcome"], "exception": result["exception"]}
+            evidence = run_probe(worktree, probe)
+            command = evidence["observed_command"] + " with probe " + probe.identifier
     finally:
         for target, data in originals.items():
             (worktree / target).write_bytes(data)
-    restored = all(hashlib.sha256((worktree / target).read_bytes()).hexdigest() == hashlib.sha256(data).hexdigest()
-                   for target, data in originals.items())
+    restored = all(sha256(worktree / target) == hashlib.sha256(data).hexdigest() for target, data in originals.items())
     restored = restored and subprocess.run(["git", "-C", str(worktree), "diff", "--quiet", "HEAD", "--", *targets]).returncode == 0
-    expected_killed = mutant.expectation == "KILLED"
-    return {
+    record: dict[str, Any] = {
         "id": mutant.identifier,
         "target": mutant.target,
         "invariant": mutant.invariant,
         "mutated_behavior": mutant.behavior,
         "replacements": [{"old": old, "new": new} for old, new in mutant.replacements],
-        "expected_detectors": list(mutant.detectors) if mutant.probe is None else ["data probe " + mutant.probe],
+        "expected_detectors": list(mutant.detectors) if probe is None else ["data probe " + probe.identifier],
         "expectation": mutant.expectation,
         "note": mutant.note,
         "observed_command": command,
-        **evidence,
-        "killed": killed,
-        "restored_by_hash_and_git": restored,
-        "verdict": "PASS" if restored and killed == expected_killed else "FAIL",
+        "sources_restored_by_hash_and_git": restored,
     }
+    if probe is None:
+        record.update(exit_code=run["exit_code"], failed_checks=run["failed_checks"],
+                      report_present=run["report"] is not None,
+                      **classify_selftest_mutant(mutant.expectation, run, mutant.detectors, restored, expected_checks))
+    else:
+        record.update(exit_code=evidence["exit_code"], probe_evidence=evidence,
+                      **classify_probe_mutant(mutant.expectation, evidence, restored))
+    return record
+
+
+def overall_verdict(mutants: list[dict[str, Any]], probes: list[dict[str, Any]], redundancy: list[dict[str, Any]],
+                    main_tree_unchanged: bool, baseline_ok: bool, runner_ok: bool) -> str:
+    """PASS only if every mutant, probe, redundancy pair, runner check and integrity condition passes."""
+    passed = (baseline_ok and runner_ok and main_tree_unchanged and bool(mutants) and bool(probes)
+              and all(item.get("verdict") == "PASS" for item in mutants)
+              and all(item.get("verdict") == "PASS" for item in probes)
+              and all(item.get("survived") is True and item.get("paired_killed") is True for item in redundancy))
+    return "PASS" if passed else "FAIL"
+
+
+def runner_checks(expected_checks: int) -> list[dict[str, Any]]:
+    """Synthetic cases proving the runner's own classification fails closed."""
+    complete = {"checks": [{"name": "c", "category": "ORACLE", "passed": True}] * expected_checks,
+                "count_ok": True, "failures": []}
+    short = {"checks": complete["checks"][:-1], "count_ok": False, "failures": []}
+    failing = {"checks": complete["checks"][:-1] + [{"name": "c", "category": "ORACLE", "passed": False}],
+               "count_ok": True, "failures": ["c"]}
+    rejected = {"id": "PX", "expected": "REJECTED", "expected_exception": "SourceReceiptError", "exit_code": 1,
+                "exception": "SourceReceiptError", "outputs_unchanged_by_run": True, "inputs_and_outputs_restored_by_hash": True}
+    wrong_exception = {**rejected, "exception": "KeyError"}
+    accepted = {**rejected, "exit_code": 0, "exception": None}
+
+    def selftest_case(expectation: str, code: int, failed: list[str], report: Any, detectors: tuple[str, ...],
+                      restored: bool = True) -> str:
+        run = {"exit_code": code, "failed_checks": failed, "report": report}
+        return classify_selftest_mutant(expectation, run, detectors, restored, expected_checks)["verdict"]
+
+    def probe_case(expectation: str, evidence: dict[str, Any], restored: bool = True) -> str:
+        return classify_probe_mutant(expectation, evidence, restored)["verdict"]
+
+    exit_one_empty = {"id": "MX", **classify_selftest_mutant("REDUNDANT_SURVIVOR", {"exit_code": 1, "failed_checks": [],
+                                                                                      "report": None}, (), True, expected_checks)}
+    good_mutant = {"id": "MY", **classify_selftest_mutant("KILLED", {"exit_code": 1, "failed_checks": ["d [no exception]"],
+                                                                      "report": complete}, ("d",), True, expected_checks)}
+    good_probe = probe_verdict(rejected)
+    bad_probe = probe_verdict(wrong_exception)
+    pair_ok = [{"survived": True, "paired_killed": True}]
+    cases = [
+        ("redundant survivor: exit 1, no report, empty detector list",
+         selftest_case("REDUNDANT_SURVIVOR", 1, [], None, ()), "FAIL"),
+        ("redundant survivor: exit 0 but no report", selftest_case("REDUNDANT_SURVIVOR", 0, [], None, ()), "FAIL"),
+        ("redundant survivor: exit 0 with an incomplete report", selftest_case("REDUNDANT_SURVIVOR", 0, [], short, ()), "FAIL"),
+        ("redundant survivor: exit 0 with a failed check in the report",
+         selftest_case("REDUNDANT_SURVIVOR", 0, [], failing, ()), "FAIL"),
+        ("redundant survivor: clean run with unverified restoration",
+         selftest_case("REDUNDANT_SURVIVOR", 0, [], complete, (), restored=False), "FAIL"),
+        ("killed mutant: exit 1 without a declared detector failing",
+         selftest_case("KILLED", 1, ["unrelated [no exception]"], complete, ("declared",)), "FAIL"),
+        ("probe mutant: rejection with the wrong exception", probe_case("KILLED", wrong_exception), "FAIL"),
+        ("probe survivor: rejection with the wrong exception", probe_case("REDUNDANT_SURVIVOR", wrong_exception), "FAIL"),
+        ("probe survivor: rejection with no identifiable exception",
+         probe_case("REDUNDANT_SURVIVOR", {**rejected, "exception": None}), "FAIL"),
+        ("probe survivor: rejection that changed a consumer output",
+         probe_case("REDUNDANT_SURVIVOR", {**rejected, "outputs_unchanged_by_run": False}), "FAIL"),
+        ("probe mutant: acceptance with an unrestored input",
+         probe_case("KILLED", {**accepted, "inputs_and_outputs_restored_by_hash": False}), "FAIL"),
+        ("probe mutant: acceptance with unrestored mutated sources", probe_case("KILLED", accepted, restored=False), "FAIL"),
+        ("baseline probe: rejection with the wrong exception", bad_probe["verdict"], "FAIL"),
+        ("overall: an exit-1/empty-report survivor cannot pass",
+         overall_verdict([good_mutant, exit_one_empty], [good_probe], pair_ok, True, True, True), "FAIL"),
+        ("overall: a wrong-exception probe cannot pass",
+         overall_verdict([good_mutant], [good_probe, bad_probe], pair_ok, True, True, True), "FAIL"),
+        ("control: a clean redundant survivor passes", selftest_case("REDUNDANT_SURVIVOR", 0, [], complete, ()), "PASS"),
+        ("control: a mutant killed by its declared detector passes",
+         selftest_case("KILLED", 1, ["declared [no exception]"], complete, ("declared",)), "PASS"),
+        ("control: a probe mutant accepting the declared invalid input is killed", probe_case("KILLED", accepted), "PASS"),
+        ("control: a probe survivor rejecting as declared passes", probe_case("REDUNDANT_SURVIVOR", rejected), "PASS"),
+        ("control: all-passing records give an overall pass",
+         overall_verdict([good_mutant], [good_probe], pair_ok, True, True, True), "PASS"),
+    ]
+    return [{"case": name, "expected": expected, "observed": observed, "passed": observed == expected}
+            for name, observed, expected in cases]
 
 
 def main() -> int:
@@ -457,11 +643,15 @@ def main() -> int:
             code, _, stderr = run_script(worktree, "scripts/" + script)
             if code != 0:
                 raise RuntimeError("baseline generator failed in the worktree: " + script + ": " + stderr.strip()[-300:])
-        baseline_code, baseline_failed, baseline_checks = selftest(worktree)
-        if baseline_code != 0:
-            raise RuntimeError("baseline self-test failed in the worktree: " + repr(baseline_failed[:5]))
-        mutants = [run_mutant(worktree, mutant) for mutant in MUTANTS]
-        probes = [run_probe(worktree, probe) for probe in PROBES]
+        baseline = selftest(worktree)
+        expected_checks = len(baseline["report"]["checks"]) if isinstance(baseline["report"], dict) else 0
+        baseline_ok = (baseline["exit_code"] == 0 and not baseline["failed_checks"] and expected_checks > 0
+                       and report_complete(baseline["report"], expected_checks))
+        if not baseline_ok:
+            raise RuntimeError("baseline self-test failed in the worktree: " + repr(baseline["failed_checks"][:5]))
+        runner = runner_checks(expected_checks)
+        mutants = [run_mutant(worktree, mutant, expected_checks) for mutant in MUTANTS]
+        probes = [probe_verdict(run_probe(worktree, probe)) for probe in PROBES]
     finally:
         git("worktree", "remove", "--force", str(worktree), check=False)
         git("worktree", "prune", check=False)
@@ -469,26 +659,35 @@ def main() -> int:
     main_tree_unchanged = not git("status", "--porcelain", "--", *SOURCE_PATHSPECS).strip() and tested_sources() == sources
 
     by_id = {item["id"]: item for item in mutants}
-    pairs = {"M08": "M09", "M17": "M18"}
-    redundancy = [{"survivor": survivor, "survived": not by_id[survivor]["killed"], "paired_full_removal": full,
-                   "paired_killed": by_id[full]["killed"]} for survivor, full in pairs.items()]
-    unexpected = [item["id"] for item in mutants if item["verdict"] == "FAIL"]
+    declared = {item.identifier for item in MUTANTS if item.expectation == "REDUNDANT_SURVIVOR"}
+    if declared != set(REDUNDANT_PAIRS):
+        raise RuntimeError("every redundant survivor needs exactly one declared full-removal pair")
+    redundancy = [{"survivor": survivor, "survived": by_id[survivor]["outcome"] == "SURVIVED_CLEAN",
+                   "paired_full_removal": full, "paired_killed": by_id[full]["outcome"] == "KILLED"}
+                  for survivor, full in REDUNDANT_PAIRS.items()]
+    runner_ok = all(item["passed"] for item in runner)
     counts: dict[str, int] = {}
-    for check in baseline_checks:
+    for check in baseline["report"]["checks"]:
         counts[check["category"]] = counts.get(check["category"], 0) + 1
-    overall = (not unexpected and all(item["verdict"] == "PASS" for item in probes)
-               and all(item["survived"] and item["paired_killed"] for item in redundancy) and main_tree_unchanged)
+    outcomes: dict[str, int] = {}
+    for item in mutants:
+        outcomes[item["outcome"]] = outcomes.get(item["outcome"], 0) + 1
+    overall = overall_verdict(mutants, probes, redundancy, main_tree_unchanged, baseline_ok, runner_ok)
     payload = {
-        "schema_version": "q3-mutation-validation-v1",
+        "schema_version": "q3-mutation-validation-v2",
         "purpose": "T-010 executable evidence that the acceptance checks detect production defects",
         "method": ("Mutants and probes run in a temporary detached Git worktree of the committed sources, supplied with "
                    "copies of the local-only allowlisted inputs; production files in the working tree are never modified. "
-                   "Every mutated file and probed input is restored and verified by SHA-256 (and git diff for sources)."),
+                   "Every mutated source, probed input and consumer output is restored and verified by SHA-256 (and git "
+                   "diff for sources). Classification fails closed: a survivor needs a clean, complete run; an unexpected "
+                   "exception, a changed output on rejection or an unverified restoration fails the run."),
         "tested_sources": sources,
-        "baseline": {"generators": ["scripts/" + script for script in GENERATORS], "selftest_exit_code": baseline_code,
-                     "selftest_checks": len(baseline_checks), "selftest_category_counts": counts,
+        "baseline": {"generators": ["scripts/" + script for script in GENERATORS], "selftest_exit_code": baseline["exit_code"],
+                     "selftest_checks": expected_checks, "selftest_report_complete": baseline_ok,
+                     "selftest_category_counts": counts,
                      "selftest_checks_by_category": [{"name": item["name"], "category": item["category"]}
-                                                     for item in baseline_checks]},
+                                                     for item in baseline["report"]["checks"]]},
+        "runner_checks": runner,
         "mutants": mutants,
         "redundant_defences": redundancy,
         "data_probes": probes,
@@ -496,18 +695,24 @@ def main() -> int:
         "summary": {
             "mutants": len(mutants),
             "expected_killed": sum(1 for item in MUTANTS if item.expectation == "KILLED"),
-            "killed": sum(1 for item in mutants if item["killed"]),
-            "redundant_survivors": [item["survivor"] for item in redundancy],
-            "unexpected_outcomes": unexpected,
+            "killed": outcomes.get("KILLED", 0),
+            "outcomes": dict(sorted(outcomes.items())),
+            "redundant_survivors": sorted(REDUNDANT_PAIRS),
+            "unexpected_outcomes": [item["id"] for item in mutants if item["verdict"] != "PASS"],
             "data_probes": len(probes),
             "data_probes_passed": sum(1 for item in probes if item["verdict"] == "PASS"),
-            "overall": "PASS" if overall else "FAIL",
+            "runner_checks": len(runner),
+            "runner_checks_passed": sum(1 for item in runner if item["passed"]),
+            "overall": overall,
         },
     }
     write_artifacts("q3-mutation-validation", payload, markdown(payload))
-    print("mutants killed: " + str(payload["summary"]["killed"]) + "/" + str(len(mutants)) + "; data probes passed: "
-          + str(payload["summary"]["data_probes_passed"]) + "/" + str(len(probes)) + "; overall: " + payload["summary"]["overall"])
-    return 0 if overall else 1
+    summary = payload["summary"]
+    print("mutants killed: " + str(summary["killed"]) + "/" + str(summary["mutants"]) + "; outcomes: "
+          + json.dumps(summary["outcomes"], sort_keys=True) + "; data probes passed: " + str(summary["data_probes_passed"])
+          + "/" + str(summary["data_probes"]) + "; runner checks passed: " + str(summary["runner_checks_passed"]) + "/"
+          + str(summary["runner_checks"]) + "; overall: " + overall)
+    return 0 if overall == "PASS" else 1
 
 
 def markdown(payload: dict[str, Any]) -> str:
@@ -519,16 +724,20 @@ def markdown(payload: dict[str, Any]) -> str:
         "",
         payload["method"],
         "",
-        "Overall: **" + summary["overall"] + "**. Mutants: " + str(summary["mutants"]) + ", killed: " + str(summary["killed"])
-        + ", intentionally redundant survivors: " + ", ".join(summary["redundant_survivors"]) + ". Data probes passed: "
-        + str(summary["data_probes_passed"]) + "/" + str(summary["data_probes"]) + ". Working-tree sources unchanged: "
+        "Overall: **" + summary["overall"] + "**. Mutants: " + str(summary["mutants"]) + " (" + str(summary["expected_killed"])
+        + " expected killed), outcomes " + ", ".join(key + " " + str(value) for key, value in summary["outcomes"].items())
+        + "; intentionally redundant survivors: " + ", ".join(summary["redundant_survivors"]) + ". Data probes passed: "
+        + str(summary["data_probes_passed"]) + "/" + str(summary["data_probes"]) + ". Runner self-checks passed: "
+        + str(summary["runner_checks_passed"]) + "/" + str(summary["runner_checks"]) + ". Working-tree sources unchanged: "
         + ("yes" if payload["main_tree_sources_unchanged"] else "**NO**") + ".",
         "",
         "## Baseline self-test classification",
         "",
         "Baseline self-test exit code " + str(payload["baseline"]["selftest_exit_code"]) + "; "
-        + str(payload["baseline"]["selftest_checks"]) + " checks. `ORACLE` and `BOUNDARY` checks support acceptance;",
-        "`CONSISTENCY` and `REGRESSION` checks detect regressions only; `ARTIFACT` checks guard generated tables.",
+        + str(payload["baseline"]["selftest_checks"]) + " checks; complete successful report: "
+        + ("yes" if payload["baseline"]["selftest_report_complete"] else "**NO**") + ". `ORACLE` and `BOUNDARY` checks",
+        "support acceptance; `CONSISTENCY` and `REGRESSION` checks detect regressions only; `ARTIFACT` checks guard",
+        "generated tables.",
         "",
         "| Category | Checks |",
         "| --- | ---: |",
@@ -537,29 +746,44 @@ def markdown(payload: dict[str, Any]) -> str:
         lines.append("| " + category + " | " + str(count) + " |")
     lines += [
         "",
+        "## Runner self-checks",
+        "",
+        "Synthetic records run through the same classification functions as the real mutants and probes.",
+        "",
+        "| Case | Expected | Observed | Result |",
+        "| --- | --- | --- | --- |",
+    ]
+    for item in payload["runner_checks"]:
+        lines.append("| " + item["case"] + " | " + item["expected"] + " | " + item["observed"] + " | "
+                     + ("PASS" if item["passed"] else "**FAIL**") + " |")
+    lines += [
+        "",
         "## Code mutants",
         "",
-        "| ID | Target | Invariant | Mutated behaviour | Expected detector | Expectation | Exit | Killed | Verdict |",
+        "| ID | Target | Invariant | Mutated behaviour | Expected detector | Expectation | Exit | Outcome | Verdict |",
         "| --- | --- | --- | --- | --- | --- | ---: | --- | --- |",
     ]
     for item in payload["mutants"]:
+        detail = item.get("probe_classification")
         lines.append("| " + item["id"] + " | `" + item["target"] + "` | " + item["invariant"] + " | " + item["mutated_behavior"]
                      + " | " + "; ".join(item["expected_detectors"]).replace("|", "\\|") + (" — " + item["note"] if item["note"] else "")
-                     + " | " + item["expectation"] + " | " + str(item["exit_code"]) + " | " + ("yes" if item["killed"] else "no")
-                     + " | **" + item["verdict"] + "** |")
+                     + " | " + item["expectation"] + " | " + str(item["exit_code"]) + " | " + item["outcome"]
+                     + (" (probe " + detail + ")" if detail else "") + " | **" + item["verdict"] + "** |")
     lines += [
         "",
-        "Failed checks per mutant, and the exact replacement text, are in the JSON artifact.",
+        "Failed checks per mutant, full probe evidence and the exact replacement text are in the JSON artifact.",
         "",
         "## Data probes through the real consumers",
         "",
-        "| ID | Forged or altered input | Consumer | Expected | Exit | Exception | Output unchanged | Verdict |",
-        "| --- | --- | --- | --- | ---: | --- | --- | --- |",
+        "| ID | Forged or altered input | Consumer | Expected | Exit | Exception | Outputs unchanged | Restored | Classification | Verdict |",
+        "| --- | --- | --- | --- | ---: | --- | --- | --- | --- | --- |",
     ]
     for item in payload["data_probes"]:
         lines.append("| " + item["id"] + " | " + item["forged_input"] + " | `" + item["consumer"] + "` | " + item["expected"]
                      + " | " + str(item["exit_code"]) + " | " + (item["exception"] or "—") + " | "
-                     + ("yes" if item["consumer_output_unchanged"] else "no") + " | **" + item["verdict"] + "** |")
+                     + ("yes" if item["outputs_unchanged_by_run"] else "no") + " | "
+                     + ("yes" if item["inputs_and_outputs_restored_by_hash"] else "**no**") + " | " + item["classification"]
+                     + " | **" + item["verdict"] + "** |")
     return "\n".join(lines) + "\n"
 
 

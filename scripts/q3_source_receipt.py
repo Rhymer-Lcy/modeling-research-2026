@@ -339,7 +339,7 @@ def main() -> int:
         receipt = build_receipt()
     except (OSError, ValueError, zipfile.BadZipFile, ET.ParseError, ReceiptError, SourceVerificationError,
             C7SupportError) as exc:
-        print("SOURCE RECEIPT FAIL-CLOSED: " + str(exc), file=sys.stderr)
+        print("SOURCE RECEIPT FAIL-CLOSED: " + type(exc).__name__ + ": " + str(exc), file=sys.stderr)
         return 1
     write_artifacts("q3-source-receipt", receipt, markdown_receipt(receipt))
     print("value-level source checks: " + str(len(receipt["source_verification"]["records"])) + " VERIFIED")
