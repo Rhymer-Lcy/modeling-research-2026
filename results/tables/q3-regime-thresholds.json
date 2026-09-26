@@ -1,0 +1,1317 @@
+{
+  "analyses": [
+    {
+      "c_box_flops": 2.300063908774456e+22,
+      "c_min_flops": 6.058756442880001e+16,
+      "context_tokens": 2048,
+      "declared_span_flops": [
+        1e+19,
+        1e+24
+      ],
+      "kappa_flops_per_parameter_token": 6.4096,
+      "primary_grid": [
+        {
+          "budget_flops": 1e+19,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            9.326006734399177e+21
+          ]
+        },
+        {
+          "budget_flops": 1e+22,
+          "regime": "SATURATED:D_max",
+          "regime_map_interval": [
+            9.326006734399177e+21,
+            2.300063908774456e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+24,
+          "regime": "SLACK:N_max+D_max",
+          "regime_map_interval": [
+            2.300063908774456e+22,
+            1e+24
+          ]
+        }
+      ],
+      "regime_map": [
+        {
+          "active_bounds": [],
+          "analytic_d_elasticity": 0.5484735967021195,
+          "analytic_n_elasticity": 0.4515264032978804,
+          "lower_flops": 1e+19,
+          "lower_kind": "analysis_source_support_boundary",
+          "numeric_d_elasticity": 0.548473596710134,
+          "numeric_n_elasticity": 0.45152640329375293,
+          "regime": "SATURATED:interior",
+          "saturation": "SATURATED",
+          "upper_flops": 9.326006734399177e+21,
+          "upper_kind": "validity_boundary_active_set_transition"
+        },
+        {
+          "active_bounds": [
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 1.0,
+          "lower_flops": 9.326006734399177e+21,
+          "lower_kind": "validity_boundary_active_set_transition",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 1.000000000003887,
+          "regime": "SATURATED:D_max",
+          "saturation": "SATURATED",
+          "upper_flops": 2.300063908774456e+22,
+          "upper_kind": "budget_slack_onset_at_validity_ceiling"
+        },
+        {
+          "active_bounds": [
+            "N_max",
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 0.0,
+          "lower_flops": 2.300063908774456e+22,
+          "lower_kind": "budget_slack_onset_at_validity_ceiling",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 0.0,
+          "regime": "SLACK:N_max+D_max",
+          "saturation": "SLACK",
+          "upper_flops": 1e+24,
+          "upper_kind": "analysis_source_support_boundary"
+        }
+      ],
+      "retained_transitions": [
+        "stationary_reaches_D_max",
+        "C_box"
+      ],
+      "thresholds": [
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 7279274272288622.0,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_min",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_D_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 6.058756442880001e+16,
+          "category": "feasibility_onset_at_box_lower_corner",
+          "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "C_min",
+          "parameter_dependent": false,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 7.948321962832923e+17,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_min",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "stationary_reaches_N_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 9.32601606040591e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851755453.415507,
+            "predicted_loss": 2.1480645484744314,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 9.32601606040591e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "at": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 9.326006734399177e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0000000000000002,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851750601.6649065,
+            "predicted_loss": 2.1480646188192756,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 9.326006734399178e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": -1048576.0
+          },
+          "below": {
+            "active_bounds": [],
+            "budget_flops": 9.325997408392443e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299892835516.5711,
+            "n_parameters_raw": 4851748410.970798,
+            "predicted_loss": 2.1480646891642072,
+            "regime": "SATURATED:interior",
+            "saturation": "SATURATED",
+            "spent_flops": 9.325997408392443e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 9.326006734399177e+21,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "stationary_reaches_D_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.3000662088383646e+22,
+            "budget_geometry": "ABOVE_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999990000010002,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SLACK:N_max+D_max",
+            "saturation": "SLACK",
+            "spent_flops": 2.300063908774456e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 2.3000639084691456e+16
+          },
+          "at": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.300063908774456e+22,
+            "budget_geometry": "AT_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SATURATED:N_max+D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.300063908774456e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 2.3000616087105472e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999999999999998,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965813034.175,
+            "predicted_loss": 2.0933829360742724,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.300061608710547e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 4194304.0
+          },
+          "budget_flops": 2.300063908774456e+22,
+          "category": "budget_slack_onset_at_validity_ceiling",
+          "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "C_box",
+          "parameter_dependent": false,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 6.8858863778367405e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_max",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_N_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        }
+      ]
+    },
+    {
+      "c_box_flops": 2.447047523513912e+22,
+      "c_min_flops": 6.445936085760001e+16,
+      "context_tokens": 4096,
+      "declared_span_flops": [
+        1e+19,
+        1e+24
+      ],
+      "kappa_flops_per_parameter_token": 6.8192,
+      "primary_grid": [
+        {
+          "budget_flops": 1e+19,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            9.921977209687793e+21
+          ]
+        },
+        {
+          "budget_flops": 1e+22,
+          "regime": "SATURATED:D_max",
+          "regime_map_interval": [
+            9.921977209687793e+21,
+            2.447047523513912e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+24,
+          "regime": "SLACK:N_max+D_max",
+          "regime_map_interval": [
+            2.447047523513912e+22,
+            1e+24
+          ]
+        }
+      ],
+      "regime_map": [
+        {
+          "active_bounds": [],
+          "analytic_d_elasticity": 0.5484735967021195,
+          "analytic_n_elasticity": 0.4515264032978804,
+          "lower_flops": 1e+19,
+          "lower_kind": "analysis_source_support_boundary",
+          "numeric_d_elasticity": 0.5484735966923704,
+          "numeric_n_elasticity": 0.45152640329375293,
+          "regime": "SATURATED:interior",
+          "saturation": "SATURATED",
+          "upper_flops": 9.921977209687793e+21,
+          "upper_kind": "validity_boundary_active_set_transition"
+        },
+        {
+          "active_bounds": [
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 1.0,
+          "lower_flops": 9.921977209687793e+21,
+          "lower_kind": "validity_boundary_active_set_transition",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 1.000000000003887,
+          "regime": "SATURATED:D_max",
+          "saturation": "SATURATED",
+          "upper_flops": 2.447047523513912e+22,
+          "upper_kind": "budget_slack_onset_at_validity_ceiling"
+        },
+        {
+          "active_bounds": [
+            "N_max",
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 0.0,
+          "lower_flops": 2.447047523513912e+22,
+          "lower_kind": "budget_slack_onset_at_validity_ceiling",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 0.0,
+          "regime": "SLACK:N_max+D_max",
+          "saturation": "SLACK",
+          "upper_flops": 1e+24,
+          "upper_kind": "analysis_source_support_boundary"
+        }
+      ],
+      "retained_transitions": [
+        "stationary_reaches_D_max",
+        "C_box"
+      ],
+      "thresholds": [
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 7744450062030481.0,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_min",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_D_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 6.445936085760001e+16,
+          "category": "feasibility_onset_at_box_lower_corner",
+          "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "C_min",
+          "parameter_dependent": false,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 8.456252672389894e+17,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_min",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "stationary_reaches_N_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 9.921987131665002e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851755453.415508,
+            "predicted_loss": 2.1480645484744314,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 9.921987131665002e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "at": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 9.921977209687793e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999999999999998,
+            "d_tokens_raw": 299892999999.99994,
+            "n_parameters_raw": 4851750601.664907,
+            "predicted_loss": 2.1480646188192756,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 9.921977209687791e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 2097152.0
+          },
+          "below": {
+            "active_bounds": [],
+            "budget_flops": 9.921967287710582e+21,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299892835516.5711,
+            "n_parameters_raw": 4851748410.970798,
+            "predicted_loss": 2.1480646891642072,
+            "regime": "SATURATED:interior",
+            "saturation": "SATURATED",
+            "spent_flops": 9.921967287710582e+21,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 9.921977209687793e+21,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "stationary_reaches_D_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.447049970561435e+22,
+            "budget_geometry": "ABOVE_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999990000010001,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SLACK:N_max+D_max",
+            "saturation": "SLACK",
+            "spent_flops": 2.447047523513912e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 2.447047523303424e+16
+          },
+          "at": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.447047523513912e+22,
+            "budget_geometry": "AT_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SATURATED:N_max+D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.447047523513912e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 2.447045076466388e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965813034.174997,
+            "predicted_loss": 2.0933829360742724,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.447045076466388e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 2.447047523513912e+22,
+          "category": "budget_slack_onset_at_validity_ceiling",
+          "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "C_box",
+          "parameter_dependent": false,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 7.325923051008535e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_max",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_N_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        }
+      ]
+    },
+    {
+      "c_box_flops": 2.741014752992824e+22,
+      "c_min_flops": 7.22029537152e+16,
+      "context_tokens": 8192,
+      "declared_span_flops": [
+        1e+19,
+        1e+24
+      ],
+      "kappa_flops_per_parameter_token": 7.6384,
+      "primary_grid": [
+        {
+          "budget_flops": 1e+19,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            1.111391816026502e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+22,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            1.111391816026502e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+24,
+          "regime": "SLACK:N_max+D_max",
+          "regime_map_interval": [
+            2.741014752992824e+22,
+            1e+24
+          ]
+        }
+      ],
+      "regime_map": [
+        {
+          "active_bounds": [],
+          "analytic_d_elasticity": 0.5484735967021195,
+          "analytic_n_elasticity": 0.4515264032978804,
+          "lower_flops": 1e+19,
+          "lower_kind": "analysis_source_support_boundary",
+          "numeric_d_elasticity": 0.548473596710134,
+          "numeric_n_elasticity": 0.45152640329375293,
+          "regime": "SATURATED:interior",
+          "saturation": "SATURATED",
+          "upper_flops": 1.111391816026502e+22,
+          "upper_kind": "validity_boundary_active_set_transition"
+        },
+        {
+          "active_bounds": [
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 1.0,
+          "lower_flops": 1.111391816026502e+22,
+          "lower_kind": "validity_boundary_active_set_transition",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 1.000000000003887,
+          "regime": "SATURATED:D_max",
+          "saturation": "SATURATED",
+          "upper_flops": 2.741014752992824e+22,
+          "upper_kind": "budget_slack_onset_at_validity_ceiling"
+        },
+        {
+          "active_bounds": [
+            "N_max",
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 0.0,
+          "lower_flops": 2.741014752992824e+22,
+          "lower_kind": "budget_slack_onset_at_validity_ceiling",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 0.0,
+          "regime": "SLACK:N_max+D_max",
+          "saturation": "SLACK",
+          "upper_flops": 1e+24,
+          "upper_kind": "analysis_source_support_boundary"
+        }
+      ],
+      "retained_transitions": [
+        "stationary_reaches_D_max",
+        "C_box"
+      ],
+      "thresholds": [
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 8674801641514198.0,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_min",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_D_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 7.22029537152e+16,
+          "category": "feasibility_onset_at_box_lower_corner",
+          "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "C_min",
+          "parameter_dependent": false,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 9.472114091503836e+17,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_min",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "stationary_reaches_N_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 1.111392927418318e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851755453.415507,
+            "predicted_loss": 2.1480645484744314,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.111392927418318e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "at": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 1.111391816026502e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999999999999998,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851750601.664906,
+            "predicted_loss": 2.1480646188192756,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.1113918160265017e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 2097152.0
+          },
+          "below": {
+            "active_bounds": [],
+            "budget_flops": 1.111390704634686e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0000000000000002,
+            "d_tokens_raw": 299892835516.5711,
+            "n_parameters_raw": 4851748410.970798,
+            "predicted_loss": 2.1480646891642072,
+            "regime": "SATURATED:interior",
+            "saturation": "SATURATED",
+            "spent_flops": 1.1113907046346861e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": -2097152.0
+          },
+          "budget_flops": 1.111391816026502e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "stationary_reaches_D_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.741017494007577e+22,
+            "budget_geometry": "ABOVE_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999990000010001,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SLACK:N_max+D_max",
+            "saturation": "SLACK",
+            "spent_flops": 2.741014752992824e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 2.741014752971981e+16
+          },
+          "at": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 2.741014752992824e+22,
+            "budget_geometry": "AT_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SATURATED:N_max+D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.741014752992824e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 2.741012011978071e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999999999999999,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965813034.175,
+            "predicted_loss": 2.0933829360742724,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 2.7410120119780706e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 4194304.0
+          },
+          "budget_flops": 2.741014752992824e+22,
+          "category": "budget_slack_onset_at_validity_ceiling",
+          "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "C_box",
+          "parameter_dependent": false,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 8.205996397352121e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_max",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_N_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        }
+      ]
+    },
+    {
+      "c_box_flops": 4.504818129866296e+22,
+      "c_min_flops": 1.186645108608e+17,
+      "context_tokens": 32768,
+      "declared_span_flops": [
+        1e+19,
+        1e+24
+      ],
+      "kappa_flops_per_parameter_token": 12.5536,
+      "primary_grid": [
+        {
+          "budget_flops": 1e+19,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            1.8265563863728393e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+22,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            1.8265563863728393e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+24,
+          "regime": "SLACK:N_max+D_max",
+          "regime_map_interval": [
+            4.504818129866296e+22,
+            1e+24
+          ]
+        }
+      ],
+      "regime_map": [
+        {
+          "active_bounds": [],
+          "analytic_d_elasticity": 0.5484735967021195,
+          "analytic_n_elasticity": 0.4515264032978804,
+          "lower_flops": 1e+19,
+          "lower_kind": "analysis_source_support_boundary",
+          "numeric_d_elasticity": 0.548473596710134,
+          "numeric_n_elasticity": 0.45152640329375293,
+          "regime": "SATURATED:interior",
+          "saturation": "SATURATED",
+          "upper_flops": 1.8265563863728393e+22,
+          "upper_kind": "validity_boundary_active_set_transition"
+        },
+        {
+          "active_bounds": [
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 1.0,
+          "lower_flops": 1.8265563863728393e+22,
+          "lower_kind": "validity_boundary_active_set_transition",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 1.000000000003887,
+          "regime": "SATURATED:D_max",
+          "saturation": "SATURATED",
+          "upper_flops": 4.504818129866296e+22,
+          "upper_kind": "budget_slack_onset_at_validity_ceiling"
+        },
+        {
+          "active_bounds": [
+            "N_max",
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 0.0,
+          "lower_flops": 4.504818129866296e+22,
+          "lower_kind": "budget_slack_onset_at_validity_ceiling",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 0.0,
+          "regime": "SLACK:N_max+D_max",
+          "saturation": "SLACK",
+          "upper_flops": 1e+24,
+          "upper_kind": "analysis_source_support_boundary"
+        }
+      ],
+      "retained_transitions": [
+        "stationary_reaches_D_max",
+        "C_box"
+      ],
+      "thresholds": [
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 1.4256911118416506e+16,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_min",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_D_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 1.186645108608e+17,
+          "category": "feasibility_onset_at_box_lower_corner",
+          "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "C_min",
+          "parameter_dependent": false,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 1.5567282606187494e+18,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_min",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "stationary_reaches_N_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 1.8265582129292255e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851755453.415507,
+            "predicted_loss": 2.1480645484744314,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.8265582129292255e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "at": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 1.8265563863728393e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0000000000000002,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851750601.6649065,
+            "predicted_loss": 2.1480646188192756,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.8265563863728395e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": -2097152.0
+          },
+          "below": {
+            "active_bounds": [],
+            "budget_flops": 1.826554559816453e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299892835516.57104,
+            "n_parameters_raw": 4851748410.9707985,
+            "predicted_loss": 2.1480646891642072,
+            "regime": "SATURATED:interior",
+            "saturation": "SATURATED",
+            "spent_flops": 1.826554559816453e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 1.8265563863728393e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "stationary_reaches_D_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 4.504822634684426e+22,
+            "budget_geometry": "ABOVE_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999990000010001,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SLACK:N_max+D_max",
+            "saturation": "SLACK",
+            "spent_flops": 4.504818129866296e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 4.50481812972503e+16
+          },
+          "at": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 4.504818129866296e+22,
+            "budget_geometry": "AT_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SATURATED:N_max+D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 4.504818129866296e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 4.5048136250481665e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965813034.175001,
+            "predicted_loss": 2.0933829360742724,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 4.5048136250481665e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 4.504818129866296e+22,
+          "category": "budget_slack_onset_at_validity_ceiling",
+          "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "C_box",
+          "parameter_dependent": false,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 1.3486436475413645e+23,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_max",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_N_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        }
+      ]
+    },
+    {
+      "c_box_flops": 1.1560031637360184e+23,
+      "c_min_flops": 3.045107394432e+17,
+      "context_tokens": 131072,
+      "declared_span_flops": [
+        1e+19,
+        1e+24
+      ],
+      "kappa_flops_per_parameter_token": 32.2144,
+      "primary_grid": [
+        {
+          "budget_flops": 1e+19,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            4.687214667758188e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+22,
+          "regime": "SATURATED:interior",
+          "regime_map_interval": [
+            1e+19,
+            4.687214667758188e+22
+          ]
+        },
+        {
+          "budget_flops": 1e+24,
+          "regime": "SLACK:N_max+D_max",
+          "regime_map_interval": [
+            1.1560031637360184e+23,
+            1e+24
+          ]
+        }
+      ],
+      "regime_map": [
+        {
+          "active_bounds": [],
+          "analytic_d_elasticity": 0.5484735967021195,
+          "analytic_n_elasticity": 0.4515264032978804,
+          "lower_flops": 1e+19,
+          "lower_kind": "analysis_source_support_boundary",
+          "numeric_d_elasticity": 0.5484735966923704,
+          "numeric_n_elasticity": 0.45152640329375293,
+          "regime": "SATURATED:interior",
+          "saturation": "SATURATED",
+          "upper_flops": 4.687214667758188e+22,
+          "upper_kind": "validity_boundary_active_set_transition"
+        },
+        {
+          "active_bounds": [
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 1.0,
+          "lower_flops": 4.687214667758188e+22,
+          "lower_kind": "validity_boundary_active_set_transition",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 1.000000000003887,
+          "regime": "SATURATED:D_max",
+          "saturation": "SATURATED",
+          "upper_flops": 1.1560031637360184e+23,
+          "upper_kind": "budget_slack_onset_at_validity_ceiling"
+        },
+        {
+          "active_bounds": [
+            "N_max",
+            "D_max"
+          ],
+          "analytic_d_elasticity": 0.0,
+          "analytic_n_elasticity": 0.0,
+          "lower_flops": 1.1560031637360184e+23,
+          "lower_kind": "budget_slack_onset_at_validity_ceiling",
+          "numeric_d_elasticity": 0.0,
+          "numeric_n_elasticity": 0.0,
+          "regime": "SLACK:N_max+D_max",
+          "saturation": "SLACK",
+          "upper_flops": 1e+24,
+          "upper_kind": "analysis_source_support_boundary"
+        }
+      ],
+      "retained_transitions": [
+        "stationary_reaches_D_max",
+        "C_box"
+      ],
+      "thresholds": [
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 3.6585349026025736e+16,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_min",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_D_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 3.045107394432e+17,
+          "category": "feasibility_onset_at_box_lower_corner",
+          "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "C_min",
+          "parameter_dependent": false,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 3.9947956664922127e+18,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_min",
+          "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED",
+          "name": "stationary_reaches_N_min",
+          "parameter_dependent": true,
+          "span_status": "below_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 4.687219354972856e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851755453.415507,
+            "predicted_loss": 2.1480645484744314,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 4.687219354972856e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "at": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 4.687214667758188e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 4851750601.6649065,
+            "predicted_loss": 2.1480646188192756,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 4.687214667758188e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [],
+            "budget_flops": 4.687209980543521e+22,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299892835516.57104,
+            "n_parameters_raw": 4851748410.9707985,
+            "predicted_loss": 2.1480646891642072,
+            "regime": "SATURATED:interior",
+            "saturation": "SATURATED",
+            "spent_flops": 4.687209980543521e+22,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 4.687214667758188e+22,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "stationary_reaches_D_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 1.156004319739182e+23,
+            "budget_geometry": "ABOVE_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 0.9999990000010001,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SLACK:N_max+D_max",
+            "saturation": "SLACK",
+            "spent_flops": 1.1560031637360184e+23,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 1.1560031636737229e+17
+          },
+          "at": {
+            "active_bounds": [
+              "N_max",
+              "D_max"
+            ],
+            "budget_flops": 1.1560031637360184e+23,
+            "budget_geometry": "AT_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965825000.0,
+            "predicted_loss": 2.093382884320187,
+            "regime": "SATURATED:N_max+D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.1560031637360184e+23,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "below": {
+            "active_bounds": [
+              "D_max"
+            ],
+            "budget_flops": 1.1560020077328545e+23,
+            "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+            "budget_role": "model_conditional_continuation",
+            "compute_utilization": 1.0,
+            "d_tokens_raw": 299893000000.0,
+            "n_parameters_raw": 11965813034.175,
+            "predicted_loss": 2.0933829360742724,
+            "regime": "SATURATED:D_max",
+            "saturation": "SATURATED",
+            "spent_flops": 1.1560020077328545e+23,
+            "status": "VALID_ALLOCATION",
+            "unused_budget_flops": 0.0
+          },
+          "budget_flops": 1.1560031637360184e+23,
+          "category": "budget_slack_onset_at_validity_ceiling",
+          "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+          "disposition": "RETAINED_REGIME_TRANSITION",
+          "name": "C_box",
+          "parameter_dependent": false,
+          "span_status": "inside_declared_span"
+        },
+        {
+          "above": null,
+          "at": null,
+          "below": null,
+          "budget_flops": 3.4608196787659744e+23,
+          "category": "validity_boundary_active_set_transition",
+          "derivation": "kappa * N_s * D_s where the equality-slice stationary point has N_max",
+          "disposition": "NOT_A_TRANSITION_OUTSIDE_C_MIN_C_BOX",
+          "name": "stationary_reaches_N_max",
+          "parameter_dependent": true,
+          "span_status": "inside_declared_span"
+        }
+      ]
+    }
+  ],
+  "categories": {
+    "analysis_source_support_boundary": "boundary of the declared analysis/source budget span",
+    "budget_slack_onset_at_validity_ceiling": "onset of budget slack at the validity ceiling C_box (model statement)",
+    "empirical_physical_transition": "no empirical physical transition is established by this model",
+    "feasibility_onset_at_box_lower_corner": "onset of feasibility at C_min (model statement)",
+    "validity_boundary_active_set_transition": "validity-boundary active-set transition (model statement)"
+  },
+  "claim_level": "model-conditional continuation of the accepted classic IF3 law; not observation",
+  "classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+  "cost_parity_identity": {
+    "role": "base/attention cost parity only; not a regime threshold",
+    "tokens": 30000.0
+  },
+  "definition": {
+    "elasticity_check": "central finite difference at relative step 0.0001 at each interval's geometric midpoint, tolerance 1e-06",
+    "identification": "candidates C_min, C_box and the budgets where the stationary path reaches each box bound; retained only if the constrained optimizer changes regime between probes at relative offsets -/+1e-06 inside the declared span",
+    "regime": "R(C) = INFEASIBLE for C < C_min; otherwise (SATURATED or SLACK, complete active IF3 box-bound set)",
+    "structural_transition": "a budget at which R(C) changes; equivalently a jump of the budget elasticities d log N*/d log C and d log D*/d log C"
+  },
+  "observed_contexts_tokens": [
+    2048,
+    4096,
+    8192,
+    32768,
+    131072
+  ],
+  "purpose": "T-010 budget regime map and structural-transition identification",
+  "schema_version": "q3-regime-thresholds-v2",
+  "source_supported_budgets_flops": [
+    1e+19,
+    1e+22,
+    1e+24
+  ]
+}

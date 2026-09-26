@@ -1,0 +1,1212 @@
+{
+  "item_count": 42,
+  "items": [
+    {
+      "category": "formula",
+      "derivation": "organizer wording 'total cost does not exceed C' verified at its paragraph",
+      "id": "S1",
+      "limitation": "an inequality; saturation holds only for C < C_box",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[35]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[29]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": "C_total <= C"
+    },
+    {
+      "category": "coefficient",
+      "derivation": "parsed from structured OMML {C}_{train}=6ND",
+      "id": "S2",
+      "limitation": "the organizer calls it the Chinchilla approximation",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[30]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:tbl[1]/w:tr[6]/w:tc[2]/w:p[1]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": 6
+    },
+    {
+      "category": "coefficient",
+      "derivation": "parsed from structured OMML eta=2x{10}^{-4}",
+      "id": "S3",
+      "limitation": "the organizer calls C_attn a simplified compute proxy",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[34]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[34]/m:oMath[2]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": 0.0002
+    },
+    {
+      "category": "budget",
+      "derivation": "parsed from structured OMML {10}^{19}, {10}^{22}, {10}^{24} (FLOPs)",
+      "id": "S4",
+      "limitation": "suggested representative budgets; other budgets are model-conditional continuation",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[29]/m:oMath[7]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[29]/m:oMath[8]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[29]/m:oMath[9]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": [
+        1e+19,
+        1e+22,
+        1e+24
+      ]
+    },
+    {
+      "category": "formula",
+      "derivation": "structured OMML with positive-part subscript verified in two places",
+      "id": "S5",
+      "limitation": "stated conditionally ('if the incremental form is adopted')",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[32]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[48]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[31]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": "C_Q = D [g(Q) - g(Q0)]_+"
+    },
+    {
+      "category": "quality_domain",
+      "derivation": "parsed from structured OMML Q in (0,1]",
+      "id": "S6",
+      "limitation": "Q = 0 is not admissible",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[31]/m:oMath[3]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "lower": 0.0,
+        "lower_inclusive": false,
+        "upper": 1.0,
+        "upper_inclusive": true
+      }
+    },
+    {
+      "category": "quality_baseline",
+      "derivation": "organizer wording verified at its paragraph",
+      "id": "S7",
+      "limitation": "no global numeric Q0 is given; nonbaseline cost scenarios are blocked",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[31]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": [
+        "Attachment A quality scoring",
+        "a reasonable declared assumption"
+      ]
+    },
+    {
+      "category": "quality_cost_parameter",
+      "derivation": "gamma and lambda parsed from structured OMML in Appendix B.1",
+      "id": "S8",
+      "limitation": "a cost expression, not a loss-benefit model",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[49]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[49]/m:oMath[2]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[49]/m:oMath[3]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "family": "exponential",
+        "gamma_flops_per_token": 10000000.0,
+        "lambda": 6.0
+      }
+    },
+    {
+      "category": "quality_cost_parameter",
+      "derivation": "gamma and lambda parsed from structured OMML in Appendix B.1",
+      "id": "S9",
+      "limitation": "a cost expression, not a loss-benefit model",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[50]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[50]/m:oMath[2]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[50]/m:oMath[3]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "family": "power",
+        "gamma_flops_per_token": 5000000000.0,
+        "lambda": 4.0
+      }
+    },
+    {
+      "category": "quality_cost_parameter",
+      "derivation": "gamma and lambda parsed from structured OMML in Appendix B.1",
+      "id": "S10",
+      "limitation": "a cost expression, not a loss-benefit model",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[51]/m:oMath[1]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[51]/m:oMath[2]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[51]/m:oMath[3]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "family": "logarithmic",
+        "gamma_flops_per_token": 2000000000.0,
+        "lambda": 10.0
+      }
+    },
+    {
+      "category": "semantics",
+      "derivation": "organizer wording verified in the Q3 text and Appendix A",
+      "id": "S11",
+      "limitation": "the observed grid is not interpolated or extended",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[29]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[45]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": "L_ctx exogenous, from C7, not an interior optimization variable"
+    },
+    {
+      "category": "requirement",
+      "derivation": "organizer wording verified",
+      "id": "S12",
+      "limitation": "answered by a model-conditional regime map, not an empirical finding",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[35]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[27]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": "define and identify structural transfer as C spans magnitudes"
+    },
+    {
+      "category": "semantics",
+      "derivation": "organizer wording verified",
+      "id": "S13",
+      "limitation": "a default stated by the organizer",
+      "sources": [
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[35]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": "training, quality processing and attention share D"
+    },
+    {
+      "category": "context_value",
+      "derivation": "unique values of max_position_embeddings over all 45 C7 rows",
+      "id": "C1",
+      "limitation": "observed architecture metadata; no preferred context",
+      "sources": [
+        {
+          "kind": "organizer_attachment",
+          "locator": "max_position_embeddings",
+          "path": "data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv",
+          "sha256": "ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc"
+        },
+        {
+          "kind": "organizer_manifest",
+          "locator": "record C_efficiency_evolution/model_architecture_metadata.csv",
+          "path": "data_local/problem-f/raw/real_attachments/source_manifest.json",
+          "sha256": "34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db"
+        },
+        {
+          "kind": "intake_receipt",
+          "locator": "C7 row",
+          "path": "data_local/problem-f/raw/attachment_sha256_manifest.tsv",
+          "sha256": "5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": [
+        2048,
+        4096,
+        8192,
+        32768,
+        131072
+      ]
+    },
+    {
+      "category": "formula",
+      "derivation": "sum of the two per-parameter-token cost terms",
+      "id": "C2",
+      "limitation": "Q = Q0, so delta_g = 0",
+      "sources": [
+        {
+          "id": "S2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S3",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "C1",
+          "kind": "ledger_item"
+        }
+      ],
+      "status": "DERIVED",
+      "value": "kappa(L_ctx) = 6 + eta L_ctx"
+    },
+    {
+      "category": "threshold",
+      "derivation": "L_ctx^crit = 6 / eta",
+      "id": "C3",
+      "limitation": "base/attention cost parity only; not an optimum, transition or optimizer threshold",
+      "sources": [
+        {
+          "id": "S2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "canonical_docx",
+          "locator": "w:body/w:p[35]/m:oMath[6]",
+          "path": "docs_local/problem-f/source/problem_statement.docx",
+          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        }
+      ],
+      "status": "DERIVED",
+      "value": 30000.0
+    },
+    {
+      "category": "interface",
+      "derivation": "hash, shared contract and partial coverage verified; content withheld",
+      "id": "I1",
+      "limitation": "identity only; no IF1 quality enters Q3",
+      "sources": [
+        {
+          "kind": "accepted_interface",
+          "path": "data_local/problem-f/interfaces/q1-if1-domain-quality.json",
+          "sha256": "b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8"
+        },
+        {
+          "kind": "tracked_upstream_artifact",
+          "locator": "sha256 row",
+          "path": "results/tables/q1-if1-summary.md"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "coverage_fraction": 0.5646359074665894,
+        "mixture_domains": 17,
+        "q3_use": "identity receipt only; no IF1 quality is a Q3 quality coordinate or imputed",
+        "sha256": "b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8",
+        "unmapped_mixture_domains": 11
+      }
+    },
+    {
+      "category": "interface",
+      "derivation": "hash, shared contract and 1M-only scope receipt verified; content withheld",
+      "id": "I2",
+      "limitation": "identity only; 1M-only; no IF2 coefficient enters Q3",
+      "sources": [
+        {
+          "kind": "accepted_interface",
+          "path": "data_local/problem-f/interfaces/q1-if2-mixture-response.json",
+          "sha256": "9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91"
+        },
+        {
+          "kind": "tracked_upstream_artifact",
+          "locator": "sha256 row",
+          "path": "results/tables/q1-if2-summary.md"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "absolute_use_outside_1M": "PROHIBITED",
+        "fit_scale": "1M",
+        "fitted_10B_70B_extrapolation": "NOT RELEASED",
+        "q3_use": "identity receipt only; no IF2 coefficient enters Q3",
+        "scale_invariance_supported": false,
+        "sha256": "9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91"
+      }
+    },
+    {
+      "category": "formula",
+      "derivation": "accepted bytes hash-checked and shared contract validated; Q=[1,1] is a no-quality sentinel",
+      "id": "I3",
+      "limitation": "B1 generator recovery; not precise empirical knowledge of real scaling",
+      "sources": [
+        {
+          "kind": "accepted_interface",
+          "locator": "params; validity_box",
+          "path": "data_local/problem-f/interfaces/IF3_classic.json",
+          "sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514"
+        },
+        {
+          "kind": "tracked_upstream_artifact",
+          "locator": "SHA-256 row",
+          "path": "results/tables/q2-final-closure.md"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": {
+        "law": "E + A N^-alpha + B D^-beta",
+        "params": {
+          "A": 406.2684947156526,
+          "B": 409.7441057637582,
+          "E": 1.6898249624784394,
+          "alpha": 0.33998263910206994,
+          "beta": 0.27988792740528606
+        },
+        "validity_box": {
+          "D": [
+            134000000.00000001,
+            299893000000.0
+          ],
+          "N": [
+            70542000.0,
+            11965825000.0
+          ],
+          "Q": [
+            1.0,
+            1.0
+          ]
+        }
+      }
+    },
+    {
+      "category": "robustness_input",
+      "derivation": "eight complete five-parameter vectors parsed at their printed .6g precision",
+      "id": "L1",
+      "limitation": "robustness ranges only; published precision limits the loss ranges",
+      "sources": [
+        {
+          "git_blob_sha1": "ac21054bd0e09f4fd504389fa9a1277dfbb669e5",
+          "kind": "tracked_upstream_artifact",
+          "locator": "Per-trajectory detail",
+          "path": "results/tables/q2-uncertainty-robustness.md",
+          "sha256": "b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43"
+        }
+      ],
+      "status": "VERIFIED",
+      "value": [
+        "0.070542",
+        "0.162405",
+        "0.409009",
+        "1.040867",
+        "1.416184",
+        "2.782831",
+        "6.86104",
+        "11.965825"
+      ]
+    },
+    {
+      "category": "conclusion",
+      "derivation": "exact candidate-set solution of min L s.t. kappa N D <= C in the IF3 box; numerical check PASS",
+      "id": "R-alloc-1e+19",
+      "limitation": "consequence of the accepted law inside its box; not an observation or developer guidance",
+      "sources": [
+        {
+          "id": "S1",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S4",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "allocations[budget=1e+19]",
+          "path": "results/tables/q3-allocation.json",
+          "sha256": "6709c7db2843c6b81f0118dffc11bd7c1b085992e66c7204b4404673d536ed59"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 1e+19,
+        "compute_utilization": 0.9999999999999998,
+        "context_tokens": 4096,
+        "d_tokens_raw": 6814144239.165979,
+        "n_parameters_raw": 215206433.21843827,
+        "predicted_loss": 3.0114366630445843,
+        "regime": "SATURATED:interior"
+      }
+    },
+    {
+      "category": "conclusion",
+      "derivation": "exact candidate-set solution of min L s.t. kappa N D <= C in the IF3 box; numerical check PASS",
+      "id": "R-alloc-1e+22",
+      "limitation": "consequence of the accepted law inside its box; not an observation or developer guidance",
+      "sources": [
+        {
+          "id": "S1",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S4",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "allocations[budget=1e+22]",
+          "path": "results/tables/q3-allocation.json",
+          "sha256": "6709c7db2843c6b81f0118dffc11bd7c1b085992e66c7204b4404673d536ed59"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 1e+22,
+        "compute_utilization": 1.0,
+        "context_tokens": 4096,
+        "d_tokens_raw": 299893000000.0,
+        "n_parameters_raw": 4889902989.222421,
+        "predicted_loss": 2.1475143490254687,
+        "regime": "SATURATED:D_max"
+      }
+    },
+    {
+      "category": "conclusion",
+      "derivation": "exact candidate-set solution of min L s.t. kappa N D <= C in the IF3 box; numerical check PASS",
+      "id": "R-alloc-1e+24",
+      "limitation": "consequence of the accepted law inside its box; not an observation or developer guidance",
+      "sources": [
+        {
+          "id": "S1",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S4",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "allocations[budget=1e+24]",
+          "path": "results/tables/q3-allocation.json",
+          "sha256": "6709c7db2843c6b81f0118dffc11bd7c1b085992e66c7204b4404673d536ed59"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 1e+24,
+        "compute_utilization": 0.02447047523513912,
+        "context_tokens": 4096,
+        "d_tokens_raw": 299893000000.0,
+        "n_parameters_raw": 11965825000.0,
+        "predicted_loss": 2.093382884320187,
+        "regime": "SLACK:N_max+D_max"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+      "id": "T-C_min-2048",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=2048].thresholds.C_min",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 6.058756442880001e+16,
+        "category": "feasibility_onset_at_box_lower_corner",
+        "context_tokens": 2048,
+        "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+      "id": "T-stationary_reaches_D_max-2048",
+      "limitation": "depends on IF3 parameters; LOO range in q3-loo-robustness",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=2048].thresholds.stationary_reaches_D_max",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 9.326006734399177e+21,
+        "category": "validity_boundary_active_set_transition",
+        "context_tokens": 2048,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+      "id": "T-C_box-2048",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=2048].thresholds.C_box",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 2.300063908774456e+22,
+        "category": "budget_slack_onset_at_validity_ceiling",
+        "context_tokens": 2048,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+      "id": "T-C_min-4096",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=4096].thresholds.C_min",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 6.445936085760001e+16,
+        "category": "feasibility_onset_at_box_lower_corner",
+        "context_tokens": 4096,
+        "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+      "id": "T-stationary_reaches_D_max-4096",
+      "limitation": "depends on IF3 parameters; LOO range in q3-loo-robustness",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=4096].thresholds.stationary_reaches_D_max",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 9.921977209687793e+21,
+        "category": "validity_boundary_active_set_transition",
+        "context_tokens": 4096,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+      "id": "T-C_box-4096",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=4096].thresholds.C_box",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 2.447047523513912e+22,
+        "category": "budget_slack_onset_at_validity_ceiling",
+        "context_tokens": 4096,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+      "id": "T-C_min-8192",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=8192].thresholds.C_min",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 7.22029537152e+16,
+        "category": "feasibility_onset_at_box_lower_corner",
+        "context_tokens": 8192,
+        "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+      "id": "T-stationary_reaches_D_max-8192",
+      "limitation": "depends on IF3 parameters; LOO range in q3-loo-robustness",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=8192].thresholds.stationary_reaches_D_max",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 1.111391816026502e+22,
+        "category": "validity_boundary_active_set_transition",
+        "context_tokens": 8192,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+      "id": "T-C_box-8192",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=8192].thresholds.C_box",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 2.741014752992824e+22,
+        "category": "budget_slack_onset_at_validity_ceiling",
+        "context_tokens": 8192,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+      "id": "T-C_min-32768",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=32768].thresholds.C_min",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 1.186645108608e+17,
+        "category": "feasibility_onset_at_box_lower_corner",
+        "context_tokens": 32768,
+        "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+      "id": "T-stationary_reaches_D_max-32768",
+      "limitation": "depends on IF3 parameters; LOO range in q3-loo-robustness",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=32768].thresholds.stationary_reaches_D_max",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 1.8265563863728393e+22,
+        "category": "validity_boundary_active_set_transition",
+        "context_tokens": 32768,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+      "id": "T-C_box-32768",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=32768].thresholds.C_box",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 4.504818129866296e+22,
+        "category": "budget_slack_onset_at_validity_ceiling",
+        "context_tokens": 32768,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_min * D_min (box geometry and receipt kappa only)",
+      "id": "T-C_min-131072",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=131072].thresholds.C_min",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 3.045107394432e+17,
+        "category": "feasibility_onset_at_box_lower_corner",
+        "context_tokens": 131072,
+        "disposition": "OUTSIDE_DECLARED_SPAN_NOT_ANALYSED"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_s * D_s where the equality-slice stationary point has D_max",
+      "id": "T-stationary_reaches_D_max-131072",
+      "limitation": "depends on IF3 parameters; LOO range in q3-loo-robustness",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=131072].thresholds.stationary_reaches_D_max",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "budget_flops": 4.687214667758188e+22,
+        "category": "validity_boundary_active_set_transition",
+        "context_tokens": 131072,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "threshold",
+      "derivation": "kappa * N_max * D_max (box geometry and receipt kappa only)",
+      "id": "T-C_box-131072",
+      "limitation": "box geometry; no parameter uncertainty",
+      "sources": [
+        {
+          "id": "C2",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[L=131072].thresholds.C_box",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "budget_flops": 1.1560031637360184e+23,
+        "category": "budget_slack_onset_at_validity_ceiling",
+        "context_tokens": 131072,
+        "disposition": "RETAINED_REGIME_TRANSITION"
+      }
+    },
+    {
+      "category": "conclusion",
+      "derivation": "regime R(C) changes verified by below/at/above probes inside the declared span",
+      "id": "R-regimes",
+      "limitation": "no empirical physical transition is established",
+      "sources": [
+        {
+          "id": "S12",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "C1",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "analyses[*].regime_map",
+          "path": "results/tables/q3-regime-thresholds.json",
+          "sha256": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": [
+        "SATURATED:D_max",
+        "SATURATED:interior",
+        "SLACK:N_max+D_max"
+      ]
+    },
+    {
+      "category": "conclusion",
+      "derivation": "each published LOO vector solved with the corrected optimizer; 32-corner rounding envelopes",
+      "id": "R-loo",
+      "limitation": "robustness ranges, not confidence intervals",
+      "sources": [
+        {
+          "id": "L1",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "summaries; thresholds",
+          "path": "results/tables/q3-loo-robustness.json",
+          "sha256": "abf9b0c0d01afdc1eb7173a796a7b26078774c041ee483a167c1b096b9fe97ce"
+        }
+      ],
+      "status": "MODEL_CONDITIONAL",
+      "value": {
+        "loss_ranges_resolved": [
+          "NOT_RESOLVED_AT_PUBLISHED_PRECISION"
+        ],
+        "regime_agreement_all_primary_points": true
+      }
+    },
+    {
+      "category": "conclusion",
+      "derivation": "analytic monotone-piece decomposition and Brent refinement",
+      "id": "R-quality-raw",
+      "limitation": "raw g(Q) only; says nothing about delta_g ordering or allocation",
+      "sources": [
+        {
+          "id": "S6",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S8",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S9",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S10",
+          "kind": "ledger_item"
+        },
+        {
+          "kind": "tracked_q3_artifact",
+          "locator": "raw_family_analysis.pairs",
+          "path": "results/tables/q3-quality-cost-sensitivity.json",
+          "sha256": "04333ea4667e6db4f664055f75793ac5b95dcfa05f8f66e5a30b65fed0fd36e2"
+        }
+      ],
+      "status": "DERIVED",
+      "value": [
+        0.36638179617650124,
+        0.0005027702573235966,
+        0.9885477188922211
+      ]
+    },
+    {
+      "category": "conclusion",
+      "derivation": "[g(Q0) - g(Q0)]_+ = 0; no numeric Q0; classic IF3 has no quality term",
+      "id": "R-quality-gates",
+      "limitation": "does not assert that data quality is unimportant in reality",
+      "sources": [
+        {
+          "id": "S5",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "S7",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I1",
+          "kind": "ledger_item"
+        },
+        {
+          "id": "I3",
+          "kind": "ledger_item"
+        }
+      ],
+      "status": "DERIVED",
+      "value": {
+        "baseline_quality_flops": 0.0,
+        "cross_scale_benefit": "PROHIBITED",
+        "nonbaseline": "BLOCKED_UNTIL_Q0_DECLARED"
+      }
+    }
+  ],
+  "pdf_dependent_items": 0,
+  "purpose": "T-010 itemized provenance of every load-bearing Q3 value, threshold and conclusion",
+  "schema_version": "q3-provenance-ledger-v1",
+  "unverified_items": 0
+}

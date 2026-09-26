@@ -1,39 +1,243 @@
 {
   "baseline_identity": {
     "delta_g_flops_per_token": 0.0,
-    "identity": "[g(Q0) - g(Q0)]_+ = 0",
-    "quality_coordinate": "Q0",
-    "quality_preprocessing_flops": 0.0
+    "identity": "[g(Q0) - g(Q0)]_+ = 0 for every family",
+    "quality_coordinate": "Q0"
   },
+  "claim_level": "sensitivity analysis of organizer cost expressions; not a loss-benefit model",
   "cross_scale_quality_benefit_gate": {
-    "reason": "Classic IF3 has no accepted quality-loss term; the receipt supplies a cost expression, not a cross-scale benefit model.",
+    "reason": "Classic IF3 has no quality-loss term; g(Q) is a cost expression, not a benefit model.",
     "result": "PROHIBITED"
   },
-  "limitation": "No source-established global scalar Q0 is supplied here. IF1's partially mapped relative proxy is not substituted for Q0, and no unmapped mass is imputed.",
-  "numeric_nonbaseline_scenarios_ran": false,
-  "purpose": "T-010 blocked nonbaseline quality-cost status report; no numeric scenario",
-  "quality_baseline_gate": {
-    "reason": "The source defines Q0 semantically but supplies no global scalar value. A scenario may proceed only after a Q0 source or explicitly declared assumption is provided; no IF1 proxy substitution or unmapped-mass imputation is permitted.",
+  "if1_identity": {
+    "coverage_fraction": 0.5646359074665894,
+    "mixture_domains": 17,
+    "q3_use": "identity receipt only; no IF1 quality is a Q3 quality coordinate or imputed",
+    "unmapped_mixture_domains": 11
+  },
+  "nonbaseline_gate": {
+    "reason": "The source defines Q0 semantically (Attachment A quality scores or a reasonable assumption) but gives no global scalar. No IF1 substitution or unmapped-mass imputation is permitted.",
     "result": "BLOCKED_UNTIL_Q0_DECLARED"
   },
-  "quality_cost_families": {
-    "exponential": {
-      "formula": "g(Q) = gamma exp(lambda Q)",
-      "gamma": "1e7",
-      "lambda": "6.0"
-    },
-    "logarithmic_asymptotic": {
-      "formula": "g(Q) = gamma ln(1 + lambda Q)",
-      "gamma": "2e9",
-      "lambda": "10.0"
-    },
-    "power": {
-      "formula": "g(Q) = gamma Q^lambda",
-      "gamma": "5e9",
-      "lambda": "4.0"
-    }
-  },
+  "numeric_nonbaseline_scenarios_ran": false,
+  "purpose": "T-010 raw g(Q) family comparison and quality-lane status",
+  "quality_optimization": "UNSUPPORTED: classic IF3 has no quality term",
   "quality_optimization_ran": false,
+  "raw_family_analysis": {
+    "domain": {
+      "interval": "(0, 1]",
+      "q_zero_admissible": false,
+      "unit_g": "FLOPs per token",
+      "unit_q": "dimensionless"
+    },
+    "families": {
+      "exponential": {
+        "gamma_flops_per_token": 10000000.0,
+        "lambda": 6.0,
+        "limit_q_to_0_plus_flops_per_token": 10000000.0,
+        "strictly_increasing_on_domain": true,
+        "value_at_q_1_flops_per_token": 4034287934.927351
+      },
+      "logarithmic": {
+        "gamma_flops_per_token": 2000000000.0,
+        "lambda": 10.0,
+        "limit_q_to_0_plus_flops_per_token": 0.0,
+        "strictly_increasing_on_domain": true,
+        "value_at_q_1_flops_per_token": 4795790545.596742
+      },
+      "power": {
+        "gamma_flops_per_token": 5000000000.0,
+        "lambda": 4.0,
+        "limit_q_to_0_plus_flops_per_token": 0.0,
+        "strictly_increasing_on_domain": true,
+        "value_at_q_1_flops_per_token": 5000000000.0
+      }
+    },
+    "grid_screen_cross_check": {
+      "points": 20001,
+      "range": "geometric 1e-12 to 1",
+      "role": "consistency check only; crossing counts rest on the analytic monotone-piece argument",
+      "sign_changes": {
+        "exponential_vs_logarithmic": 1,
+        "exponential_vs_power": 1,
+        "power_vs_logarithmic": 1
+      }
+    },
+    "interpretation": "Raw g(Q) comparison only. No numeric Q0, no delta_g(Q;Q0), no normalization or calibration, no quality allocation and no Q optimization. A raw-g ordering does not order delta_g, which depends on each family's increment between Q0 and Q, and no family is a loss-benefit model.",
+    "interval_ordering": [
+      {
+        "ascending_by_raw_g": [
+          "power",
+          "logarithmic",
+          "exponential"
+        ],
+        "interval": [
+          0.0,
+          0.0005027702573235966
+        ],
+        "interval_form": "(0.0, 0.0005027702573235966)"
+      },
+      {
+        "ascending_by_raw_g": [
+          "power",
+          "exponential",
+          "logarithmic"
+        ],
+        "interval": [
+          0.0005027702573235966,
+          0.36638179617650124
+        ],
+        "interval_form": "(0.0005027702573235966, 0.36638179617650124)"
+      },
+      {
+        "ascending_by_raw_g": [
+          "exponential",
+          "power",
+          "logarithmic"
+        ],
+        "interval": [
+          0.36638179617650124,
+          0.9885477188922211
+        ],
+        "interval_form": "(0.36638179617650124, 0.9885477188922211)"
+      },
+      {
+        "ascending_by_raw_g": [
+          "exponential",
+          "logarithmic",
+          "power"
+        ],
+        "interval": [
+          0.9885477188922211,
+          1.0
+        ],
+        "interval_form": "(0.9885477188922211, 1.0]"
+      }
+    ],
+    "method": "Analytic monotone-piece decomposition of phi = ln g_i - ln g_j, sign test at each piece end (Q->0+ by its analytic limit), Brent root refinement with xtol 1e-15 and rtol 4*eps; deterministic, no random numbers.",
+    "pairs": [
+      {
+        "crossing_count": 1,
+        "crossing_count_is_exact": true,
+        "crossings": [
+          {
+            "g_value_flops_per_token": 90096009.14841953,
+            "q": 0.36638179617650124,
+            "relative_residual": 2.6462723638380476e-15
+          }
+        ],
+        "interior_stationary_q": 0.6666666666666666,
+        "log_difference_shape": "strictly convex",
+        "monotone_pieces": [
+          {
+            "bracket": [
+              0.3333333333333333,
+              0.6666666666666666
+            ],
+            "interval": [
+              0.0,
+              0.6666666666666666
+            ],
+            "left_end": "limit Q->0+",
+            "phi_left": "+inf",
+            "phi_right": -0.5927476659895312,
+            "root": 0.36638179617650124
+          },
+          {
+            "interval": [
+              0.6666666666666666,
+              1.0
+            ],
+            "left_end": "Q=0.6666666666666666",
+            "phi_left": -0.5927476659895312,
+            "phi_right": -0.21460809842218964,
+            "root": null
+          }
+        ],
+        "pair": [
+          "exponential",
+          "power"
+        ]
+      },
+      {
+        "crossing_count": 1,
+        "crossing_count_is_exact": true,
+        "crossings": [
+          {
+            "g_value_flops_per_token": 10030211.76125376,
+            "q": 0.0005027702573235966,
+            "relative_residual": 1.6713312482430747e-15
+          }
+        ],
+        "interior_stationary_q": 0.11618259540273473,
+        "log_difference_shape": "strictly convex",
+        "monotone_pieces": [
+          {
+            "bracket": [
+              0.00045383826329193255,
+              0.11618259540273473
+            ],
+            "interval": [
+              0.0,
+              0.11618259540273473
+            ],
+            "left_end": "limit Q->0+",
+            "phi_left": "+inf",
+            "phi_right": -4.341094204221111,
+            "root": 0.0005027702573235966
+          },
+          {
+            "interval": [
+              0.11618259540273473,
+              1.0
+            ],
+            "left_end": "Q=0.11618259540273473",
+            "phi_left": -4.341094204221111,
+            "phi_right": -0.17290874947172696,
+            "root": null
+          }
+        ],
+        "pair": [
+          "exponential",
+          "logarithmic"
+        ]
+      },
+      {
+        "crossing_count": 1,
+        "crossing_count_is_exact": true,
+        "crossings": [
+          {
+            "g_value_flops_per_token": 4774859065.709792,
+            "q": 0.9885477188922211,
+            "relative_residual": 4.993206622866493e-15
+          }
+        ],
+        "interior_stationary_q": null,
+        "log_difference_shape": "strictly increasing",
+        "monotone_pieces": [
+          {
+            "bracket": [
+              0.5,
+              1.0
+            ],
+            "interval": [
+              0.0,
+              1.0
+            ],
+            "left_end": "limit Q->0+",
+            "phi_left": "-inf",
+            "phi_right": 0.04169934895046268,
+            "root": 0.9885477188922211
+          }
+        ],
+        "pair": [
+          "power",
+          "logarithmic"
+        ]
+      }
+    ]
+  },
+  "raw_g_comparison": "DONE",
   "receipt_path": "results/tables/q3-source-receipt.json",
-  "schema_version": "q3-quality-cost-sensitivity-v1"
+  "schema_version": "q3-quality-cost-sensitivity-v3"
 }

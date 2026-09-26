@@ -1,101 +1,190 @@
 {
   "allocations": [
     {
-      "active_boundary": "none",
+      "active_bounds": [],
       "budget_flops": 1e+19,
-      "budget_saturation_residual_flops": 2048.0,
+      "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+      "budget_role": "source_supported_representative_budget",
+      "c_box_flops": 2.447047523513912e+22,
+      "c_min_flops": 6.445936085760001e+16,
       "context_tokens": 4096,
       "cost": {
         "attention_flops": 1.2013139371187236e+18,
-        "attention_share": 0.12013139371187238,
+        "attention_fraction_of_budget": 0.12013139371187236,
+        "attention_share_of_spent": 0.12013139371187238,
         "base_flops": 8.798686062881275e+18,
-        "base_share": 0.8798686062881277,
-        "budget_residual_flops": 2048.0,
+        "base_fraction_of_budget": 0.8798686062881275,
+        "base_share_of_spent": 0.8798686062881277,
+        "component_reconciliation_residual_flops": 0.0,
+        "compute_utilization": 0.9999999999999998,
         "quality_flops": 0.0,
-        "quality_share": 0.0,
-        "total_flops": 9.999999999999998e+18
+        "quality_fraction_of_budget": 0.0,
+        "quality_share_of_spent": 0.0,
+        "requested_budget_flops": 1e+19,
+        "spent_flops": 9.999999999999998e+18,
+        "unused_budget_flops": 2048.0,
+        "unused_fraction_of_budget": 2.048e-16
       },
       "d_tokens_raw": 6814144239.165979,
-      "feasibility_label": "interior",
       "kappa_flops_per_parameter_token": 6.8192,
       "n_parameters_raw": 215206433.21843827,
-      "predicted_loss": 3.0114366630445843,
-      "stationary_residual_dloss_dlog_n": -1.1102230246251565e-16,
-      "status": "VALID_ALLOCATION",
-      "unconstrained_diagnostic": {
-        "d_tokens_raw": 6814144239.165979,
-        "inside_canonical_validity_box": true,
-        "n_parameters_raw": 215206433.21843827,
-        "predicted_loss": 3.0114366630445843
+      "numerical_check": {
+        "analytic_not_improved": true,
+        "d_relative_difference": 2.64675409236838e-10,
+        "loss_relative_difference": 0.0,
+        "method": "geometric-grid global bracketing plus bounded Brent in log N; no analytic candidate used",
+        "n_relative_difference": 2.6467548674312097e-10,
+        "result": "PASS",
+        "tolerances": {
+          "loss_relative": 1e-11,
+          "n_d_relative": 1e-06
+        }
       },
-      "validity_labels": {
-        "active_boundary": "none",
-        "d_tokens": 6814144239.165979,
-        "in_validity_box": true,
-        "lower_constraints": [],
-        "n_parameters": 215206433.21843827,
-        "upper_constraints": []
-      }
+      "predicted_loss": 3.0114366630445843,
+      "quality_coordinate": "Q0",
+      "quality_flops": 0.0,
+      "regime": "SATURATED:interior",
+      "saturation": "SATURATED",
+      "stationary_point_diagnostic": {
+        "d_tokens_raw": 6814144239.165979,
+        "inside_validity_box": true,
+        "n_parameters_raw": 215206433.21843827,
+        "predicted_loss": 3.0114366630445843,
+        "role": "unconstrained equality-slice stationary point; diagnostic only when outside the box"
+      },
+      "stationary_residual_relative": -5.472256717996173e-16,
+      "status": "VALID_ALLOCATION"
     },
     {
-      "active_boundary": "D_max",
+      "active_bounds": [
+        "D_max"
+      ],
       "budget_flops": 1e+22,
-      "budget_saturation_residual_flops": 0.0,
+      "budget_geometry": "BETWEEN_C_MIN_AND_C_BOX",
+      "budget_role": "source_supported_representative_budget",
+      "c_box_flops": 2.447047523513912e+22,
+      "c_min_flops": 6.445936085760001e+16,
       "context_tokens": 4096,
       "cost": {
         "attention_flops": 1.2013139371187236e+21,
-        "attention_share": 0.12013139371187236,
+        "attention_fraction_of_budget": 0.12013139371187236,
+        "attention_share_of_spent": 0.12013139371187236,
         "base_flops": 8.798686062881277e+21,
-        "base_share": 0.8798686062881277,
-        "budget_residual_flops": 0.0,
+        "base_fraction_of_budget": 0.8798686062881277,
+        "base_share_of_spent": 0.8798686062881277,
+        "component_reconciliation_residual_flops": 0.0,
+        "compute_utilization": 1.0,
         "quality_flops": 0.0,
-        "quality_share": 0.0,
-        "total_flops": 1e+22
+        "quality_fraction_of_budget": 0.0,
+        "quality_share_of_spent": 0.0,
+        "requested_budget_flops": 1e+22,
+        "spent_flops": 1e+22,
+        "unused_budget_flops": 0.0,
+        "unused_fraction_of_budget": 0.0
       },
       "d_tokens_raw": 299893000000.0,
-      "feasibility_label": "active_validity_boundary",
       "kappa_flops_per_parameter_token": 6.8192,
       "n_parameters_raw": 4889902989.222421,
-      "predicted_loss": 2.1475143490254687,
-      "stationary_residual_dloss_dlog_n": 0.0001870821767165909,
-      "status": "VALID_ALLOCATION",
-      "unconstrained_diagnostic": {
-        "d_tokens_raw": 301184149511.3987,
-        "inside_canonical_validity_box": false,
-        "n_parameters_raw": 4868940412.454805,
-        "predicted_loss": 2.147513947143961
+      "numerical_check": {
+        "analytic_not_improved": true,
+        "d_relative_difference": 5.076273428147706e-12,
+        "loss_relative_difference": 4.135843935586162e-16,
+        "method": "geometric-grid global bracketing plus bounded Brent in log N; no analytic candidate used",
+        "n_relative_difference": 5.076222404003773e-12,
+        "result": "PASS",
+        "tolerances": {
+          "loss_relative": 1e-11,
+          "n_d_relative": 1e-06
+        }
       },
-      "validity_labels": {
-        "active_boundary": "D_max",
-        "d_tokens": 299893000000.0,
-        "in_validity_box": true,
-        "lower_constraints": [
-          "D_max"
-        ],
-        "n_parameters": 4889902989.222421,
-        "upper_constraints": []
-      }
+      "predicted_loss": 2.1475143490254687,
+      "quality_coordinate": "Q0",
+      "quality_flops": 0.0,
+      "regime": "SATURATED:D_max",
+      "saturation": "SATURATED",
+      "stationary_point_diagnostic": {
+        "d_tokens_raw": 301184149511.3987,
+        "inside_validity_box": false,
+        "n_parameters_raw": 4868940412.454805,
+        "predicted_loss": 2.147513947143961,
+        "role": "unconstrained equality-slice stationary point; diagnostic only when outside the box"
+      },
+      "stationary_residual_relative": 0.0026665909221565073,
+      "status": "VALID_ALLOCATION"
     },
     {
+      "active_bounds": [
+        "N_max",
+        "D_max"
+      ],
       "budget_flops": 1e+24,
+      "budget_geometry": "ABOVE_C_BOX",
+      "budget_role": "source_supported_representative_budget",
+      "c_box_flops": 2.447047523513912e+22,
+      "c_min_flops": 6.445936085760001e+16,
       "context_tokens": 4096,
-      "reason": "no point can simultaneously saturate this receipt-supported budget and remain inside the accepted raw N/D IF3 validity box",
-      "status": "NO_VALIDITY_BOX_ALLOCATION"
+      "cost": {
+        "attention_flops": 2.93967229478912e+21,
+        "attention_fraction_of_budget": 0.0029396722947891197,
+        "attention_share_of_spent": 0.12013139371187236,
+        "base_flops": 2.153080294035e+22,
+        "base_fraction_of_budget": 0.02153080294035,
+        "base_share_of_spent": 0.8798686062881277,
+        "component_reconciliation_residual_flops": 0.0,
+        "compute_utilization": 0.02447047523513912,
+        "quality_flops": 0.0,
+        "quality_fraction_of_budget": 0.0,
+        "quality_share_of_spent": 0.0,
+        "requested_budget_flops": 1e+24,
+        "spent_flops": 2.447047523513912e+22,
+        "unused_budget_flops": 9.755295247648608e+23,
+        "unused_fraction_of_budget": 0.9755295247648609
+      },
+      "d_tokens_raw": 299893000000.0,
+      "kappa_flops_per_parameter_token": 6.8192,
+      "n_parameters_raw": 11965825000.0,
+      "numerical_check": {
+        "analytic_not_improved": true,
+        "d_relative_difference": 0.0,
+        "loss_relative_difference": 0.0,
+        "method": "geometric-grid global bracketing plus bounded Brent in log N; no analytic candidate used",
+        "n_relative_difference": 0.0,
+        "result": "PASS",
+        "tolerances": {
+          "loss_relative": 1e-11,
+          "n_d_relative": 1e-06
+        }
+      },
+      "predicted_loss": 2.093382884320187,
+      "quality_coordinate": "Q0",
+      "quality_flops": 0.0,
+      "regime": "SLACK:N_max+D_max",
+      "saturation": "SLACK",
+      "stationary_point_diagnostic": {
+        "d_tokens_raw": 3765124191240.15,
+        "inside_validity_box": false,
+        "n_parameters_raw": 38948188762.50304,
+        "predicted_loss": 1.91553360241665,
+        "role": "unconstrained equality-slice stationary point; diagnostic only when outside the box"
+      },
+      "stationary_residual_relative": null,
+      "status": "VALID_ALLOCATION"
     }
   ],
+  "claim_level": "model-conditional; not direct observation or developer guidance",
   "classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+  "constraint": "kappa N D <= C inside the accepted IF3 raw N/D validity box",
   "cross_scale_quality_benefit": "PROHIBITED",
-  "presentation_context_role": "observed presentation row only; not a preferred regime or optimized context",
+  "presentation_context_role": "observed compact presentation row; not a preferred or optimized context",
   "presentation_context_tokens": 4096,
-  "purpose": "T-010 canonical baseline N-D allocation; no quality-coordinate optimization",
+  "purpose": "T-010 canonical baseline N-D allocation under C_total <= C; no quality optimization",
   "quality_coordinate": "Q0",
-  "quality_preprocessing_flops": 0.0,
   "receipt_path": "results/tables/q3-source-receipt.json",
-  "schema_version": "q3-allocation-v1",
+  "schema_version": "q3-allocation-v3",
   "uncertainty_evidence": {
-    "allocation_propagation_available": false,
-    "complete_parameter_vectors_released": false,
-    "limitation": "The accepted IF3 serialization supplies marginal bootstrap parameter intervals only; it does not release complete joint bootstrap parameter vectors. Allocation uncertainty bands are therefore not computed, and no joint samples are synthesized from marginals.",
+    "bootstrap_allocation_propagation": "NOT_PERFORMED",
+    "complete_bootstrap_vectors_released": false,
+    "limitation": "The accepted IF3 releases marginal model-clustered bootstrap intervals only, not joint bootstrap parameter vectors, so no bootstrap allocation band is computed and no joint draw is synthesized from marginals. Profile-identifiability ratios are not converted into allocation limits. Allocation robustness is reported separately from the eight complete published leave-one-trajectory-out vectors. The IF3 fit recovers a deterministic generator on B1, so its narrow intervals do not measure how precisely real model scaling is known.",
     "n_clusters": 8,
     "parameter_intervals": {
       "A": [

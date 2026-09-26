@@ -1,46 +1,475 @@
 {
+  "authorized_inputs": [
+    {
+      "key": "canonical_problem_statement_docx",
+      "kind": "organizer_source",
+      "path": "docs_local/problem-f/source/problem_statement.docx",
+      "role": "canonical methodological authority for every Q3 formula, coefficient, budget and domain",
+      "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+    },
+    {
+      "key": "c7_model_architecture_metadata",
+      "kind": "organizer_source",
+      "path": "data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv",
+      "role": "direct observed data: the C7 context-length grid (max_position_embeddings)",
+      "sha256": "ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc"
+    },
+    {
+      "key": "organizer_source_manifest",
+      "kind": "organizer_source",
+      "path": "data_local/problem-f/raw/real_attachments/source_manifest.json",
+      "role": "organizer description, byte count and row count of the C7 file",
+      "sha256": "34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db"
+    },
+    {
+      "key": "intake_sha256_manifest",
+      "kind": "intake_receipt",
+      "path": "data_local/problem-f/raw/attachment_sha256_manifest.tsv",
+      "role": "accepted T-006 intake SHA-256 record for the C7 file and the organizer manifest",
+      "sha256": "5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b"
+    },
+    {
+      "key": "accepted_if1",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/q1-if1-domain-quality.json",
+      "role": "identity and contract receipt only; content withheld from Q3",
+      "sha256": "b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8"
+    },
+    {
+      "key": "accepted_if2",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/q1-if2-mixture-response.json",
+      "role": "identity, contract and 1M-scope receipt only; content withheld from Q3",
+      "sha256": "9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91"
+    },
+    {
+      "key": "accepted_if3",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/IF3_classic.json",
+      "role": "sole canonical loss law and validity box",
+      "sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514"
+    },
+    {
+      "key": "accepted_q2_loo_evidence",
+      "kind": "tracked_upstream_artifact",
+      "path": "results/tables/q2-uncertainty-robustness.md",
+      "role": "published Q2 leave-one-trajectory-out parameter vectors for robustness propagation",
+      "sha256": "b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43"
+    }
+  ],
   "gates": {
     "canonical_baseline_nd_allocation": {
-      "reason": "The base, attention, context, budget, and baseline quality-cost semantics are established by permissible first-party evidence. At the source-defined baseline Q = Q0, delta_g(Q0) is exactly zero and no numeric global Q0 is needed to evaluate the classic N-D objective.",
+      "reason": "Base, attention, context, budget and baseline quality-cost semantics are verified at their canonical DOCX spans. At Q = Q0, delta_g(Q0) = 0 exactly and no numeric Q0 is needed.",
       "result": "PASS"
     },
     "cross_scale_quality_benefit": {
-      "reason": "Classic IF3 has no accepted quality-loss term; the receipt supplies a cost expression, not a cross-scale benefit model.",
+      "reason": "Classic IF3 has no quality-loss term; g(Q) is a cost expression, not a benefit model.",
       "result": "PROHIBITED"
     },
     "nonbaseline_quality_cost_scenarios": {
-      "reason": "The source defines Q0 semantically but supplies no global scalar value. A scenario may proceed only after a Q0 source or explicitly declared assumption is provided; no IF1 proxy substitution or unmapped-mass imputation is permitted.",
+      "reason": "The source defines Q0 semantically (Attachment A quality scores or a reasonable assumption) but gives no global scalar. No IF1 substitution or unmapped-mass imputation is permitted.",
       "result": "BLOCKED_UNTIL_Q0_DECLARED"
     }
   },
   "methodological_authority": {
     "path": "docs_local/problem-f/source/problem_statement.docx",
     "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
-    "verification": "SHA-256 and required semantic anchors verified before receipt emission"
+    "verification": "whole-file SHA-256 plus 30 value/wording checks at exact DOCX paragraph and OMML locators"
   },
   "purpose": "T-010 first-party source receipt; not an allocation result",
   "quarantined_material": {
-    "path": "docs_local/problem-f/source/data_description.original.pdf",
-    "role": "audit/location aid only; never read by this script and never used as mathematical authority"
+    "enforcement": "Any *.pdf path is rejected lexically at the Q3 input boundary and by the process-wide audit-hook guard before open, stat-through-open, hashing or parsing.",
+    "paths_metadata_only": [
+      {
+        "path": "docs_local/problem-f/source/data_description.original.pdf",
+        "role": "quarantined original; zero evidentiary weight; forbidden automated input"
+      },
+      {
+        "path": "docs_local/problem-f/audit/data_description.sanitized.m2.pdf",
+        "role": "non-authoritative derivative; forbidden load-bearing input"
+      }
+    ],
+    "status": "NOT_CONSUMED"
   },
-  "schema_version": "q3-source-receipt-v1",
+  "schema_version": "q3-source-receipt-v3",
+  "source_verification": {
+    "docx_sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+    "records": [
+      {
+        "description": "Question 3 is joint multi-resource optimization under compute constraint and structural transfer",
+        "key": "q3_title_structural_transfer",
+        "locator": "w:body/w:p[27]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "问题三：算力约束下的多维资源联合优化与结构性转移"
+        ]
+      },
+      {
+        "description": "the allocation is solved with total cost not exceeding C, i.e. C_total <= C",
+        "key": "budget_inequality",
+        "locator": "w:body/w:p[35]",
+        "status": "VERIFIED",
+        "verification_mode": "semantics fixed by the verified organizer wording",
+        "verified_fragments": [
+          "在总成本不超过 ⟦C⟧ 的条件下求解资源配置"
+        ],
+        "verified_value": "C_total <= C"
+      },
+      {
+        "description": "the total compute budget is C and consumption consists of three parts",
+        "key": "total_budget_three_parts",
+        "locator": "w:body/w:p[29]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "设总算力预算为 ⟦C⟧",
+          "算力消耗由以下三部分组成"
+        ]
+      },
+      {
+        "description": "suggested low representative budget in FLOPs",
+        "key": "representative_budget_low",
+        "locator": "w:body/w:p[29]",
+        "math_locator": "w:body/w:p[29]/m:oMath[7]",
+        "status": "VERIFIED",
+        "structured_math": "C={10}^{19}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [
+          "建议考察低、中、高三档典型预算"
+        ],
+        "verified_value": 1e+19
+      },
+      {
+        "description": "suggested medium representative budget in FLOPs",
+        "key": "representative_budget_medium",
+        "locator": "w:body/w:p[29]",
+        "math_locator": "w:body/w:p[29]/m:oMath[8]",
+        "status": "VERIFIED",
+        "structured_math": "{10}^{22}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [
+          "⟦{10}^{22}⟧"
+        ],
+        "verified_value": 1e+22
+      },
+      {
+        "description": "suggested high representative budget in FLOPs; other levels allowed, at least three magnitudes required",
+        "key": "representative_budget_high",
+        "locator": "w:body/w:p[29]",
+        "math_locator": "w:body/w:p[29]/m:oMath[9]",
+        "status": "VERIFIED",
+        "structured_math": "{10}^{24}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [
+          "⟦{10}^{24}⟧ FLOPs",
+          "可自行选取其他档位，但须至少考察三个不同量级的预算"
+        ],
+        "verified_value": 1e+24
+      },
+      {
+        "description": "base training compute C_train = 6 N D (Chinchilla approximation), N parameter count, D training tokens",
+        "key": "base_training_coefficient",
+        "locator": "w:body/w:p[30]",
+        "math_locator": "w:body/w:p[30]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "{C}_{train}=6ND",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [
+          "基础训练开销：",
+          "（Chinchilla 近似）",
+          "为参数个数",
+          "为训练 Token 数"
+        ],
+        "verified_value": 6
+      },
+      {
+        "description": "FLOPs are floating-point operation counts, commonly approximated by C = 6 N D",
+        "key": "flops_unit_definition",
+        "locator": "w:body/w:tbl[1]/w:tr[6]/w:tc[2]/w:p[1]",
+        "math_locator": "w:body/w:tbl[1]/w:tr[6]/w:tc[2]/w:p[1]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "C≈6ND",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "浮点运算次数，常用近似"
+        ]
+      },
+      {
+        "description": "long-context attention compute C_attn = eta N D L_ctx with exogenous L_ctx taken from C7",
+        "key": "attention_compute_form",
+        "locator": "w:body/w:p[34]",
+        "math_locator": "w:body/w:p[34]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "{C}_{attn}=ηND{L}_{ctx}",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "长文本注意力开销：",
+          "（外生给定，取值依据 C7）"
+        ]
+      },
+      {
+        "description": "attention coefficient eta = 2 x 10^-4",
+        "key": "attention_eta",
+        "locator": "w:body/w:p[34]",
+        "math_locator": "w:body/w:p[34]/m:oMath[2]",
+        "status": "VERIFIED",
+        "structured_math": "η=2×{10}^{−4}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 0.0002
+      },
+      {
+        "description": "the incremental quality cost is stated conditionally: if the incremental form is adopted",
+        "key": "quality_cost_optional_form",
+        "locator": "w:body/w:p[31]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "若采用增量成本形式，可按下式计算"
+        ]
+      },
+      {
+        "description": "incremental quality cost C_Q = D [g(Q) - g(Q0)]_+ with a positive part",
+        "key": "quality_cost_increment",
+        "locator": "w:body/w:p[32]",
+        "math_locator": "w:body/w:p[32]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "{C}_{Q}=D [g(Q)−g({Q}_{0}){]}_{+},",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": []
+      },
+      {
+        "description": "Q0 is the baseline quality, given by Attachment A quality scores or by a reasonable assumption",
+        "key": "q0_source_semantics",
+        "locator": "w:body/w:p[31]",
+        "status": "VERIFIED",
+        "verification_mode": "semantics fixed by the verified organizer wording",
+        "verified_fragments": [
+          "设基线质量为 ⟦{Q}_{0}⟧（可由附件 A 的质量评分或合理假设给出）"
+        ],
+        "verified_value": [
+          "Attachment A quality scoring",
+          "a reasonable declared assumption"
+        ]
+      },
+      {
+        "description": "quality is raised to Q in (0, 1]; the lower endpoint is excluded and the upper included",
+        "key": "quality_domain",
+        "locator": "w:body/w:p[31]",
+        "math_locator": "w:body/w:p[31]/m:oMath[3]",
+        "status": "VERIFIED",
+        "structured_math": "Q∈(0,1]",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [
+          "提升至 ⟦Q∈(0,1]⟧ 需要额外算力"
+        ],
+        "verified_value": {
+          "lower": 0.0,
+          "lower_inclusive": false,
+          "upper": 1.0,
+          "upper_inclusive": true
+        }
+      },
+      {
+        "description": "g(Q) is chosen or improved from the exponential, power and logarithmic-asymptotic families of Appendix B",
+        "key": "quality_family_choice",
+        "locator": "w:body/w:p[33]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "可从指数型、幂函数型、对数渐进型三类中选取或改进",
+          "具体形式与参数见附录 B"
+        ]
+      },
+      {
+        "description": "Appendix B.1 restates C_Q = D [g(Q) - g(Q0)]_+ for Question 3",
+        "key": "appendix_b_quality_cost",
+        "locator": "w:body/w:p[48]",
+        "math_locator": "w:body/w:p[48]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "{C}_{Q}=D [g(Q)−g({Q}_{0}){]}_{+}",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "B.1数据质量成本函数（供问题三选取、比较或改进；"
+        ]
+      },
+      {
+        "description": "exponential family g(Q) = gamma e^(lambda Q)",
+        "key": "g_exponential_form",
+        "locator": "w:body/w:p[49]",
+        "math_locator": "w:body/w:p[49]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "g(Q)=γ{e}^{λQ}",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "指数型："
+        ]
+      },
+      {
+        "description": "exponential gamma = 10^7 FLOPs per token",
+        "key": "g_exponential_gamma",
+        "locator": "w:body/w:p[49]",
+        "math_locator": "w:body/w:p[49]/m:oMath[2]",
+        "status": "VERIFIED",
+        "structured_math": "γ={10}^{7}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 10000000.0
+      },
+      {
+        "description": "exponential lambda = 6.0",
+        "key": "g_exponential_lambda",
+        "locator": "w:body/w:p[49]",
+        "math_locator": "w:body/w:p[49]/m:oMath[3]",
+        "status": "VERIFIED",
+        "structured_math": "λ=6.0",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 6.0
+      },
+      {
+        "description": "power family g(Q) = gamma Q^lambda",
+        "key": "g_power_form",
+        "locator": "w:body/w:p[50]",
+        "math_locator": "w:body/w:p[50]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "g(Q)=γ{Q}^{λ}",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "幂函数型："
+        ]
+      },
+      {
+        "description": "power gamma = 5 x 10^9 FLOPs per token",
+        "key": "g_power_gamma",
+        "locator": "w:body/w:p[50]",
+        "math_locator": "w:body/w:p[50]/m:oMath[2]",
+        "status": "VERIFIED",
+        "structured_math": "γ=5×{10}^{9}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 5000000000.0
+      },
+      {
+        "description": "power lambda = 4.0",
+        "key": "g_power_lambda",
+        "locator": "w:body/w:p[50]",
+        "math_locator": "w:body/w:p[50]/m:oMath[3]",
+        "status": "VERIFIED",
+        "structured_math": "λ=4.0",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 4.0
+      },
+      {
+        "description": "logarithmic-asymptotic family g(Q) = gamma ln(1 + lambda Q)",
+        "key": "g_logarithmic_form",
+        "locator": "w:body/w:p[51]",
+        "math_locator": "w:body/w:p[51]/m:oMath[1]",
+        "status": "VERIFIED",
+        "structured_math": "g(Q)=γln(1+λQ)",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "对数渐进型："
+        ]
+      },
+      {
+        "description": "logarithmic gamma = 2 x 10^9 FLOPs per token",
+        "key": "g_logarithmic_gamma",
+        "locator": "w:body/w:p[51]",
+        "math_locator": "w:body/w:p[51]/m:oMath[2]",
+        "status": "VERIFIED",
+        "structured_math": "γ=2×{10}^{9}",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 2000000000.0
+      },
+      {
+        "description": "logarithmic lambda = 10.0",
+        "key": "g_logarithmic_lambda",
+        "locator": "w:body/w:p[51]",
+        "math_locator": "w:body/w:p[51]/m:oMath[3]",
+        "status": "VERIFIED",
+        "structured_math": "λ=10.0",
+        "verification_mode": "value parsed from structured OMML at the math locator",
+        "verified_fragments": [],
+        "verified_value": 10.0
+      },
+      {
+        "description": "L_ctx is exogenous, its feasible values follow C7, and it is not an interior optimization variable",
+        "key": "exogenous_context",
+        "locator": "w:body/w:p[29]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "由模型架构与任务需求外生给定（其可行取值须依据 C7）",
+          "而不将其作为内点寻优变量"
+        ]
+      },
+      {
+        "description": "Appendix A: L_ctx exogenous (not optimized), feasible values from C7, with sensitivity analysis",
+        "key": "exogenous_context_appendix",
+        "locator": "w:body/w:p[45]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "外生给定（非寻优变量），其可行取值须依据 C7 并做敏感性分析"
+        ]
+      },
+      {
+        "description": "decide whether allocation shows a structural transfer (a qualitative change of the optimal strategy) as C spans magnitudes, and give an explicit mathematical definition and identification method",
+        "key": "structural_transition_requirement",
+        "locator": "w:body/w:p[35]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "当预算 ⟦C⟧ 跨越上述不同量级时，资源分配是否出现结构性转移（即最优策略发生质的变化），并给出明确的数学定义与识别方法"
+        ]
+      },
+      {
+        "description": "derive analytically the critical context at which attention equals training cost, L_ctx^crit = 6/eta, and run sensitivity over the feasible C7 values",
+        "key": "critical_context_identity",
+        "locator": "w:body/w:p[35]",
+        "math_locator": "w:body/w:p[35]/m:oMath[6]",
+        "status": "VERIFIED",
+        "structured_math": "{L}_{ctx}^{crit}=6/η",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "须解析给出使注意力开销与训练开销相当的临界值",
+          "并在其可行取值上完成敏感性分析"
+        ]
+      },
+      {
+        "description": "training, quality processing and attention use the same D by default",
+        "key": "same_d_rule",
+        "locator": "w:body/w:p[35]",
+        "status": "VERIFIED",
+        "verification_mode": "organizer wording and structured math present at the locator",
+        "verified_fragments": [
+          "默认训练、质量处理与注意力计算使用同一 ⟦D⟧"
+        ]
+      }
+    ]
+  },
   "terms": [
     {
       "analysis_role": "canonical",
       "definition": "C_train = 6 N D",
       "input_units": {
-        "D": "raw token count",
+        "D": "raw training-token count",
         "N": "raw parameter count"
       },
       "name": "base_training_compute",
       "physical_unit": "FLOPs",
       "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          53
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "base_training_coefficient",
+          "flops_unit_definition"
+        ]
       },
       "supported_value_or_grid": {
         "coefficient": 6
@@ -53,55 +482,61 @@
         "D": "raw token count",
         "L_ctx": "tokens",
         "N": "raw parameter count",
-        "eta": "FLOPs per parameter-token squared (dimensional consequence of the specified equation)"
+        "eta": "FLOPs per parameter-token-context-token (dimensional consequence)"
       },
       "name": "attention_compute",
       "physical_unit": "FLOPs",
       "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          57
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "attention_compute_form",
+          "attention_eta"
+        ]
       },
       "supported_value_or_grid": {
         "eta": 0.0002
       }
     },
     {
-      "analysis_role": "canonical sensitivity axis limited to the full observed C7 grid",
-      "definition": "L_ctx is an exogenously supplied context-window length; it is not an interior optimization variable.",
-      "limitation": "C7 supplies observed architecture metadata. The DOCX requires feasible values to be based on C7, but neither source designates a preferred subset or an empirical optimum.",
+      "analysis_role": "exogenous sensitivity axis limited to the full observed C7 grid",
+      "definition": "L_ctx is exogenous, taken from C7, and never an interior optimization variable.",
+      "limitation": "Neither source designates a preferred context; the grid is not interpolated or extended.",
       "name": "context_length",
       "physical_unit": "tokens",
       "provenance_status": "observed",
       "source": {
-        "empirical_support": {
-          "path": "data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv",
-          "sha256": "ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc"
-        },
-        "manifest": {
-          "path": "data_local/problem-f/raw/real_attachments/source_manifest.json",
-          "sha256": "34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db"
-        },
-        "manifest_record": {
-          "bytes": 2357,
-          "file": "C_efficiency_evolution/model_architecture_metadata.csv",
-          "note": "V5.29新增：45个主流开源模型的架构元数据(层数/头数/维度/词表/上下文长度/训练数据量)",
-          "problem": "C",
-          "source": "Model config files from HuggingFace + technical reports"
-        },
-        "methodology": {
-          "paragraphs": [
-            57,
-            58
-          ],
-          "path": "docs_local/problem-f/source/problem_statement.docx",
-          "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
-        }
+        "path": "docs_local/problem-f/source/problem_statement.docx",
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "exogenous_context",
+          "exogenous_context_appendix",
+          "attention_compute_form"
+        ]
       },
       "supported_value_or_grid": {
+        "bytes": 2357,
+        "direct_data_provenance": {
+          "intake_record": {
+            "c7_bytes_and_sha256_match": true,
+            "organizer_manifest_bytes_and_sha256_match": true,
+            "path": "data_local/problem-f/raw/attachment_sha256_manifest.tsv",
+            "sha256": "5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b"
+          },
+          "organizer_manifest": {
+            "path": "data_local/problem-f/raw/real_attachments/source_manifest.json",
+            "sha256": "34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db"
+          },
+          "organizer_manifest_record": {
+            "bytes": 2357,
+            "file": "C_efficiency_evolution/model_architecture_metadata.csv",
+            "note": "V5.29新增：45个主流开源模型的架构元数据(层数/头数/维度/词表/上下文长度/训练数据量)",
+            "problem": "C",
+            "source": "Model config files from HuggingFace + technical reports"
+          },
+          "row_count_matches_manifest_note": true
+        },
         "field": "max_position_embeddings",
         "observed_frequency": {
           "131072": 1,
@@ -122,7 +557,7 @@
           131072
         ],
         "path": "data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv",
-        "regime_selection_rule": "One observed regime per unique C7 context value; all source rows are retained. No preferred subset, interpolation, or extrapolation is inferred.",
+        "regime_selection_rule": "One observed regime per unique C7 context value; all source rows are retained. No preferred subset, interpolation or extrapolation is inferred.",
         "representative_operating_regimes": [
           {
             "context_tokens": 2048,
@@ -211,99 +646,129 @@
       }
     },
     {
-      "analysis_role": "canonical source-supported budget grid",
-      "definition": "Total compute budget C subject to C_total <= C.",
+      "analysis_role": "primary presentation grid; continuous-C analysis only inside its declared span",
+      "definition": "Total compute budget C; the allocation must satisfy C_total <= C.",
       "name": "compute_budget",
       "physical_unit": "FLOPs",
       "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          53
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "budget_inequality",
+          "total_budget_three_parts",
+          "representative_budget_low",
+          "representative_budget_medium",
+          "representative_budget_high"
+        ]
       },
       "supported_value_or_grid": {
+        "constraint": "C_total <= C",
         "representative_budgets_flops": [
-          "1e19",
-          "1e22",
-          "1e24"
+          1e+19,
+          1e+22,
+          1e+24
         ],
-        "source_language": "suggested representative low, medium, and high budgets"
+        "source_language": "suggested low, medium and high representative budgets; other levels may be chosen but at least three magnitudes must be examined"
       }
     },
     {
-      "analysis_role": "quality-cost sensitivity only; no accepted classic-IF3 loss-benefit term",
+      "analysis_role": "zero at the canonical baseline Q = Q0; nonbaseline use blocked without numeric Q0",
       "definition": "C_Q = D [g(Q) - g(Q0)]_+",
       "input_units": {
         "D": "raw token count",
-        "Q": "dimensionless quality coordinate in (0, 1]",
-        "Q0": "dimensionless baseline quality coordinate",
-        "g": "FLOPs per token (dimensional consequence of the specified equation)"
+        "Q": "dimensionless",
+        "g": "FLOPs per token"
       },
       "name": "quality_preprocessing_compute",
       "physical_unit": "FLOPs",
       "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          55,
-          57,
-          58
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "quality_cost_increment",
+          "quality_cost_optional_form",
+          "appendix_b_quality_cost",
+          "same_d_rule"
+        ]
       },
       "supported_value_or_grid": {
         "positive_part": "[x]_+ = max(x, 0)",
-        "same_D_rule": "The same D is used for training, quality processing, and attention."
+        "same_D_rule": "training, quality processing and attention share D",
+        "stated_form": "if the incremental form is adopted"
       }
     },
     {
-      "analysis_role": "quality-cost sensitivity only",
-      "definition": "Organizer-specified forms for g(Q) in C_Q.",
+      "analysis_role": "raw-family comparison only",
+      "definition": "exponential gamma e^(lambda Q); power gamma Q^lambda; logarithmic gamma ln(1 + lambda Q)",
       "name": "quality_cost_families",
-      "physical_unit": "g(Q): FLOPs per token; Q is dimensionless",
+      "physical_unit": "g(Q): FLOPs per token; Q dimensionless",
       "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          72,
-          73,
-          74
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "quality_family_choice",
+          "g_exponential_form",
+          "g_exponential_gamma",
+          "g_exponential_lambda",
+          "g_power_form",
+          "g_power_gamma",
+          "g_power_lambda",
+          "g_logarithmic_form",
+          "g_logarithmic_gamma",
+          "g_logarithmic_lambda"
+        ]
       },
       "supported_value_or_grid": {
         "exponential": {
-          "formula": "g(Q) = gamma exp(lambda Q)",
-          "gamma": "1e7",
-          "lambda": "6.0"
+          "gamma": 10000000.0,
+          "lambda": 6.0
         },
-        "logarithmic_asymptotic": {
-          "formula": "g(Q) = gamma ln(1 + lambda Q)",
-          "gamma": "2e9",
-          "lambda": "10.0"
+        "logarithmic": {
+          "gamma": 2000000000.0,
+          "lambda": 10.0
         },
         "power": {
-          "formula": "g(Q) = gamma Q^lambda",
-          "gamma": "5e9",
-          "lambda": "4.0"
+          "gamma": 5000000000.0,
+          "lambda": 4.0
         }
       }
     },
     {
-      "analysis_role": "At Q = Q0, delta_g = 0 by the specified expression. Any non-baseline quality-cost scenario is blocked until Q0 is declared with provenance.",
-      "definition": "Q0 is the baseline in the positive-part quality-cost expression.",
-      "limitation": "No source-established global scalar Q0 is supplied here. IF1's partially mapped relative proxy is not substituted for Q0, and no unmapped mass is imputed.",
-      "name": "quality_baseline_Q0",
-      "physical_unit": "dimensionless quality coordinate",
-      "provenance_status": "specified semantic; numeric value not established",
+      "analysis_role": "domain of the raw-family comparison; Q = 0 is not admissible",
+      "definition": "Q in (0, 1]",
+      "name": "quality_domain",
+      "physical_unit": "dimensionless",
+      "provenance_status": "specified",
       "source": {
-        "paragraphs": [
-          55
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "quality_domain"
+        ]
+      },
+      "supported_value_or_grid": {
+        "lower": 0.0,
+        "lower_inclusive": false,
+        "upper": 1.0,
+        "upper_inclusive": true
+      }
+    },
+    {
+      "analysis_role": "At Q = Q0, delta_g = 0 exactly. Nonbaseline cost scenarios are blocked until a numeric Q0 is declared with provenance.",
+      "definition": "Q0 is the baseline in C_Q = D [g(Q) - g(Q0)]_+.",
+      "limitation": "IF1's partially mapped relative proxy is not substituted for Q0 and no unmapped mixture mass is imputed.",
+      "name": "quality_baseline_Q0",
+      "physical_unit": "dimensionless",
+      "provenance_status": "specified semantics; numeric value not established",
+      "source": {
+        "path": "docs_local/problem-f/source/problem_statement.docx",
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "q0_source_semantics"
+        ]
       },
       "supported_value_or_grid": {
         "numeric_global_Q0": null,
@@ -314,7 +779,7 @@
       }
     },
     {
-      "analysis_role": "canonical at baseline Q = Q0; non-baseline Q is a separately labelled cost scenario",
+      "analysis_role": "canonical at Q = Q0, where it reduces to kappa N D <= C",
       "definition": "C_total = D [(6 + eta L_ctx) N + [g(Q) - g(Q0)]_+] <= C",
       "input_units": {
         "delta_g(Q)": "FLOPs per token",
@@ -322,38 +787,60 @@
       },
       "name": "combined_compute_constraint",
       "physical_unit": "FLOPs",
-      "provenance_status": "derived exactly from specified source components",
+      "provenance_status": "derived exactly from verified source components",
       "source": {
-        "paragraphs": [
-          53,
-          55,
-          57
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "budget_inequality",
+          "base_training_coefficient",
+          "attention_eta",
+          "quality_cost_increment",
+          "same_d_rule"
+        ]
       },
       "supported_value_or_grid": {
+        "constraint": "C_total <= C",
         "delta_g": "[g(Q) - g(Q0)]_+",
         "kappa": "6 + eta L_ctx"
       }
     },
     {
-      "analysis_role": "cost-parity identity only; not an empirical optimum, phase transition, or optimizer-regime claim",
-      "definition": "L_ctx,parity = 6 / eta = 30000 tokens",
+      "analysis_role": "base/attention cost-parity identity only; not an optimum, phase transition, or optimizer-regime threshold",
+      "definition": "L_ctx^crit = 6 / eta, where attention and base training compute are equal",
       "name": "attention_cost_parity_identity",
       "physical_unit": "tokens",
-      "provenance_status": "derived exactly from specified source coefficient and eta",
+      "provenance_status": "derived exactly from the verified coefficient and eta",
       "source": {
-        "paragraphs": [
-          57,
-          58
-        ],
         "path": "docs_local/problem-f/source/problem_statement.docx",
-        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "critical_context_identity",
+          "base_training_coefficient",
+          "attention_eta"
+        ]
       },
       "supported_value_or_grid": {
         "eta": 0.0002,
-        "parity_tokens": 30000
+        "parity_tokens": 30000.0
+      }
+    },
+    {
+      "analysis_role": "answered by the budget regime map in results/tables/q3-regime-thresholds.md",
+      "definition": "Decide whether the optimal allocation changes qualitatively as C spans magnitudes, with an explicit mathematical definition and identification method.",
+      "name": "structural_transition_requirement",
+      "physical_unit": "not applicable",
+      "provenance_status": "specified requirement",
+      "source": {
+        "path": "docs_local/problem-f/source/problem_statement.docx",
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7",
+        "verification_keys": [
+          "structural_transition_requirement",
+          "q3_title_structural_transfer"
+        ]
+      },
+      "supported_value_or_grid": {
+        "requirement": "definition and identification method"
       }
     }
   ]
