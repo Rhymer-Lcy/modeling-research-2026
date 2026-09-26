@@ -5,10 +5,11 @@
 | Task | T-010 — Q3 compute-constrained resource optimization |
 | Owner | M4 (execution transferred from M2 by T-010 v3) |
 | Status | wip — awaiting supervisory review |
-| Timestamp | 2026-09-27T00:38:50+08:00 |
-| Specification | `worklog/specs/T-010.md` v1 (scientific), v2 (authoritative correction), v3 (ownership / controlled draft handoff) |
+| Timestamp | 2026-09-27T02:20:00+08:00 |
+| Specification | `worklog/specs/T-010.md` v1 (scientific), v2 (authoritative correction), v3 (ownership / controlled draft handoff); remediation of the supervisory re-audit is an L1 instruction (not archived) |
 | Synchronized main | `583b8db6660ac852e62642e7f9c38f1773b9a528` (unchanged at the last fetch before this package) |
-| Branch | `exp/m4-T010-q3-allocation` (replacement Draft PR; number reported after creation, not in this file) |
+| Branch | `exp/m4-T010-q3-allocation`; no replacement PR yet (the supervisor audits the pushed head directly) |
+| Scientific validation candidate | `f262cebbd03e02a5c119e359fdcba7802950e830` (all code and artifacts; this package is the receipt commit after it) |
 
 ## Four states, kept apart
 
@@ -16,8 +17,20 @@
 | --- | --- | --- |
 | Historical M2 checkpoint | Draft PR #17 head `2047c336bf7ac75bf4020b3d79806cc9249bc6b1` | Reviewed v1 checkpoint; untouched, Draft, unmerged |
 | Frozen unreviewed M2 draft | local package `scratch/t010-m2-takeover/` (M2 local HEAD `30143c35d69ca4b2dd363dc1a07c18560210e615`) | Implementation material only; no result, test or conclusion inherited |
-| M4-reviewed implementation | code `37803c5`, regenerated tables `4a39d6e`, on base `4558cd8` (= `2047c33` + normal merge of main `583b8db`) | The evidence this package describes |
+| M4-reviewed implementation | code `37803c5`, tables `4a39d6e`, package `b589f22`, on base `4558cd8` (= `2047c33` + normal merge of main `583b8db`) | Audited; blocked on four v2-compliance findings |
+| M4 remediation | `c6d17d0`, `5f5060f`, `ae5427f`, `17aca9f`, `21138f6`, candidate `f262ceb` | The evidence this package describes |
 | Final live branch head | reported separately after push | Includes this package; not self-referenced here |
+
+## Supervisory re-audit of `b589f22`: findings and dispositions
+
+| # | Finding | Disposition | Evidence |
+| --- | --- | --- | --- |
+| 1 | The source receipt authenticated itself: eta, its `verified_value` and parity could be forged together, and `262144` added to the context grid could reach the solver | **CLOSED** (`5f5060f`) | `load_source_receipt`, used by every allocation script, now re-verifies the DOCX and re-derives the C7 grid itself; forgeries A1-A8 are rejected by the self-test and, through the real scripts, by probes P01-P10 of [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md); mutants M10-M12 restore the old behaviour and are killed |
+| 2 | The LOO receipt recorded `ac21054b…`, a hash of the CRLF working copy, as the Git blob id | **CLOSED** (`5f5060f`) | Now bound to Git blob `d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020` of accepted T-008 commit `b18967c76395ab7d9a336f957e74cd6b4e8d3a99`, obtained with `git rev-parse b18967c…:results/tables/q2-uncertainty-robustness.md`; vectors are parsed from the Git object; probe P13 and mutants M13-M15 |
+| 3 | The mutation validation and PrePush evidence were prose only | **CLOSED** (`ae5427f`, `17aca9f`, `21138f6`, candidate `f262ceb`) | `scripts/q3_mutation_validation.py` produces [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md) inside the two-pass reproduction; the PrePush receipt is under Gate record below |
+| 4 | The ledger stated "saturation holds only for C < C_box" | **CLOSED** (`c6d17d0`) | Ledger item S1 and `q3-allocation.md` now state saturation for `C_min <= C <= C_box`, the saturating upper corner at `C = C_box`, and slack above; an artifact check and mutant M22 guard it |
+
+**No core scientific number changed.** Compared with `b589f22` as parsed JSON, the allocation rows, context rows and brackets, regime analyses, raw-g analysis, LOO rows, summaries, thresholds and parameter vectors, source-verification records and receipt terms are all identical; only the provenance identities (`loo_evidence`, `authorized_inputs`), the ledger wording and the new validation artifacts changed.
 
 ## Takeover record
 
@@ -49,36 +62,40 @@ Before import: all 21 patch targets and all 10 TAR members were inside T-010-own
 | `scripts/q3_allocate.py`, `scripts/q3_context_sensitivity.py`, `scripts/q3_quality_cost_sensitivity.py`, `scripts/q3_loo_robustness.py` | **Corrected / rewritten** as described under Key results. |
 | all 14 imported `results/tables/q3-*` files | **Discarded as evidence**; every table was regenerated from M4's code. |
 
-New in M4's implementation: `src/alloc/inputguard.py`, `sourcedocx.py`, `quality.py`, `provenance.py`, `report.py`, `scripts/q3_provenance_ledger.py`, `results/tables/q3-provenance-ledger.*`.
+New in M4's implementation: `src/alloc/inputguard.py`, `sourcedocx.py`, `quality.py`, `provenance.py`, `report.py`, `c7.py` (remediation), `scripts/q3_provenance_ledger.py`, `scripts/q3_mutation_validation.py` (remediation), `results/tables/q3-provenance-ledger.*`, `results/tables/q3-mutation-validation.*`.
 
 ## Evidence
 
 **Code**: `src/alloc/` and `scripts/q3_*.py`.
 
 **Regenerable artifacts** (all from `scripts/q3_reproduce.py`):
-`results/tables/q3-source-receipt.*`, `q3-allocation.*`, `q3-context-sensitivity.*`, `q3-regime-thresholds.*`, `q3-quality-cost-sensitivity.*`, `q3-loo-robustness.*`, `q3-provenance-ledger.*`, `q3-reproduction.*`.
+`results/tables/q3-source-receipt.*`, `q3-allocation.*`, `q3-context-sensitivity.*`, `q3-regime-thresholds.*`, `q3-quality-cost-sensitivity.*`, `q3-loo-robustness.*`, `q3-provenance-ledger.*`, `q3-mutation-validation.*`, `q3-reproduction.*`.
 
-**Commands actually run** (at `4a39d6e`, runtime Python 3.11.16, NumPy 2.4.6, SciPy 1.17.1, pandas 3.0.6, PyYAML 6.0.3):
+**Commands actually run** on the candidate's content (runtime Python 3.11.16, NumPy 2.4.6, SciPy 1.17.1, pandas 3.0.6, PyYAML 6.0.3):
 
 ```text
 conda run -n modeling-research-2026 --no-capture-output python scripts/q3_reproduce.py
+# (sources at 21138f6; its outputs are the artifacts committed as f262ceb)
 # two passes identical: True; LF-only: True; inputs unchanged: True;
 # interfaces unchanged: True; guard denials: 0; runtime matches pins: True
+# includes scripts/q3_mutation_validation.py in both passes:
+# mutants killed: 23/25 (M08, M17 intentionally redundant); data probes passed: 14/14; overall: PASS
 conda run -n modeling-research-2026 --no-capture-output python scripts/q3_selftest.py
-# PASS 170 assertions
+# CATEGORIES {"ARTIFACT": 13, "BOUNDARY": 75, "CONSISTENCY": 7, "ORACLE": 56, "REGRESSION": 36}
+# PASS 187 checks
 conda run -n modeling-research-2026 --no-capture-output python scripts/selftest_interfaces.py
 # RESULT: PASS (21 assertions)
 git diff --check
 # clean
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check_public_safe.ps1 -Mode PreCommit
-# RESULT: PASS (before each commit)
+# RESULT: PASS (before every commit)
 ```
 
 ## Key results
 
 All results are model-conditional consequences of the accepted classic IF3 law inside its raw-N/raw-D validity box, at the semantic baseline `Q = Q0`; none is an observation or developer guidance.
 
-**Corrected budget inequality.** The problem solved is `min L(N, D)` subject to `kappa N D <= C`, `N_min <= N <= N_max`, `D_min <= D <= D_max`, `kappa = 6 + eta L_ctx`. With `C_min = kappa N_min D_min` and `C_box = kappa N_max D_max`: no feasible point below `C_min`; the optimum saturates the budget for `C_min <= C < C_box`; at `C_box` it is the saturating upper corner; above `C_box` it is `(N_max, D_max)` with unused budget `C - C_box`. The closed form is used only where the stationary point lies inside the box ([q3-allocation.md](../../results/tables/q3-allocation.md)).
+**Corrected budget inequality.** The problem solved is `min L(N, D)` subject to `kappa N D <= C`, `N_min <= N <= N_max`, `D_min <= D <= D_max`, `kappa = 6 + eta L_ctx`. With `C_min = kappa N_min D_min` and `C_box = kappa N_max D_max`: no feasible point below `C_min`; for `C_min <= C <= C_box` an optimum saturates the budget, and at `C = C_box` it is the saturating upper corner; for `C > C_box` the optimum is the upper corner `(N_max, D_max)` with unused budget `C - C_box`. The closed form is used only where the stationary point lies inside the box ([q3-allocation.md](../../results/tables/q3-allocation.md)).
 
 **Corrected 1e24 disposition.** At every observed context, `1e24` gives `SLACK:N_max+D_max`: N = 1.1965825e10, D = 2.99893e11, predicted loss 2.0933829, spent `C_box` (2.300e22 at 2048 to 1.156e23 at 131072 tokens), utilization 0.0230–0.1156. The former `NO_VALIDITY_BOX_ALLOCATION` disposition is withdrawn. This does not identify an optimum beyond the box or a physical limit on useful compute; the remainder is not extrapolated. At `L_ctx = 4096`: `1e19` is `SATURATED:interior` (N 2.152e8, D 6.814e9), `1e22` is `SATURATED:D_max` (N 4.890e9). Base and attention shares of spent compute are `6/kappa` and `eta L_ctx/kappa` at every budget; fractions of the budget differ from them only in slack rows.
 
@@ -94,7 +111,7 @@ All results are model-conditional consequences of the accepted classic IF3 law i
 
 Elasticities: interior 0.451526 (N) / 0.548474 (D); `D_max` regime 1 / 0; slack corner 0 / 0; numerical checks agree within 1e-6. `C_min` (6.06e16–3.05e17) and the `N_min` exit (7.95e17–3.99e18) lie below `1e19` and are recorded, not analysed; every budget in the span is feasible. The first transition is a validity-boundary active-set transition, the second the onset of slack at the validity ceiling; the span ends are analysis/source-support boundaries; **no empirical physical transition is established**. `L_ctx = 6/eta = 30000` tokens is base/attention cost parity only. At `1e22`, the observed contexts 4096 and 8192 bracket the `D_max`-to-interior change; no continuous context threshold is identified and the C7 grid is not extended.
 
-**LOO robustness** ([q3-loo-robustness.md](../../results/tables/q3-loo-robustness.md)) — *leave-one-trajectory-out robustness at published parameter precision*. Source `results/tables/q2-uncertainty-robustness.md`, SHA-256 `b169f358d25c8864fad96573a6c1545f703efd971c27982a2611f8c68f387f43`, eight complete vectors printed with `format(x, ".6g")`; no accepted full-precision LOO object exists. Where N*/D* are free, LOO relative spreads are 1.6e-4 to 3.8e-4 and resolved at published precision; under an active bound they are fixed. Predicted-loss spreads (3.1e-6 to 1.8e-5) are **not resolved**: six-digit rounding of one vector moves the loss by as much (the nominal and the published full fit already differ by about 3.5e-6). The `D_max` threshold's LOO spread is 7.0e-4 relative and resolved; no LOO range contains a representative budget, so all fits agree on every primary-grid regime. These are robustness ranges, not confidence, bootstrap or posterior intervals; bootstrap marginals and profile ratios are kept separate and not propagated; the B1 generator-recovery caveat applies.
+**LOO robustness** ([q3-loo-robustness.md](../../results/tables/q3-loo-robustness.md)) — *leave-one-trajectory-out robustness at published parameter precision*. Source `results/tables/q2-uncertainty-robustness.md`, Git blob `d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020` at accepted T-008 commit `b18967c76395ab7d9a336f957e74cd6b4e8d3a99` (blob-content SHA-256 `636481ae810a449b814a7817d3559174745eb70abd0bec03bfbd857e707ce133`), eight complete vectors printed with `format(x, ".6g")`, parsed from the Git object; no accepted full-precision LOO object exists. The published vectors are unchanged by the identity correction. Where N*/D* are free, LOO relative spreads are 1.6e-4 to 3.8e-4 and resolved at published precision; under an active bound they are fixed. Predicted-loss spreads (3.1e-6 to 1.8e-5) are **not resolved**: six-digit rounding of one vector moves the loss by as much (the nominal and the published full fit already differ by about 3.5e-6). The `D_max` threshold's LOO spread is 7.0e-4 relative and resolved; no LOO range contains a representative budget, so all fits agree on every primary-grid regime. These are robustness ranges, not confidence, bootstrap or posterior intervals; bootstrap marginals and profile ratios are kept separate and not propagated; the B1 generator-recovery caveat applies.
 
 **Raw quality-cost families** ([q3-quality-cost-sensitivity.md](../../results/tables/q3-quality-cost-sensitivity.md)). On `Q in (0, 1]`, in FLOPs per token, each pair crosses exactly once: exponential/logarithmic at Q = 5.0277e-4, exponential/power at 0.36638, power/logarithmic at 0.98855. Ascending order: `(0, 5.03e-4)` power < logarithmic < exponential; `(5.03e-4, 0.366)` power < exponential < logarithmic; `(0.366, 0.989)` exponential < power < logarithmic; `(0.989, 1]` exponential < logarithmic < power. Counts are exact by analytic monotone-piece argument (not a grid); `Q -> 0+` values are analytic limits.
 
@@ -102,10 +119,12 @@ Elasticities: interior 0.451526 (N) / 0.548474 (D); `D_max` regime 1 / 0; slack 
 
 ## Sources, interfaces and source security
 
-**Authorized-source ledger.** [q3-source-receipt.md](../../results/tables/q3-source-receipt.md) verifies 30 statements at exact DOCX locators with OMML exponent structure preserved: budget inequality `w:body/w:p[35]`; budgets `w:body/w:p[29]/m:oMath[7..9]`; coefficient 6 `w:body/w:p[30]/m:oMath[1]`; eta `w:body/w:p[34]/m:oMath[2]`; g(Q) families `w:body/w:p[49..51]`; Q domain `w:body/w:p[31]/m:oMath[3]`; Q0 source semantics `w:body/w:p[31]`; exogenous context `w:body/w:p[29]` and `[45]`; structural-transition requirement `w:body/w:p[35]`. The DOCX SHA-256 `89f1b27c…3b6a7` is checked first. No canonical value contradicted the specification. [q3-provenance-ledger.md](../../results/tables/q3-provenance-ledger.md) itemizes 42 load-bearing items (18 VERIFIED, 14 DERIVED, 10 MODEL_CONDITIONAL, 0 UNVERIFIED, 0 PDF-dependent); the generator refuses any PDF-, screenshot-, transcription- or AI-intermediate-only item.
+**Authorized-source ledger.** [q3-source-receipt.md](../../results/tables/q3-source-receipt.md) verifies 30 statements at exact DOCX locators with OMML exponent structure preserved: budget inequality `w:body/w:p[35]`; budgets `w:body/w:p[29]/m:oMath[7..9]`; coefficient 6 `w:body/w:p[30]/m:oMath[1]`; eta `w:body/w:p[34]/m:oMath[2]`; g(Q) families `w:body/w:p[49..51]`; Q domain `w:body/w:p[31]/m:oMath[3]`; Q0 source semantics `w:body/w:p[31]`; exogenous context `w:body/w:p[29]` and `[45]`; structural-transition requirement `w:body/w:p[35]`. The DOCX SHA-256 `89f1b27c…3b6a7` is checked first. No canonical value contradicted the specification.
+
+**Source-binding design (finding 1).** The receipt is a record, never an authority. `load_source_receipt` (the single consumer used by every allocation script) first re-runs the structured DOCX/OMML verifier on the allowlisted canonical DOCX, which pins the accepted whole-file SHA-256, and re-derives the C7 support from the accepted C7 bytes, which are bound to the T-006 intake SHA-256 record, the organizer manifest byte count and its row-count note (`src/alloc/c7.py`). It then requires the receipt's verification block to equal that regeneration exactly (same keys in the same order, locators, statuses, verified values and modes; no extra, missing or duplicated records), requires every term value (coefficient 6, eta, the three budgets and the inequality, the six g(Q) coefficients, the Q domain, the Q0 options, parity `6/eta`) and the whole C7 context-support block to equal the independently derived values, and builds the returned lane from the derived values only. A forged receipt therefore fails before any allocation can use it. [q3-provenance-ledger.md](../../results/tables/q3-provenance-ledger.md) itemizes 42 load-bearing items (18 VERIFIED, 14 DERIVED, 10 MODEL_CONDITIONAL, 0 UNVERIFIED, 0 PDF-dependent); the generator refuses any PDF-, screenshot-, transcription- or AI-intermediate-only item.
 
 **Narrowed input inventory** (the complete allowlist; eight files):
-`docs_local/problem-f/source/problem_statement.docx`; `data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv` (`ee24622c…12ffc`); `data_local/problem-f/raw/real_attachments/source_manifest.json` (`34e81dab…323db`); `data_local/problem-f/raw/attachment_sha256_manifest.tsv` (T-006 intake record, which independently matches the C7 and manifest hashes); the three accepted interfaces; `results/tables/q2-uncertainty-robustness.md`. The historical 1,977-file snapshot of the reviewed checkpoint was not revalidated and is not carried forward.
+`docs_local/problem-f/source/problem_statement.docx`; `data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv` (`ee24622c…12ffc`); `data_local/problem-f/raw/real_attachments/source_manifest.json` (`34e81dab…323db`); `data_local/problem-f/raw/attachment_sha256_manifest.tsv` (T-006 intake record, which independently matches the C7 and manifest hashes); the three accepted interfaces; `results/tables/q2-uncertainty-robustness.md`, identified by its accepted Git blob (its accepted-commit, `HEAD` and working-tree Git identities must all equal the pinned blob; working-copy bytes are never hashed as its identity). The historical 1,977-file snapshot of the reviewed checkpoint was not revalidated and is not carried forward.
 
 **Interfaces.** IF1 `b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8`, IF2 `9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91`, IF3 `720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514`: accepted bytes, shared contracts and IF2's 1M-only scope are verified before and after reproduction and cross-checked against `q1-if1-summary.md`, `q1-if2-summary.md` and `q2-final-closure.md`. IF1 (11 of 17 mixture domains unmapped) and IF2 are released to Q3 as identity receipts whose content is inaccessible, so neither can become a quality coordinate, a canonical-loss input or a cross-scale coefficient. IF3's `Q = [1, 1]` remains a no-quality sentinel. B8 is not an input.
 
@@ -113,13 +132,33 @@ Elasticities: interior 0.451526 (N) / 0.548474 (D); `D_max` regime 1 / 0; slack 
 
 ## Validation
 
-`scripts/q3_selftest.py` (170 assertions) exercises the production boundaries: hash, contract, scope and missing/altered-interface rejection for IF1/IF2/IF3; identity-only IF1/IF2; the IF3 sentinel and numeric-Q0 rejection (including `1.0` and `True`); DOCX value verification and three mutated-DOCX fixtures; twelve forbidden receipt mutations; allowlist and B8 rejection before any filesystem access; guard refusals in child processes (PDF open and hash, B8, directory listing and scanning, write intent) and the guarded authorized workflow; closed form against `src/scaling` and a Brent root of the stationary condition (1e-12); independent numerical search at every primary budget; single-bound, corner, infeasible and slack fixtures; feasibility and non-increasing minimum loss over the span; production and fixture transitions with both neighbouring regimes; LOO parsing, precision and non-CI classification; exact raw-g crossings including a two-root and a near-`Q = 1` fixture; ledger rejection of PDF, screenshot, AI-intermediate, absolute-path and UNVERIFIED provenance.
+**The 187 self-test checks do not carry equal weight.** Each check in `scripts/q3_selftest.py` is labelled, and the baseline classification is recorded in [q3-mutation-validation.md](../../results/tables/q3-mutation-validation.md):
 
-The checks were shown to fail on purpose. A scratch mutation pass injected fifteen production defects into the committed code one at a time, ran the self-test, and restored each file with its SHA-256 re-verified. Fourteen were detected: guard disabled (7 failing checks), IF1/IF2 content released (2), the old equality-only high-budget rule (self-test aborts, exit 1), PDF rule narrowed (2), kink candidate dropped (10), IF2 scope skipped (1), ledger source check disabled (5), eta, coefficient and verification-status cross-checks removed (1 each), DOCX value comparison disabled (1), regime-change test forced true (1), LOO format check disabled (1), near-zero bracketing removed (4). The survivor, dropping the ledger's forbidden-kind list, is still rejected by its allowed-kind list, by design. Earlier passes had exposed two undetected mutations and one test that could not isolate its target; the tests were sharpened before commit. Committed T-010 blobs were checked byte-for-byte to be LF-only, and all fourteen committed artifacts match the reproduction receipt.
+| Category | Checks | Role |
+| --- | ---: | --- |
+| ORACLE | 56 | Supports acceptance: result against an independent expectation — `src/scaling`'s closed form, a Brent root of the stationary condition, a derivative-free search, a 1201x1201 brute-force grid over the raw box (at 1e19, 1e22 and 1e24, and on both sides of each transition at `L_ctx = 4096`), hand-derived fixtures for every single bound, corner, infeasible and slack case, independent `git rev-parse` of the LOO blob, an independent read of the C7 grid, independent dense-grid root finding for g(Q), the specification's stated constants |
+| BOUNDARY | 75 | Supports the input contract: a production consumer or guard rejects a forged, altered, forbidden or out-of-scope input (receipt forgeries A1-A8, interface mutations, PDF/B8/traversal/write refusals in child processes, ledger provenance), with an unmodified-receipt control |
+| ARTIFACT | 13 | Guards generated tables (regimes, LOO counts, ledger wording, withdrawn dispositions) |
+| CONSISTENCY | 7 | Same code path compared with itself (for example the receipt's verification block against a fresh verification); regression detection only |
+| REGRESSION | 36 | Smoke checks of current labels and constants; regression detection only |
+
+Acceptance rests on the ORACLE and BOUNDARY checks. The previous package's figure of 170 assertions mixed these categories; the self-comparisons it contained now count as CONSISTENCY or REGRESSION only.
+
+**Executable mutation validation.** `scripts/q3_mutation_validation.py` runs in a temporary detached Git worktree whose sources are verified byte-identical to their committed blobs, supplied with copies of the local-only allowlisted inputs; the working tree is never modified, and every mutated file or probed input is restored and verified by SHA-256 and `git diff`. Result, reproduced identically in both reproduction passes: 25 code mutants, 23 killed by their declared detectors; M08 and M17 each remove one layer of a deliberately layered defence, survive as declared, and their full-removal pairs M09 and M18 are killed. 14 data probes feed forged receipts (A1-A8, A6 also to the context script), a C7 file with a `262144` row, a value-preserving DOCX change and an altered LOO working copy to the real scripts; every one is rejected with `SourceReceiptError` or `TrackedInputIdentityError` and leaves the consumer's output untouched, and the unforged control succeeds. Overall: **PASS**. The first runs of the suite exposed two defects in the suite itself (a CRLF worktree checkout, a non-unique probe row), fixed in `17aca9f` and `21138f6`.
+
+Committed T-010 blobs at the candidate were checked byte-for-byte: all 16 artifacts match the reproduction receipt and contain no CR.
+
+## Gate record
+
+| Gate | Exact command | Tested head | Started (UTC+8) | Exit | Result |
+| --- | --- | --- | --- | ---: | --- |
+| PrePush on the scientific candidate | `powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check_public_safe.ps1 -Mode PrePush` | `f262cebbd03e02a5c119e359fdcba7802950e830` | 2026-09-27T02:15:58+08:00 | 0 | `RESULT: PASS` — 214 files examined, 65 commits scanned, 7 addresses checked (4 by approved suffix, 2 by approved exact rule), 1 of 1 listed history exception waived |
+
+This package is committed after the candidate; PreCommit runs on this receipt commit and PrePush runs again on the final live head before push, and those two results are reported with the pushed head rather than recorded here (to avoid a self-referencing SHA).
 
 ## Interfaces and downstream impact — T-012 claim boundary
 
-T-012 **may** consume, as model-conditional statements with their sources:
+T-012 remains **blocked** from consuming T-010 until supervisory acceptance. After acceptance, T-012 **may** consume, as model-conditional statements with their sources:
 
 1. the verified compute model `C_total = D[(6 + eta L_ctx) N + [g(Q) - g(Q0)]_+] <= C`, `eta = 2e-4`, the three representative budgets, the observed C7 grid and their DOCX/C7 locators;
 2. the baseline allocations above, including the corrected `1e24` upper-corner-with-slack disposition and the explicit denominators of shares and fractions;
@@ -136,6 +175,7 @@ T-012 **must not**: present any result as empirical or as guidance for real trai
 - The launcher expected the package at the repository root; it was already at `scratch/t010-m2-takeover/` when M4 began. Hashes were verified in place; the move was not performed or observed by M4.
 - T-010 v2 requests executable enforcement of IF1/IF2/B8 restrictions. M4 enforces them structurally (identity-only receipts, allowlist, audit-hook guard) and removed the draft's guard helpers, which no production path could trigger.
 - Observed outside T-010's paths, not changed: `src/paths.require()` raises `ValueError` rather than `RawDataMissing` for a missing path outside the repository root (its message calls `relative_to`). T-010 fixture loading checks existence itself.
+- Remediation of the re-audit ran under an L1 instruction; it added no scientific scope and changed no scientific number.
 
 ## Known limitations and open risks
 
@@ -143,8 +183,11 @@ T-012 **must not**: present any result as empirical or as guidance for real trai
 - LOO propagation is limited to published six-digit precision; loss robustness is not resolved at that precision.
 - No numeric `Q0` exists, so no nonbaseline quality scenario was evaluated; the quality conclusion is a property of the accepted model.
 - Context results are confined to five observed C7 values; a regime change between them is bracketed, not located.
-- The guard covers file access from Python in Q3 processes; it is not an operating-system sandbox.
+- The guard covers file access from Python in Q3 processes; it is not an operating-system sandbox. The LOO Git binding runs `git` subprocesses, whose reads of the object store and of the tracked working file the Python guard does not see.
+- The LOO and receipt bindings need `git` and the repository history (commit `b18967c`) to be present; without them loading fails closed.
+- The mutation suite shows that the listed defects are detected; it is not a proof that no other defect exists. Its code mutants are killed by the self-test or by named data probes; three layers of the C7 binding (intake hash, manifest byte count, row-count note) are exercised together by probe P11, not one at a time.
+- Receipt-forgery evidence covers the listed forgeries and any receipt that differs from the independent regeneration; it relies on the canonical DOCX and C7 bytes themselves being the accepted ones, which their pinned SHA-256 values establish.
 
 ## Next action
 
-M1: supervisory review of the replacement Draft PR from `exp/m4-T010-q3-allocation`. T-010 remains `wip` and unmerged; PR #17 stays Draft and unmerged as the historical M2 checkpoint; T-012 is not started.
+M1 (supervisor): fresh re-audit of the pushed head of `exp/m4-T010-q3-allocation`. No replacement PR has been created. T-010 remains `wip` and unmerged; PR #17 stays Draft and unmerged as the historical M2 checkpoint; T-012 is not started and may not yet consume T-010.
