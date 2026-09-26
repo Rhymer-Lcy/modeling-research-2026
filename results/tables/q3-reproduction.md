@@ -64,7 +64,7 @@ historical whole-tree count of the reviewed checkpoint is not carried forward.
 | `results/tables/q3-loo-robustness.md` | `46daa38115d6918d94902e866c7c2a485168baf167e6ca2d94df454834724d90` |
 | `results/tables/q3-provenance-ledger.json` | `a000ca08972d0f8e511d8bedce00a6a0d86b2da31d19cfefaf61c920ca53cb08` |
 | `results/tables/q3-provenance-ledger.md` | `27b0e820fef5b3b8222b6c17b53f91838499849fd31be02f903312e7ee442799` |
-| `results/tables/q3-mutation-validation.json` | `3ab97272811ceb42521584ecac7f8b4f3e61d552fa22e2ac2baee731df385b4e` |
-| `results/tables/q3-mutation-validation.md` | `18dd23fe79ad067ad36903289961353d3e38d9967f6c224871f7febb61def217` |
+| `results/tables/q3-mutation-validation.json` | `dceb990b3ca9a889425d05200a14148e21518a48a9b413097047c7d32602d282` |
+| `results/tables/q3-mutation-validation.md` | `032b76afeb6d59854e77aae1b48c6b0283f92ad616b189d7d114dda3a777d125` |
 
 Seeds: Q3 generators draw no random numbers; the IF3 bootstrap seed is provenance only.
