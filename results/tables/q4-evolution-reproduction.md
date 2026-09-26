@@ -11,10 +11,10 @@ Seed: 42 (month-block bootstrap only).
 | Artifact | SHA-256, pass 1 | Pass 2 identical |
 | --- | --- | --- |
 | `results/tables/q4-evolution-population.md` | `fb35525a4e8183ec289d6e36986a1e9d52b3de6fb9fe1390227d05e43c020ef0` | yes |
-| `results/tables/q4-bridge.md` | `d1139538075d1580fbe5554d403b486ae1a7f0c9cd00bdf16a9ae9db59f26c17` | yes |
-| `results/tables/q4-decomposition.md` | `b0e3defe70a62e47b48d53ddfe4e06b95541370f154b6b52990dba87822e3be3` | yes |
-| `results/tables/q4-frontier-forecast.md` | `802c3a94503d6ca845c4e7323fd91f2003fe4abe6084c4196b1b3397fca924a7` | yes |
-| `results/tables/q4-forecast-robustness.md` | `de46a4d0380d4f1a51289ad1f7a7f1e43e378280f77bba076a85f8dcb6f27746` | yes |
+| `results/tables/q4-bridge.md` | `cab9146bf2667f7e0c7b4474b0487caa22e26a3eb0032fafeb2584ba741a3daa` | yes |
+| `results/tables/q4-decomposition.md` | `26823f056712ce8c34d5f7b037507008088888260056605cc4fdf76f3187af0c` | yes |
+| `results/tables/q4-frontier-forecast.md` | `39ad841ce865e7379777227eac5c6108c9d59693463a1cf6ca0093df2d107760` | yes |
+| `results/tables/q4-forecast-robustness.md` | `d8dd4cd4da8343559a78c366f5d81c4905019f09e163621809933eae3f2a41c8` | yes |
 | `data_local/problem-f/interfaces/q4-if4-loss-benchmark-bridge.json` | `f4aad9dee5b0bb2b7d219232d1407911ea95407e039a6405cec7087444735d1b` | yes |
 
 | Check | Result |

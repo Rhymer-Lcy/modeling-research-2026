@@ -14,13 +14,16 @@ as the descriptive frontier; the bin maximum and top-k mean are sensitivities.
   time, ``s`` the trend of log10 N, so ``b * s`` is the scale-associated and
   ``g_resid`` the non-scale-associated part of the change in mean score.
 * *Frontier set* (exact). The same identity on the models at or above their
-  own month's upper quantile, in non-sparse months only. This is the split the
-  forecast uses.
-* *Additive quantile* (predeclared, diagnostic). ``Q_0.9(score | log10 N, t)``
+  own month's upper quantile, in non-sparse months only. A post-failure,
+  model-conditional decomposition: adopted only after the predeclared additive
+  quantile split failed its consistency check, and never presented as
+  predeclared. It splits the continuation trend for the parameter-scale
+  scenarios; the historical continuation itself does not depend on it.
+* *Additive quantile* (predeclared, rejected). ``Q_0.9(score | log10 N, t)``
   with the frontier scale path ``Q_0.9(log10 N | t)``. Quantiles obey no exact
   identity, so its decomposed total is checked against the direct frontier
   trend; on this panel the check fails (a strong scale x time interaction, see
-  the matched-scale diagnostic), so it is reported and not used for the split.
+  the matched-scale diagnostic), so it is retained as a negative result only.
 
 ``g_resid`` is a conditional time association: it contains everything that
 moved with calendar time at fixed parameter count, including training-data and
@@ -28,9 +31,12 @@ compute growth that parameter count does not capture. It is not a measured rate
 of algorithmic progress, and nothing here establishes a causal effect of time.
 
 **Forecast.** Level and trend come from the time-only frontier estimator,
-anchored at the final observed panel date. The trend is split by the
-frontier-set shares; a scale-growth multiplier ``m`` scales a positive
-scale-associated component only.
+anchored at the final observed panel date: that direct time trend is the
+primary descriptive forecast trend, and its continuation is the historical /
+direct-score continuation baseline. For the parameter-scale-growth scenarios
+the trend is split by the frontier-set shares and a parameter-scale multiplier
+``m`` scales a positive parameter-scale-associated component only. Parameter
+count is not training compute; nothing here is a compute-growth scenario.
 """
 
 from __future__ import annotations
@@ -199,7 +205,7 @@ def components(frame: pd.DataFrame, value: str = "macro", split: bool | None = N
 
 
 def rate(comp: Dict[str, float], multiplier: float) -> Tuple[float, bool]:
-    """Frontier improvement rate under a scale-growth multiplier, and whether it binds.
+    """Frontier improvement rate under a parameter-scale-growth multiplier, and whether it binds.
 
     NaN when the split was declared identified but this replicate's frontier-set
     time trend is not positive, so its shares are undefined; such replicates are

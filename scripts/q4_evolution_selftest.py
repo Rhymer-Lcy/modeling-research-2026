@@ -19,7 +19,9 @@ import copy
 import hashlib
 import json
 import re
+import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -29,8 +31,10 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
 from src import interfaces as ifc  # noqa: E402
-from src.evolution import bridge, compute, dynamics, population, receipts, scores  # noqa: E402
-from src.evolution.config import BRIDGE_PRIMARY_STRATUM, IF4_FILENAME, MIN_BIN_N  # noqa: E402
+from src.evolution import bridge, claims, compute, dynamics, population, receipts, scores  # noqa: E402
+from src.evolution.config import (  # noqa: E402
+    BRIDGE_PRIMARY_STRATUM, GROUP_LABELS, HISTORICAL_SCENARIO, IF4_FILENAME, MIN_BIN_N, SCENARIOS,
+)
 from src.panel.c4_link import link_c4  # noqa: E402
 from src.panel.detail import QUARANTINED_DIMENSIONS, extract_subtasks  # noqa: E402
 from src.panel.leaderboard import ModelRecord  # noqa: E402
@@ -39,7 +43,9 @@ from src.paths import ATT_B, ATT_C, PROBLEM_F_INTERFACES, TABLES  # noqa: E402
 from src.scaling.units import UnitError, predict_natural  # noqa: E402
 
 RESULTS: list[tuple[str, bool]] = []
-EXPECTED = 60
+EXPECTED = 78
+#: The head of Draft PR #15 reviewed before the v3 correction; its table-row numbers must survive.
+REVIEWED_HEAD = "7309fa633c39fe560ad9b8391b3de1075d012908"
 
 T011_SOURCES = sorted((REPO / "src" / "evolution").glob("*.py")) + sorted((REPO / "scripts").glob("q4_evolution_*.py"))
 T011_TABLES = ["q4-evolution-population.md", "q4-bridge.md", "q4-decomposition.md",
@@ -287,6 +293,124 @@ check("generated tables are LF-only with no trailing whitespace",
       all(b"\r" not in (TABLES / t).read_bytes()
           and all(line == line.rstrip() for line in (TABLES / t).read_text(encoding="utf-8").split("\n"))
           for t in T011_TABLES))
+
+print("v3 claim language and downstream handoff")
+fcast = (TABLES / "q4-frontier-forecast.md").read_text(encoding="utf-8")
+robust = (TABLES / "q4-forecast-robustness.md").read_text(encoding="utf-8")
+handover = (REPO / "reviews" / "T-011" / "HANDOVER.md").read_text(encoding="utf-8")
+rows = [line for line in fcast.split("\n") if line.startswith("|")]
+bc = claims.section(fcast, "## Group BC: " + GROUP_LABELS["BC"])
+
+print(" v3.1 parameter-scale scenarios are never compute-growth scenarios")
+param_keys = [k for k in SCENARIOS if k != HISTORICAL_SCENARIO]
+param_rows = [r for r in rows if claims.PARAMETER_SCALE_LABEL in r]
+check("every parameter-scale scenario key and rendered row is marked parameter-scale and never compute",
+      param_rows and all(not claims.parameter_scale_label_errors(k) for k in param_keys)
+      and all("compute" not in r.lower() for r in param_rows))
+check("a compute-growth label on a parameter-scale scenario is refused",
+      bool(claims.parameter_scale_label_errors("compute-growth scenario (x0.5)"))
+      and bool(claims.parameter_scale_label_errors("slowdown_half")))
+check("the retired 'compute slowdown = halved parameter-scale rate' wording is gone",
+      not re.search(r"asks for slowing compute growth|compute growth, so the halved|primary `slowdown_half`",
+                    code + fcast + robust))
+
+print(" v3.2 compute-slowdown outputs are assumption-based and transferred")
+comp_rows = [r for r in rows if "Compute-growth multiplier" not in r and r.count("|") > 4
+             and ("compute-slowdown" in r.lower())]
+comp_sections = [claims.section(claims.section(fcast, h), "### Compute-slowdown: " + claims.COMPUTE_SENSITIVITY_LABEL)
+                 for h in ("## Group A: " + GROUP_LABELS["A"], "## Group BC: " + GROUP_LABELS["BC"])]
+check("every compute-slowdown row and section is marked assumption-based / transferred, with no identified-effect claim",
+      comp_rows and all(claims.COMPUTE_SENSITIVITY_LABEL in r for r in comp_rows)
+      and all(s and not claims.compute_sensitivity_errors(s) for s in comp_sections))
+check("an identified-effect claim or a missing marker is refused",
+      bool(claims.compute_sensitivity_errors("assumption-based transferred: the empirically identified BC compute share gives 47.64"))
+      and bool(claims.compute_sensitivity_errors("compute slowdown forecast 47.64")))
+
+print(" v3.3 the direct-score 12-month point is the historical continuation")
+bc_frame = fr[fr["group"] == "BC"]
+q = dynamics.quantile_split(bc_frame)
+h12 = dynamics.years_between(hd["primary_12m"], pop.anchor)
+continuation = f"{q['level0'] + q['g_time'] * h12:.2f}"
+head_row = [r for r in claims.section(bc, "### Headline forecast").split("\n")
+            if r.startswith("| 12-month forecast") and claims.HISTORICAL_LABEL in r]
+check("BC's 12-month historical-continuation row carries the recomputed direct-score point",
+      len(head_row) == 1 and f"| {continuation} |" in head_row[0] and continuation == "50.89")
+check("a slowdown / compute label on the continuation is refused",
+      bool(claims.historical_label_errors("compute-slowdown forecast")) and not claims.historical_label_errors(claims.HISTORICAL_LABEL))
+
+print(" v3.4 no bridge-based frontier forecast is emitted")
+
+
+def bridge_forecast_rows(text: str) -> list:
+    """Table rows presenting a bridge-based (loss -> score) forecast."""
+    return [r for r in text.split("\n") if r.startswith("|")
+            and re.search(r"bridge-based|bridge-conditional|via IF4|bridge translation", r, re.I)]
+
+
+unc_rows = [r for r in rows if r.startswith("| primary_12m") or r.startswith("| stress_24m")]
+check("no forecast row is bridge-based and every uncertainty row leaves IF3 and IF4 unused",
+      not bridge_forecast_rows(fcast) and unc_rows and all(r.rstrip().endswith("| not used | not used |") for r in unc_rows)
+      and "import bridge" not in (REPO / "src" / "evolution" / "dynamics.py").read_text(encoding="utf-8"))
+check("a planted bridge-based forecast row is detected",
+      bool(bridge_forecast_rows("| 12-month forecast | 2026-03-13 | bridge-based translation | 5.66 |")))
+
+print(" v3.5-7 mandatory Q4 source coverage in the T-012 handoff")
+check("the handoff contract carries the C3, C4 and C8 items", claims.downstream_contract_missing(handover) == [])
+
+
+def without(text: str, item: str) -> str:
+    """Remove one contract bullet (and its continuation lines) from the handover."""
+    out, skip = [], False
+    for line in text.split("\n"):
+        if line.startswith("- **") or line.startswith("#") or not line.strip():
+            skip = line.startswith("- **" + item)
+        if not skip:
+            out.append(line)
+    return "\n".join(out)
+
+
+body = claims.section(handover, claims.DOWNSTREAM_HEADING)
+c8_block = next(b for b in re.split(r"\n(?=- \*\*)", "\n" + body) if b.lstrip("\n").startswith("- **C8"))
+check("dropping the C3 item is detected (C3 manuscript requirement)",
+      "C3" in claims.downstream_contract_missing(without(handover, "C3")))
+check("dropping BBH / MUSR from the C8 item is detected (T-009 C8 requirement)",
+      "C8" in claims.downstream_contract_missing(handover.replace(c8_block, c8_block.replace("MUSR", "MU-SR"))))
+check("dropping the MATH prohibition from the C8 item is detected",
+      "C8" in claims.downstream_contract_missing(handover.replace(c8_block, c8_block.replace("MATH", "M4TH"))))
+
+print(" v3.8 the date-clock range sits with the headline forecast")
+clock = {}
+for line in robust.split("\n"):
+    m = re.match(r"\| `(primary|publication_date_only|fallback_date_only)` \| BC \|.*\| ([\d.]+) \|$", line)
+    if m:
+        clock[m.group(1)] = m.group(2)
+headings = [line for line in bc.split("\n") if line.startswith("### ")]
+after_headline = headings[headings.index("### Headline forecast") + 1] if "### Headline forecast" in headings else ""
+clock_section = claims.section(bc, "### Date-clock sensitivity of the headline")
+check("the date-clock section directly follows the BC headline and carries all three clock points",
+      len(clock) == 3 and after_headline == "### Date-clock sensitivity of the headline"
+      and not claims.clock_values_missing(clock_section, list(clock.values())))
+check("the handover states the three clock points in its forecast section",
+      not claims.clock_values_missing(claims.section(handover, "### Frontier and forecast (`q4-frontier-forecast.md`)"),
+                                      list(clock.values())))
+check("a headline section without the clock table is detected",
+      bool(claims.clock_values_missing(claims.section(bc, "### Headline forecast"), ["65.31"])))
+
+print(" v3 numeric preservation")
+NUM = re.compile(r"(?<![\w.])-?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:e[+-]?\d+)?%?")
+
+
+def lost_numbers(old: str, new: str) -> Counter:
+    rows_of = lambda s: "\n".join(line for line in s.split("\n") if line.startswith("|"))  # noqa: E731
+    return Counter(NUM.findall(rows_of(old))) - Counter(NUM.findall(rows_of(new)))
+
+
+reviewed = {t: subprocess.run(["git", "-C", str(REPO), "show", REVIEWED_HEAD + ":results/tables/" + t],
+                              capture_output=True, text=True, encoding="utf-8", check=True).stdout for t in T011_TABLES}
+check("every table-row number of the reviewed pre-v3 tables survives in the regenerated tables",
+      all(not lost_numbers(reviewed[t], (TABLES / t).read_text(encoding="utf-8")) for t in T011_TABLES))
+check("a changed reviewed number is detected",
+      bool(lost_numbers(reviewed["q4-frontier-forecast.md"], reviewed["q4-frontier-forecast.md"].replace("50.89", "50.90"))))
 
 print()
 failed = [name for name, ok in RESULTS if not ok]

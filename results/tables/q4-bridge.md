@@ -114,6 +114,11 @@ is never pooled with the primary stratum.
 
 **What IF4 says.** On the classic-IF3 loss scale, between loss 2.0933 and 2.5978, the macro score is constant at 5.66 with out-of-fold error 0.42 points. No loss-to-score slope is identified: the benchmark sits at its floor throughout the support. IF4 cannot translate any loss outside that interval.
 
+**Disposition.** IF4 is a degenerate, no-slope bridge over a narrow primary support: it records the
+benchmark floor and its out-of-fold prediction error, and nothing more. It identifies no
+transferable loss-to-score slope, pools no cross-family losses, and is not a conversion law usable
+for frontier forecasting. That it validates against the shared schema adds no scientific weight.
+
 ## Bridge-based translation
 
 A bridge-based score needs a loss on the IF4 scale inside the IF4 support; the loss of a real

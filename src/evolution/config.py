@@ -130,14 +130,26 @@ INTERVAL: Tuple[float, float] = (0.05, 0.95)
 #: extrapolation and never co-equal evidence.
 HORIZONS_MONTHS: Dict[str, int] = {"primary_12m": 12, "stress_24m": 24}
 
-#: Scale-growth scenarios, as multipliers on the frontier's historical
-#: scale-associated improvement rate. The problem statement asks for a forecast
-#: under slowing compute growth, so the halved rate is the primary scenario. A
-#: slowdown can only remove scale-driven gains: when the historical
-#: scale-associated component is not positive (frontier models did not grow),
-#: the multiplier is not applied and the scenario is reported as non-binding.
-SCENARIOS: Dict[str, float] = {"historical_rate": 1.0, "slowdown_half": 0.5, "scale_frozen": 0.0}
-PRIMARY_SCENARIO: str = "slowdown_half"
+#: Parameter-scale-growth scenarios, as multipliers on the frontier's historical
+#: parameter-count-associated (log N) improvement rate. They are NOT compute-growth
+#: scenarios: parameter count is not training compute, which also grows with
+#: training tokens (T-011 v3). A slower parameter-scale growth can only remove
+#: parameter-scale-driven gains; when that historical component is not positive
+#: (frontier models did not grow), the multiplier is not applied and the scenario
+#: is reported as non-binding. The multiplier 1.0 row is the historical /
+#: direct-score continuation baseline. The problem statement's compute-slowdown
+#: request is answered separately by the assumption-based transferred
+#: compute-slowdown sensitivity (``COMPUTE_SLOWDOWN_MULTIPLIERS``).
+SCENARIOS: Dict[str, float] = {"param_scale_historical": 1.0, "param_scale_half": 0.5, "param_scale_frozen": 0.0}
+HISTORICAL_SCENARIO: str = "param_scale_historical"
+
+#: Compute-growth multipliers for the compute-slowdown sensitivity. No
+#: representative training compute exists for the chat / fine-tuned frontier, so
+#: the compute-associated share estimated on the small, non-representative
+#: stratum-A C4 compute subset is transferred to each frontier by assumption and
+#: the transferred share is slowed. A scenario sensitivity, never an identified
+#: population effect.
+COMPUTE_SLOWDOWN_MULTIPLIERS = (0.5, 0.0)
 
 #: Rolling-origin validation. The longest horizon (months) is chosen by rule
 #: from counts alone: every origin needs at least MIN_TRAIN_BINS non-sparse

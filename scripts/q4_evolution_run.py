@@ -29,12 +29,12 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from src import interfaces as ifc  # noqa: E402
-from src.evolution import auxiliary, bridge, compute, dynamics, population, receipts, scores  # noqa: E402
+from src.evolution import auxiliary, bridge, claims, compute, dynamics, population, receipts, scores  # noqa: E402
 from src.evolution.config import (  # noqa: E402
-    BOOTSTRAP_REPLICATES, BRIDGE_FORMS, BRIDGE_PRIMARY_STRATUM, BRIDGE_STRATA, DATE_CONSISTENCY_TOLERANCE_DAYS,
-    EXCLUDED_STRATA, FRONTIER_QUANTILE, GROUP_LABELS, GROUPS, IF4_FILENAME, INTERVAL,
-    MIN_BAND_N, MIN_BIN_N, MIN_FRONTIER_SET_N, MIN_ORIGINS, MIN_TRAIN_BINS, PRIMARY_SCENARIO,
-    SCENARIOS, SEED, TOP_K,
+    BOOTSTRAP_REPLICATES, BRIDGE_FORMS, BRIDGE_PRIMARY_STRATUM, BRIDGE_STRATA, COMPUTE_SLOWDOWN_MULTIPLIERS,
+    DATE_CONSISTENCY_TOLERANCE_DAYS, EXCLUDED_STRATA, FRONTIER_QUANTILE, GROUP_LABELS, GROUPS,
+    HISTORICAL_SCENARIO, IF4_FILENAME, INTERVAL, MIN_BAND_N, MIN_BIN_N, MIN_FRONTIER_SET_N, MIN_ORIGINS,
+    MIN_TRAIN_BINS, SCENARIOS, SEED, TOP_K,
 )
 from src.evolution.estimators import interval  # noqa: E402
 from src.panel.sources import load_c1  # noqa: E402
@@ -244,7 +244,7 @@ def robustness(out: Dict[str, object]) -> Dict[str, pd.DataFrame]:
                          "mean_scale_rate": comp["mean_scale_rate"], "mean_resid_rate": comp["mean_resid_rate"],
                          "fs_scale_rate": comp["frontier_scale_rate"], "fs_resid_rate": comp["frontier_resid_rate"],
                          "q_consistent": comp["q_consistent"],
-                         "f12": dynamics.project(comp, h12, SCENARIOS[PRIMARY_SCENARIO])})
+                         "f12": dynamics.project(comp, h12, SCENARIOS[HISTORICAL_SCENARIO])})
     pop_rows = pd.DataFrame(rows)
 
     strata_rows = []
@@ -257,7 +257,7 @@ def robustness(out: Dict[str, object]) -> Dict[str, pd.DataFrame]:
         strata_rows.append({"stratum": stratum, "n": len(frame), "level0": comp["level0"], "g_time": comp["g_time"],
                             "mean_scale_rate": comp["mean_scale_rate"], "mean_resid_rate": comp["mean_resid_rate"],
                             "fs_scale_rate": comp["frontier_scale_rate"], "fs_resid_rate": comp["frontier_resid_rate"],
-                            "f12": dynamics.project(comp, h12, SCENARIOS[PRIMARY_SCENARIO])})
+                            "f12": dynamics.project(comp, h12, SCENARIOS[HISTORICAL_SCENARIO])})
 
     est_rows = []
     for grp, res in out["groups"].items():
@@ -517,6 +517,11 @@ def render_bridge(o: Dict[str, object]) -> Path:
            + ("No loss-to-score slope is identified: the benchmark sits at its floor throughout the support. "
               if chosen.form == "constant" else "")
            + "IF4 cannot translate any loss outside that interval."), ""]
+    if chosen.form == "constant":
+        L += ["**Disposition.** IF4 is a degenerate, no-slope bridge over a narrow primary support: it records the",
+              "benchmark floor and its out-of-fold prediction error, and nothing more. It identifies no",
+              "transferable loss-to-score slope, pools no cross-family losses, and is not a conversion law usable",
+              "for frontier forecasting. That it validates against the shared schema adds no scientific weight.", ""]
     chk = o["bridge_check"]
     csub = o["compute_subset"]
     L += ["## Bridge-based translation", "",
@@ -579,7 +584,11 @@ def render_decomposition(o: Dict[str, object]) -> Path:
           "components (in points per year) are the result and a percentage split would be meaningless."]
     L += ["", "### Frontier", "",
           f"The frontier is the conditional {int(100 * FRONTIER_QUANTILE)}th percentile of the macro score (linear quantile regression on time).",
-          "", "**Predeclared additive quantile decomposition - consistency check.** `Q_0.9(macro | log10 N, t) = a + b log10 N + g t`",
+          "Classification for manuscript use (T-011 v3):", "",
+          "- direct frontier time trend = the primary descriptive forecast trend;",
+          "- frontier-set scale / non-scale split = a post-failure, model-conditional decomposition;",
+          "- additive quantile split = a rejected diagnostic, retained as a negative result.", "",
+          "**Predeclared additive quantile decomposition (rejected diagnostic) - consistency check.** `Q_0.9(macro | log10 N, t) = a + b log10 N + g t`",
           "with the frontier scale path `Q_0.9(log10 N | t) = c + s t`. Quantiles obey no exact identity, so its",
           "decomposed total `b s + g` is checked against the direct frontier trend.", "",
           "| Group | Direct frontier trend | b | g | s | Decomposed total b s + g | Gap | Consistent |",
@@ -593,9 +602,12 @@ def render_decomposition(o: Dict[str, object]) -> Path:
               "the direct frontier trend. The matched-scale diagnostic below shows why - the frontier's time trend",
               "differs strongly by scale band, which one additive slope cannot represent. It is therefore **not**",
               "used to split the frontier trend."]
-    L += ["", "**Frontier-set split (used for the forecast).** The frontier set is the models at or above their own",
+    L += ["", "**Frontier-set split (post-failure model-conditional decomposition).** Adopted only after the additive",
+          "quantile split failed, so it is not predeclared. The frontier set is the models at or above their own",
           f"month's {int(100 * FRONTIER_QUANTILE)}th-percentile score, in months with at least {MIN_BIN_N} models. The exact OLS split above is",
-          f"applied to it when it holds at least {MIN_FRONTIER_SET_N} models over at least {MIN_TRAIN_BINS} months.", "",
+          f"applied to it when it holds at least {MIN_FRONTIER_SET_N} models over at least {MIN_TRAIN_BINS} months. It splits the",
+          "continuation trend only for the parameter-scale-growth scenarios; the historical / direct-score",
+          "continuation does not depend on it.", "",
           "| Group | Frontier-set models | Months | Time-only trend | b | s (decades/yr) | Scale-associated | Non-scale-associated | Scale share |",
           "| --- | ---: | ---: | --- | --- | --- | --- | --- | --- |"]
     for grp, r in o["groups"].items():
@@ -659,7 +671,9 @@ def render_decomposition(o: Dict[str, object]) -> Path:
                  f"{f(pt['scale_growth'], 3)} {ci(bt['scale_growth'], 3)} | {f(pt['scale_rate'])} {ci(bt['scale_rate'])} | "
                  f"{f(pt['slope_time'])} {ci(bt['slope_time'])} | {share_cell(pt['share_scale'], bt['share_scale'], bt['g_time'])} |")
     L += ["", "These rows span several years of publication dates, unlike the leaderboard window, and are almost",
-          "all pretrained base models: the compute share describes this subset only."]
+          "all pretrained base models: the compute share describes this subset only. No representative",
+          "training compute exists for the chat / fine-tuned frontier; the frontier forecast uses this share only",
+          f"as the {claims.COMPUTE_SENSITIVITY_LABEL} (`q4-frontier-forecast.md`)."]
     ip, ie = o["if3_primary"], o["if3_extrap"]
     L += ["", "### Classic IF3", "",
           f"- primary IF3 decomposition (inside-box rows only): **{ip['status']}** - n = {ip['n']}"
@@ -693,122 +707,199 @@ def render_forecast(o: Dict[str, object]) -> Path:
          f"- **Anchor: {date(pop.anchor)}**, the final observed date of the primary population.",
          f"- **12-month primary horizon: {date(hd['primary_12m'])}. 24-month stress horizon: {date(hd['stress_24m'])}** (stress / longer-horizon",
          "  extrapolation; never co-equal evidence).",
-         "- Split: the frontier trend is divided into scale-associated and non-scale-associated parts by the",
-         "  frontier-set shares (`q4-decomposition.md`).",
-         f"- Scenarios (the problem asks for slowing compute growth): the scale-associated part is multiplied by "
-         + ", ".join(f"{k} = {v:g}" for k, v in SCENARIOS.items()) + f"; primary `{PRIMARY_SCENARIO}`. A slowdown only",
-         "  removes a positive scale-associated part; where that part is not positive the scenario is non-binding.",
-         "- The non-scale-associated part is assumed to continue linearly over the horizon. That is an",
-         "  assumption, not a finding; nothing supports it beyond the observed window.", ""]
+         "",
+         "Three kinds of forecast number, never interchangeable (T-011 v3):",
+         "",
+         f"- **{claims.HISTORICAL_LABEL}**: the direct frontier time trend (the primary descriptive forecast",
+         "  trend) continued from the anchor. It is a historical baseline, not an answer to a compute slowdown.",
+         f"- **{claims.PARAMETER_SCALE_LABEL}s**: the continuation trend split by the post-failure frontier-set",
+         "  decomposition, with the parameter-count (log N) component multiplied by "
+         + ", ".join(f"`{k}` = {v:g}" for k, v in SCENARIOS.items() if v != SCENARIOS[HISTORICAL_SCENARIO]) + ".",
+         "  Parameter count is not training compute, so these are not compute-growth scenarios. A slower",
+         "  parameter-scale growth only removes a positive parameter-scale component; where that component is",
+         "  not positive the scenario is non-binding and equals the continuation.",
+         f"- **{claims.COMPUTE_SENSITIVITY_LABEL}**: the problem's compute-slowdown request. The frontier trend",
+         "  is split by the compute share estimated on the stratum-A C4 compute subset and that share is",
+         "  slowed. " + claims.COMPUTE_TRANSFER_STATEMENT,
+         "",
+         "The non-scale part of every number is assumed to continue linearly over the horizon: an assumption,",
+         "not a finding; nothing supports it beyond the observed window.", ""]
     for grp, r in o["groups"].items():
-        bins = r["bins"]
-        c = r["comp"]
-        L += [f"## Group {grp}: {GROUP_LABELS[grp]}", "", "### Historical frontier", "",
-              "| Month | Models | Sparse | P90 | Max | Top-k mean | Median | Frontier models' median params (B) |",
-              "| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |"]
-        for _, b in bins.iterrows():
-            L.append(f"| {b['month']} | {n(b['n'])} | {'yes' if b['sparse'] else 'no'} | {f(b['p90'])} | {f(b['max'])} | {f(b['top_k_mean'])} | {f(b['median'])} | {f(b['frontier_median_params_b'])} |")
-        dense = bins[~bins["sparse"]]
-        L += ["", f"Non-sparse months: {n(len(dense))}. Frontier level at the anchor {f(c['level0'])} {ci(r['boot']['level0'])}; "
-              f"frontier trend {f(c['g_time'])} {ci(r['boot']['g_time'])} pts/yr.", ""]
-        if c["split_identified"]:
-            L.append(f"Split: scale-associated {f(c['frontier_scale_rate'])} pts/yr, non-scale-associated {f(c['frontier_resid_rate'])} pts/yr "
-                     f"(frontier-set scale share {pct(c['fs_share_scale'])}).")
-        else:
-            L.append(f"Split: **not identified** (frontier set of {n(c['fs_n'])} models over {n(c['fs_months'])} months is below the size rule); every scenario equals the time-only trend.")
-        fc = r["forecast"]
-        L += ["", "### Forecast", ""]
-        if r["backtest_h"] == 0:
-            L += ["**UNVALIDATED EXTRAPOLATION.** This group has too few non-sparse months for any out-of-time",
-                  "check (see below); its numbers are shown for completeness and are not a supported forecast.", ""]
-        L += [
-              "| Horizon | Date | Scenario | Binding | Point | Bootstrap 90% | Predictive 90% | Predictive 90% incl. backtest error |",
-              "| --- | --- | --- | --- | ---: | --- | --- | --- |"]
-        bt = r["backtest"]
-        bt_rmse = float(np.sqrt(np.mean(bt.loc[bt["method"] == "time_only", "error"] ** 2))) if len(bt) else float("nan")
-        for _, row in fc.iterrows():
-            infl = (f"[{f(row['point'] - dynamics.Z90 * np.sqrt(row['sd_total'] ** 2 + bt_rmse ** 2))}, "
-                    f"{f(row['point'] + dynamics.Z90 * np.sqrt(row['sd_total'] ** 2 + bt_rmse ** 2))}]") if np.isfinite(bt_rmse) else "n/a (no backtest)"
-            label = "12-month forecast" if row["horizon"] == "primary_12m" else "24-month STRESS extrapolation"
-            L.append(f"| {label} | {date(row['date'])} | `{row['scenario']}` | {'yes' if row['binding'] else 'no'} | {f(row['point'])} | "
-                     f"[{f(row['boot_lo'])}, {f(row['boot_hi'])}] | [{f(row['pred_lo'])}, {f(row['pred_hi'])}] | {infl} |")
-        L += ["", "### Uncertainty components (SD, score points; primary scenario)", "",
-              "| Horizon | Frontier level at anchor | Trend increment | Joint bootstrap | Monthly frontier scatter | Total predictive | Classic IF3 | IF4 bridge |",
-              "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |"]
-        for _, row in fc[fc["scenario"] == PRIMARY_SCENARIO].iterrows():
-            L.append(f"| {row['horizon']} | {f(row['sd_level'])} | {f(row['sd_increment'])} | {f(row['sd_boot'])} | {f(row['sd_bin_noise'])} | {f(row['sd_total'])} | not used | not used |")
-        L += ["",
-              "- *Bootstrap 90%*: month-block bootstrap of the whole frontier fit (level, trend and split) - estimation",
-              "  uncertainty of the frontier line only.",
-              "- *Predictive 90%*: adds the scatter of monthly frontier points around the fitted line, i.e. what a",
-              "  single future month's frontier may show. Normal approximation.",
-              "- *incl. backtest error*: adds, in quadrature, the time-only method's RMSE at the backtest horizon below.",
-              "- Scenario spread is not a probability and is not folded into any band.",
-              "- Classic IF3 and IF4 do not enter: the forecast is direct score-based, because a bridge-based",
-              "  frontier forecast is not admissible (`q4-bridge.md`). No band here conditions on a bridge.", ""]
-        L += ["### Rolling-origin validation", ""]
-        feas = ", ".join(f"{h}m: {k}" for h, k in r["feasible"].items())
-        if r["backtest_h"] == 0:
-            L += [f"No horizon has at least {MIN_ORIGINS} origins with {MIN_TRAIN_BINS} non-sparse training months and a non-sparse target",
-                  f"(origins by horizon - {feas}). **No out-of-time validation is possible for this group**; its forecast is",
-                  "an unvalidated extrapolation.", ""]
-        else:
-            L += [f"Longest horizon with at least {MIN_ORIGINS} origins (each with {MIN_TRAIN_BINS}+ non-sparse training months and a",
-                  f"non-sparse target): **{r['backtest_h']} months** (origins by horizon - {feas}). A 12-month backtest is not",
-                  "possible on this history and none is claimed.", "",
-                  "| Origin | Target | Method | Forecast | Observed P90 | Error |", "| --- | --- | --- | ---: | ---: | ---: |"]
-            for _, e in bt.iterrows():
-                L.append(f"| {e['origin']} | {e['target']} | {e['method']} | {f(e['forecast'])} | {f(e['observed'])} | {f(e['error'])} |")
-            L += ["", "| Method | Origins | MAE | Mean error (bias) | RMSE |", "| --- | ---: | ---: | ---: | ---: |"]
-            for method, sub in bt.groupby("method", sort=False):
-                e = sub["error"].to_numpy(float)
-                L.append(f"| {method} | {len(e)} | {f(float(np.mean(np.abs(e))))} | {f(float(np.mean(e)))} | {f(float(np.sqrt(np.mean(e ** 2))))} |")
-            errs = bt.loc[bt["method"] == "time_only", "error"]
-            direction = "under" if (errs < 0).all() else "over" if (errs > 0).all() else None
-            L += ["",
-                  (f"Every time-only backtest forecast {direction}-predicted the observed frontier (mean error {f(float(errs.mean()))}):"
-                   if direction else f"Time-only backtest errors change sign (mean error {f(float(errs.mean()))}):"),
-                  "the model-based bands are conditional on a linear trend that the backtest does not fully bear out,",
-                  "so the band including backtest error is the more honest one.", ""]
-        L += sensitivity_lines(o, grp, r)
+        L += group_forecast_lines(o, grp, r)
     return write("q4-frontier-forecast.md", L)
 
 
-def sensitivity_lines(o: Dict[str, object], grp: str, r: Dict[str, object]) -> List[str]:
-    """Date-clock and compute-aware sensitivities of this group's headline forecast."""
+def forecast_kind(multiplier: float) -> str:
+    """The rendered label of a parameter-scale scenario row, checked against the claim contract."""
+    if multiplier == SCENARIOS[HISTORICAL_SCENARIO]:
+        label = claims.HISTORICAL_LABEL
+        claims.require(claims.historical_label_errors(label), "historical label")
+    else:
+        label = f"{claims.PARAMETER_SCALE_LABEL} (log N rate x{multiplier:g})"
+        claims.require(claims.parameter_scale_label_errors(label), "parameter-scale label")
+    return label
+
+
+def group_forecast_lines(o: Dict[str, object], grp: str, r: Dict[str, object]) -> List[str]:
+    bins, c, fc, bt = r["bins"], r["comp"], r["forecast"], r["backtest"]
+    L = [f"## Group {grp}: {GROUP_LABELS[grp]}", "", "### Historical frontier", "",
+         "| Month | Models | Sparse | P90 | Max | Top-k mean | Median | Frontier models' median params (B) |",
+         "| --- | ---: | --- | ---: | ---: | ---: | ---: | ---: |"]
+    for _, b in bins.iterrows():
+        L.append(f"| {b['month']} | {n(b['n'])} | {'yes' if b['sparse'] else 'no'} | {f(b['p90'])} | {f(b['max'])} | {f(b['top_k_mean'])} | {f(b['median'])} | {f(b['frontier_median_params_b'])} |")
+    dense = bins[~bins["sparse"]]
+    L += ["", f"Non-sparse months: {n(len(dense))}. Frontier level at the anchor {f(c['level0'])} {ci(r['boot']['level0'])}; "
+          f"direct frontier trend {f(c['g_time'])} {ci(r['boot']['g_time'])} pts/yr (the primary descriptive forecast trend).", ""]
+    if c["split_identified"]:
+        L.append("Post-failure frontier-set split (model-conditional; adopted after the predeclared additive quantile split "
+                 f"failed, not predeclared): parameter-scale-associated {f(c['frontier_scale_rate'])} pts/yr, "
+                 f"non-parameter-scale {f(c['frontier_resid_rate'])} pts/yr (frontier-set share {pct(c['fs_share_scale'])}).")
+    else:
+        L.append(f"Frontier-set split: **not identified** (frontier set of {n(c['fs_n'])} models over {n(c['fs_months'])} months "
+                 "is below the size rule); every parameter-scale-growth scenario equals the continuation.")
+    bt_rmse = float(np.sqrt(np.mean(bt.loc[bt["method"] == "time_only", "error"] ** 2))) if len(bt) else float("nan")
+
+    L += ["", "### Headline forecast", ""]
+    if r["backtest_h"] == 0:
+        L += ["**UNVALIDATED EXTRAPOLATION.** This group has too few non-sparse months for any out-of-time",
+              "check (see below); its numbers are shown for completeness and are not a supported forecast.", ""]
+    L += ["| Horizon | Date | Forecast kind | Binding | Point | Bootstrap 90% | Predictive 90% | Predictive 90% incl. backtest error |",
+          "| --- | --- | --- | --- | ---: | --- | --- | --- |"]
+    for _, row in fc.iterrows():
+        infl = (f"[{f(row['point'] - dynamics.Z90 * np.sqrt(row['sd_total'] ** 2 + bt_rmse ** 2))}, "
+                f"{f(row['point'] + dynamics.Z90 * np.sqrt(row['sd_total'] ** 2 + bt_rmse ** 2))}]") if np.isfinite(bt_rmse) else "n/a (no backtest)"
+        label = "12-month forecast" if row["horizon"] == "primary_12m" else "24-month STRESS extrapolation"
+        binding = "-" if row["multiplier"] == SCENARIOS[HISTORICAL_SCENARIO] else ("yes" if row["binding"] else "no")
+        L.append(f"| {label} | {date(row['date'])} | {forecast_kind(row['multiplier'])} | {binding} | {f(row['point'])} | "
+                 f"[{f(row['boot_lo'])}, {f(row['boot_hi'])}] | [{f(row['pred_lo'])}, {f(row['pred_hi'])}] | {infl} |")
+    if c["split_identified"] and c["frontier_scale_rate"] <= 0:
+        L += ["", f"The parameter-scale-growth scenarios are **non-binding**: this frontier's parameter-scale-associated "
+              f"component is {f(c['frontier_scale_rate'])} pts/yr (not positive), so slowing parameter-scale growth removes nothing.",
+              "They are not compute-growth scenarios; see the compute-slowdown sensitivity below."]
+    elif c["split_identified"]:
+        L += ["", f"The parameter-scale-growth scenarios bind: this frontier's parameter-scale-associated component is "
+              f"{f(c['frontier_scale_rate'])} pts/yr. They are not compute-growth scenarios."]
+    else:
+        L += ["", "The parameter-scale-growth scenarios are non-binding because the split is not identified."]
+    L += [""]
+    L += clock_lines(o, grp, r, bt_rmse)
+    compute_block = compute_lines(o, grp, r)
+    claims.require(claims.compute_sensitivity_errors("\n".join(compute_block)), "group " + grp + " compute-slowdown section")
+    L += compute_block
+
+    L += ["### Uncertainty components (SD, score points)", "",
+          "| Horizon | Forecast kind | Frontier level at anchor | Trend increment | Joint bootstrap | Monthly frontier scatter | Total predictive | Classic IF3 | IF4 bridge |",
+          "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |"]
+    for _, row in fc.iterrows():
+        L.append(f"| {row['horizon']} | {forecast_kind(row['multiplier'])} | {f(row['sd_level'])} | {f(row['sd_increment'])} | {f(row['sd_boot'])} | "
+                 f"{f(row['sd_bin_noise'])} | {f(row['sd_total'])} | not used | not used |")
+    L += ["",
+          "- *Bootstrap 90%*: month-block bootstrap of the whole frontier fit (level, trend and split) - estimation",
+          "  uncertainty of the frontier line only.",
+          "- *Predictive 90%*: adds the scatter of monthly frontier points around the fitted line, i.e. what a",
+          "  single future month's frontier may show. Normal approximation.",
+          "- *incl. backtest error*: adds, in quadrature, the time-only method's RMSE at the backtest horizon below.",
+          "- Scenario and sensitivity spreads are not probabilities and are not folded into any band.",
+          "- Classic IF3 and IF4 do not enter: no bridge-based frontier forecast is emitted, because none is",
+          "  admissible (`q4-bridge.md`). No band here conditions on a bridge.", ""]
+
+    L += ["### Rolling-origin validation", ""]
+    feas = ", ".join(f"{h}m: {k}" for h, k in r["feasible"].items())
+    if r["backtest_h"] == 0:
+        L += [f"No horizon has at least {MIN_ORIGINS} origins with {MIN_TRAIN_BINS} non-sparse training months and a non-sparse target",
+              f"(origins by horizon - {feas}). **No out-of-time validation is possible for this group**; its forecast is",
+              "an unvalidated extrapolation.", ""]
+    else:
+        L += [f"Longest horizon with at least {MIN_ORIGINS} origins (each with {MIN_TRAIN_BINS}+ non-sparse training months and a",
+              f"non-sparse target): **{r['backtest_h']} months** (origins by horizon - {feas}). A 12-month backtest is not",
+              "possible on this history and none is claimed.", "",
+              "| Origin | Target | Method | Forecast | Observed P90 | Error |", "| --- | --- | --- | ---: | ---: | ---: |"]
+        for _, e in bt.iterrows():
+            L.append(f"| {e['origin']} | {e['target']} | {e['method']} | {f(e['forecast'])} | {f(e['observed'])} | {f(e['error'])} |")
+        L += ["", "| Method | Origins | MAE | Mean error (bias) | RMSE |", "| --- | ---: | ---: | ---: | ---: |"]
+        for method, sub in bt.groupby("method", sort=False):
+            e = sub["error"].to_numpy(float)
+            L.append(f"| {method} | {len(e)} | {f(float(np.mean(np.abs(e))))} | {f(float(np.mean(e)))} | {f(float(np.sqrt(np.mean(e ** 2))))} |")
+        errs = bt.loc[bt["method"] == "time_only", "error"]
+        direction = "under" if (errs < 0).all() else "over" if (errs > 0).all() else None
+        L += ["",
+              (f"Every time-only backtest forecast {direction}-predicted the observed frontier (mean error {f(float(errs.mean()))}):"
+               if direction else f"Time-only backtest errors change sign (mean error {f(float(errs.mean()))}):"),
+              "the model-based bands are conditional on a linear trend that the backtest does not fully bear out,",
+              "so the band including backtest error is the more honest one.", ""]
+    return L
+
+
+def clock_values(o: Dict[str, object], grp: str) -> Dict[str, float]:
+    """12-month continuation point per date clock, from the robustness computation."""
     rb = o["robust"]["population"]
-    L = ["### Sensitivity of the headline", "",
-         f"12-month point under `{PRIMARY_SCENARIO}` when the date clock changes (each anchored at its own final date):", "",
-         "| Population | Frontier trend (pts/yr) | 12-month point |", "| --- | ---: | ---: |"]
+    out = {}
     for name in ("primary", "publication_date_only", "fallback_date_only"):
         row = rb[(rb["population"] == name) & (rb["group"] == grp)]
         if len(row) and "g_time" in row and np.isfinite(row["g_time"].iloc[0]):
-            L.append(f"| `{name}` | {f(float(row['g_time'].iloc[0]))} | {f(float(row['f12'].iloc[0]))} |")
+            out[name] = float(row["f12"].iloc[0])
+    return out
+
+
+def clock_lines(o: Dict[str, object], grp: str, r: Dict[str, object], bt_rmse: float) -> List[str]:
+    """Date-clock sensitivity, placed directly under the headline forecast."""
+    rb = o["robust"]["population"]
+    vals = clock_values(o, grp)
+    L = ["### Date-clock sensitivity of the headline", "",
+         f"12-month {claims.HISTORICAL_LABEL} point when only the date clock changes (each anchored at its own",
+         "final date). Publication date and fallback submission date are different quantities; no clock is",
+         "chosen for its result.", "",
+         "| Date clock | Population | Frontier trend (pts/yr) | 12-month point |", "| --- | --- | ---: | ---: |"]
+    names = {"primary": "canonical mixed clock", "publication_date_only": "publication-date-only",
+             "fallback_date_only": "submission-date-only"}
+    for name, label in names.items():
+        row = rb[(rb["population"] == name) & (rb["group"] == grp)]
+        if name in vals:
+            L.append(f"| {label} | `{name}` | {f(float(row['g_time'].iloc[0]))} | {f(vals[name])} |")
+    head = r["forecast"]
+    head = head[(head["horizon"] == "primary_12m") & (head["multiplier"] == SCENARIOS[HISTORICAL_SCENARIO])].iloc[0]
+    if len(vals) == 3:
+        spread = max(vals.values()) - min(vals.values())
+        width = head["pred_hi"] - head["pred_lo"]
+        outside = [names[k] for k, v in vals.items() if v < head["pred_lo"] or v > head["pred_hi"]]
+        L += ["", (f"The date-clock range ({f(min(vals.values()))} to {f(max(vals.values()))}, spread {f(spread)} points) is "
+                   + ("wider than" if spread > width else "narrower than")
+                   + f" the model-only 90% predictive band of the continuation ({f(head['pred_lo'])} to {f(head['pred_hi'])}, "
+                   f"width {f(width)} points)"
+                   + ((": the " + ", ".join(outside) + " point lies outside that band.") if outside else ".")
+                   + (" Date-clock sensitivity is therefore materially larger than the model-only forecast uncertainty."
+                      if spread > width else ""))]
     L.append("")
+    return L
+
+
+def compute_lines(o: Dict[str, object], grp: str, r: Dict[str, object]) -> List[str]:
+    """The problem's compute-slowdown request, answered only as a transferred sensitivity."""
     pc = o["log_compute_A"]
     share, draws, total = pc["point"]["share_scale"], pc["boot"]["share_scale"], pc["boot"]["g_time"]
     lo_total, _ = interval(total, *INTERVAL)
     c = r["comp"]
-    L += ["Compute-aware slowdown (transfer assumption, sensitivity only): the parameter-scale split puts",
-          "training-data growth into the non-scale part, so the scenarios above cannot express a compute",
-          "slowdown that acts through training data. Here the frontier trend is instead split by the compute",
-          "share of the stratum-A compute subset",
-          "(`q4-decomposition.md`, section B) and that share is slowed. The subset is small and not",
-          "representative, and its share is transferred to this group's frontier unchanged.", ""]
+    L = ["### Compute-slowdown: " + claims.COMPUTE_SENSITIVITY_LABEL, "",
+         claims.COMPUTE_TRANSFER_STATEMENT, "",
+         f"The share comes from the {n(pc['n'])} stratum-A C4 compute rows (`q4-decomposition.md`, section B: 94 models",
+         "link to C4 and 62 carry training compute); it is transferred to this group's direct frontier trend",
+         "unchanged, and the transferred share is slowed. The parameter-scale split cannot express this,",
+         "because it puts training-data growth into its non-scale part.", ""]
     if not (np.isfinite(share) and share > 0 and np.isfinite(lo_total) and lo_total > 0):
-        L += ["Not computed: the compute share is not positive or its total trend interval includes zero.", ""]
-        return L
+        return L + ["Not computed: the compute share is not positive or its total trend interval includes zero.", ""]
     lo_s, hi_s = interval(draws, *INTERVAL)
-    L += [f"Compute share {pct(share)} (interval {pct(max(lo_s, 0.0))} to {pct(min(hi_s, 1.0))}).", "",
-          "| Horizon | Compute-growth multiplier | Point | Range over the share interval |", "| --- | ---: | ---: | --- |"]
+    L += [f"Transferred compute share {pct(share)} (interval {pct(max(lo_s, 0.0))} to {pct(min(hi_s, 1.0))}, retained as the",
+          "uncertainty of the transfer).", "",
+          "| Horizon | Forecast kind | Compute-growth multiplier | Point | Range over the transferred share interval |",
+          "| --- | --- | ---: | ---: | --- |"]
     for horizon, dte in dynamics.horizon_dates(o["pop"].anchor).items():
         h = dynamics.years_between(dte, o["pop"].anchor)
-        for m in (0.5, 0.0):
+        for m in COMPUTE_SLOWDOWN_MULTIPLIERS:
             def at(sh: float) -> float:
                 return c["level0"] + c["g_time"] * (1.0 - (1.0 - m) * sh) * h
             vals = [at(max(lo_s, 0.0)), at(min(hi_s, 1.0))]
             label = "12-month" if horizon == "primary_12m" else "24-month stress"
-            L.append(f"| {label} | {m:g} | {f(at(share))} | [{f(min(vals))}, {f(max(vals))}] |")
+            L.append(f"| {label} | {claims.COMPUTE_SENSITIVITY_LABEL} | {m:g} | {f(at(share))} | [{f(min(vals))}, {f(max(vals))}] |")
     L.append("")
     return L
 
@@ -820,12 +911,14 @@ def sensitivity_lines(o: Dict[str, object], grp: str, r: Dict[str, object]) -> L
 def render_robustness(o: Dict[str, object]) -> Path:
     rb = o["robust"]
     L = ["# Q4 forecast and decomposition robustness", "", GEN, "",
-         "A small matrix declared in advance (`src/evolution/population.py`, `src/evolution/dynamics.py`).",
-         "No specification below was chosen for its result; point estimates only.", "",
+         "A small matrix (`src/evolution/population.py`, `src/evolution/dynamics.py`). The populations, strata,",
+         "frontier estimators and scale specifications were declared in advance; the frontier-set columns are the",
+         "post-failure model-conditional decomposition, added after the predeclared additive quantile split failed",
+         "its consistency check. No specification below was chosen for its result; point estimates only.", "",
          "## Population alternatives", "",
          f"All rates in points per year. Scale / non-scale columns are the additive components (a share of a",
-         f"small total is unstable, so none is shown). 12-month point under `{PRIMARY_SCENARIO}`, anchored at each",
-         "alternative's own final observed date.", "",
+         f"small total is unstable, so none is shown). 12-month point = {claims.HISTORICAL_LABEL}, anchored at",
+         "each alternative's own final observed date.", "",
          "| Population | Group | n | Final date | Frontier level | Frontier trend | Frontier scale-assoc. | Frontier non-scale | Mean scale-assoc. | Mean non-scale | Additive quantile consistent | 12-month point |",
          "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- | ---: |"]
     for _, r in rb["population"].iterrows():

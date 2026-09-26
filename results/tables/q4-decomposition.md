@@ -29,8 +29,13 @@ components (in points per year) are the result and a percentage split would be m
 ### Frontier
 
 The frontier is the conditional 90th percentile of the macro score (linear quantile regression on time).
+Classification for manuscript use (T-011 v3):
 
-**Predeclared additive quantile decomposition - consistency check.** `Q_0.9(macro | log10 N, t) = a + b log10 N + g t`
+- direct frontier time trend = the primary descriptive forecast trend;
+- frontier-set scale / non-scale split = a post-failure, model-conditional decomposition;
+- additive quantile split = a rejected diagnostic, retained as a negative result.
+
+**Predeclared additive quantile decomposition (rejected diagnostic) - consistency check.** `Q_0.9(macro | log10 N, t) = a + b log10 N + g t`
 with the frontier scale path `Q_0.9(log10 N | t) = c + s t`. Quantiles obey no exact identity, so its
 decomposed total `b s + g` is checked against the direct frontier trend.
 
@@ -44,9 +49,12 @@ the direct frontier trend. The matched-scale diagnostic below shows why - the fr
 differs strongly by scale band, which one additive slope cannot represent. It is therefore **not**
 used to split the frontier trend.
 
-**Frontier-set split (used for the forecast).** The frontier set is the models at or above their own
+**Frontier-set split (post-failure model-conditional decomposition).** Adopted only after the additive
+quantile split failed, so it is not predeclared. The frontier set is the models at or above their own
 month's 90th-percentile score, in months with at least 20 models. The exact OLS split above is
-applied to it when it holds at least 30 models over at least 3 months.
+applied to it when it holds at least 30 models over at least 3 months. It splits the
+continuation trend only for the parameter-scale-growth scenarios; the historical / direct-score
+continuation does not depend on it.
 
 | Group | Frontier-set models | Months | Time-only trend | b | s (decades/yr) | Scale-associated | Non-scale-associated | Scale share |
 | --- | ---: | ---: | --- | --- | --- | --- | --- | --- |
@@ -130,7 +138,9 @@ data growth counts as scale.
 | all compute rows | 62 | 25 | 5.93 [4.12, 8.26] | 5.60 [3.20, 8.70] | 0.497 [0.253, 0.824] | 2.78 [1.15, 4.92] | 3.15 [1.23, 5.04] | 46.9% [21, 76]% |
 
 These rows span several years of publication dates, unlike the leaderboard window, and are almost
-all pretrained base models: the compute share describes this subset only.
+all pretrained base models: the compute share describes this subset only. No representative
+training compute exists for the chat / fine-tuned frontier; the frontier forecast uses this share only
+as the assumption-based transferred compute-slowdown sensitivity (`q4-frontier-forecast.md`).
 
 ### Classic IF3
 
