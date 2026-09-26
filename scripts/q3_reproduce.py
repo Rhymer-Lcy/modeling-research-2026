@@ -1,0 +1,250 @@
+"""Reproduce every Q3 artifact deterministically, under the input guard.
+
+Before anything runs, the direct runtime must equal the ``environment.yml`` pins
+and every accepted interface must pass its hash, shared-contract and scope
+checks and be published in its tracked upstream receipt.  Every generator then
+runs twice as a separate process under the process-wide Q3 input guard, which
+records the allowlisted inputs it opened and would have raised on any PDF,
+non-allowlisted local file, traversal or write.  The run fails unless both
+passes are byte-identical and LF-only, no guard denial occurred, every read was
+allowlisted, and the authorized inputs and interfaces are unchanged afterwards.
+The last generator is the mutation validation, which requires committed T-010
+sources and takes several minutes per pass.
+
+Writes:
+    results/tables/q3-reproduction.json
+    results/tables/q3-reproduction.md
+
+Run through the declared environment:
+    conda run -n modeling-research-2026 --no-capture-output python scripts/q3_reproduce.py
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import platform
+import re
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+from typing import Any, Mapping
+
+REPO = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(REPO))
+
+from src.alloc import (  # noqa: E402
+    ACCEPTED_INTERFACE_SHA256,
+    AUTHORIZED_Q3_INPUTS,
+    input_identity,
+    install_q3_input_guard,
+    load_all_accepted_interfaces,
+    verify_accepted_hash_receipts,
+)
+from src.alloc.inputguard import LOG_ENVIRONMENT_VARIABLE  # noqa: E402
+from src.alloc.report import write_artifacts  # noqa: E402
+from src.paths import TABLES  # noqa: E402
+
+GENERATORS = (
+    "q3_source_receipt.py",
+    "q3_allocate.py",
+    "q3_context_sensitivity.py",
+    "q3_regime_analysis.py",
+    "q3_quality_cost_sensitivity.py",
+    "q3_loo_robustness.py",
+    "q3_provenance_ledger.py",
+    "q3_mutation_validation.py",
+)
+STEMS = (
+    "q3-source-receipt",
+    "q3-allocation",
+    "q3-context-sensitivity",
+    "q3-regime-thresholds",
+    "q3-quality-cost-sensitivity",
+    "q3-loo-robustness",
+    "q3-provenance-ledger",
+    "q3-mutation-validation",
+)
+ARTIFACTS = tuple(TABLES / (stem + suffix) for stem in STEMS for suffix in (".json", ".md"))
+PINNED_PACKAGES = ("python", "numpy", "scipy", "pandas", "pyyaml")
+
+
+def environment_pins() -> dict[str, str]:
+    """Read the exact direct pins declared in environment.yml."""
+    text = (REPO / "environment.yml").read_text(encoding="utf-8")
+    pins = {}
+    for name in PINNED_PACKAGES:
+        match = re.search(r"^\s*-\s*" + name + r"=([0-9][0-9.]*)\s*$", text, flags=re.MULTILINE)
+        if match is None:
+            raise RuntimeError("environment.yml has no exact pin for " + name)
+        pins[name] = match.group(1)
+    return pins
+
+
+def runtime_versions() -> dict[str, str]:
+    import numpy
+    import pandas
+    import scipy
+    import yaml
+
+    return {"python": platform.python_version(), "numpy": numpy.__version__, "scipy": scipy.__version__,
+            "pandas": pandas.__version__, "pyyaml": yaml.__version__}
+
+
+def input_snapshot() -> dict[str, dict[str, Any]]:
+    """Identity, size and modification time of every allowlisted input.
+
+    The identity (SHA-256 for local-only inputs, accepted Git blob for tracked
+    ones) is published; size and mtime are compared locally only.
+    """
+    output = {}
+    for entry in AUTHORIZED_Q3_INPUTS:
+        stat = entry.path.stat()
+        output[entry.key] = {"identity": input_identity(entry), "bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns}
+    return output
+
+
+def interface_check() -> dict[str, str]:
+    accepted = load_all_accepted_interfaces()
+    observed = {kind: item.sha256 for kind, item in accepted.items()}
+    if observed != ACCEPTED_INTERFACE_SHA256:
+        raise RuntimeError("accepted interface identity changed")
+    return observed
+
+
+def run_pass(label: str, log_dir: Path) -> tuple[dict[str, str], list[str], dict[str, dict[str, list[str]]]]:
+    guard_logs: dict[str, dict[str, list[str]]] = {}
+    for script in GENERATORS:
+        print(label + ": " + script, flush=True)
+        log_path = log_dir / (label.replace(" ", "_") + "_" + script + ".json")
+        environment = dict(os.environ, **{LOG_ENVIRONMENT_VARIABLE: str(log_path)})
+        subprocess.run([sys.executable, str(REPO / "scripts" / script)], cwd=REPO, env=environment,
+                       check=True, stdout=subprocess.DEVNULL)
+        guard_logs[script] = json.loads(log_path.read_text(encoding="utf-8"))
+    hashes = {path.relative_to(REPO).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest() for path in ARTIFACTS}
+    with_cr = [path.relative_to(REPO).as_posix() for path in ARTIFACTS if b"\r" in path.read_bytes()]
+    return hashes, with_cr, guard_logs
+
+
+def markdown(payload: Mapping[str, Any]) -> str:
+    check = lambda value: "**PASS**" if value else "**FAIL**"  # noqa: E731
+    lines = [
+        "# Q3 reproduction",
+        "",
+        "Generated by `scripts/q3_reproduce.py`. Do not edit by hand.",
+        "",
+        "| Requirement | Result |",
+        "| --- | --- |",
+        "| Direct runtime equals the environment.yml pins | " + check(payload["runtime_matches_pins"]) + " |",
+        "| Accepted IF1/IF2/IF3 hash, contract and IF2 1M scope before and after | " + check(payload["interfaces_unchanged"]) + " |",
+        "| Accepted hashes published in tracked upstream receipts | " + check(payload["accepted_hash_receipts_found"]) + " |",
+        "| Two complete passes byte-identical | " + check(payload["two_passes_byte_identical"]) + " |",
+        "| Every artifact LF-only in both passes | " + check(payload["lf_only"]) + " |",
+        "| Authorized inputs unchanged (content, size, mtime) | " + check(payload["authorized_inputs_unchanged"]) + " |",
+        "| Input-guard denials across all generator runs | " + str(payload["guard_denials"]) + " |",
+        "| Every local input opened was allowlisted | " + check(payload["only_allowlisted_inputs_read"]) + " |",
+        "",
+        "Runtime: `" + json.dumps(payload["runtime"], sort_keys=True) + "`.",
+        "",
+        "## Inputs opened, per generator (identical in both passes)",
+        "",
+        "| Generator | Allowlisted inputs opened |",
+        "| --- | --- |",
+    ]
+    for script, reads in payload["inputs_opened_by_generator"].items():
+        lines.append("| `scripts/" + script + "` | " + (", ".join("`" + key + "`" for key in reads) or "none") + " |")
+    lines += [
+        "",
+        "Each generator ran under the process-wide audit-hook guard, which raises before the operating",
+        "system opens any `*.pdf`, any local file outside the allowlist, or any allowlisted file for",
+        "writing, and before any directory under `data_local/` or `docs_local/` is listed. Zero denials",
+        "means no generator attempted any of these; in particular neither PDF was opened, stated through",
+        "an open, hashed or parsed. The current input snapshot is the " + str(len(payload["authorized_inputs"]))
+        + "-file allowlist below; the",
+        "historical whole-tree count of the reviewed checkpoint is not carried forward.",
+        "",
+        "| Key | Path | Identity |",
+        "| --- | --- | --- |",
+    ]
+    for entry in payload["authorized_inputs"]:
+        identity = entry["identity"]
+        shown = identity.get("sha256") or ("Git blob " + identity["git_blob_id"])
+        lines.append("| `" + entry["key"] + "` | `" + entry["path"] + "` | `" + shown + "` |")
+    lines += [
+        "",
+        "## Artifacts",
+        "",
+        "| Artifact | SHA-256 |",
+        "| --- | --- |",
+    ]
+    for path, digest in payload["artifact_sha256"].items():
+        lines.append("| `" + path + "` | `" + digest + "` |")
+    lines += [
+        "",
+        "Seeds: " + payload["seed_policy"],
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    install_q3_input_guard()
+    pins = environment_pins()
+    runtime = runtime_versions()
+    if runtime != pins:
+        print("RUNTIME MISMATCH: " + json.dumps({"runtime": runtime, "pins": pins}), file=sys.stderr)
+        return 1
+    receipts = verify_accepted_hash_receipts()
+    before_inputs = input_snapshot()
+    before_interfaces = interface_check()
+    with tempfile.TemporaryDirectory() as directory:
+        first_hashes, first_cr, first_logs = run_pass("pass 1", Path(directory))
+        second_hashes, second_cr, second_logs = run_pass("pass 2", Path(directory))
+    after_inputs = input_snapshot()
+    after_interfaces = interface_check()
+    verify_accepted_hash_receipts()
+
+    allowed = {entry.key for entry in AUTHORIZED_Q3_INPUTS}
+    denials = sum(len(log["denied"]) for logs in (first_logs, second_logs) for log in logs.values())
+    reads = {script: first_logs[script]["reads"] for script in GENERATORS}
+    only_allowlisted = all(set(log["reads"]) <= allowed for logs in (first_logs, second_logs) for log in logs.values())
+    payload = {
+        "schema_version": "q3-reproduction-v3",
+        "purpose": "T-010 deterministic two-pass regeneration receipt under the Q3 input guard",
+        "runtime": runtime,
+        "environment_pins": pins,
+        "runtime_matches_pins": runtime == pins,
+        "accepted_interface_sha256": dict(ACCEPTED_INTERFACE_SHA256),
+        "accepted_hash_receipts": receipts,
+        "accepted_hash_receipts_found": True,
+        "interfaces_unchanged": before_interfaces == after_interfaces == ACCEPTED_INTERFACE_SHA256,
+        "generators": ["scripts/" + script for script in GENERATORS],
+        "artifact_sha256": second_hashes,
+        "two_passes_byte_identical": first_hashes == second_hashes,
+        "lf_only": not first_cr and not second_cr,
+        "authorized_inputs": [{"key": entry.key, "path": entry.relative_path, "kind": entry.kind,
+                               "identity": after_inputs[entry.key]["identity"]} for entry in AUTHORIZED_Q3_INPUTS],
+        "authorized_inputs_unchanged": before_inputs == after_inputs,
+        "inputs_opened_by_generator": reads,
+        "inputs_opened_identical_across_passes": all(
+            first_logs[script]["reads"] == second_logs[script]["reads"] for script in GENERATORS
+        ),
+        "guard_denials": denials,
+        "only_allowlisted_inputs_read": only_allowlisted,
+        "pdf_opens": 0 if denials == 0 else "see denials",
+        "seed_policy": "Q3 generators draw no random numbers; the IF3 bootstrap seed is provenance only.",
+    }
+    passed = all((payload["runtime_matches_pins"], payload["interfaces_unchanged"], payload["two_passes_byte_identical"],
+                  payload["lf_only"], payload["authorized_inputs_unchanged"], payload["only_allowlisted_inputs_read"],
+                  payload["inputs_opened_identical_across_passes"], denials == 0))
+    write_artifacts("q3-reproduction", payload, markdown(payload))
+    print("two passes identical: " + str(payload["two_passes_byte_identical"]) + "; LF-only: " + str(payload["lf_only"])
+          + "; inputs unchanged: " + str(payload["authorized_inputs_unchanged"]) + "; interfaces unchanged: "
+          + str(payload["interfaces_unchanged"]) + "; guard denials: " + str(denials)
+          + "; runtime matches pins: " + str(payload["runtime_matches_pins"]))
+    return 0 if passed else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

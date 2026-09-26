@@ -1,0 +1,209 @@
+{
+  "accepted_hash_receipts": {
+    "IF1": "results/tables/q1-if1-summary.md",
+    "IF2": "results/tables/q1-if2-summary.md",
+    "IF3": "results/tables/q2-final-closure.md"
+  },
+  "accepted_hash_receipts_found": true,
+  "accepted_interface_sha256": {
+    "IF1": "b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8",
+    "IF2": "9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91",
+    "IF3": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514"
+  },
+  "artifact_sha256": {
+    "results/tables/q3-allocation.json": "6709c7db2843c6b81f0118dffc11bd7c1b085992e66c7204b4404673d536ed59",
+    "results/tables/q3-allocation.md": "0cbd39bee0c6b930864555561df41b23a4a5cc371ece2db487714701340bd28c",
+    "results/tables/q3-context-sensitivity.json": "33fbd8ebba0126dfba4fa5a787bfeb04d984a6a157fd03a96017021fbd1fdaf5",
+    "results/tables/q3-context-sensitivity.md": "3df97ed98aebec09061e97078398f7e0750712764f4febf4f1f8c2a71e6f51c8",
+    "results/tables/q3-loo-robustness.json": "2f9c9786d48a395b8202ade76158321444f0da3340707b6b8b8d95b5e0b40d8e",
+    "results/tables/q3-loo-robustness.md": "46daa38115d6918d94902e866c7c2a485168baf167e6ca2d94df454834724d90",
+    "results/tables/q3-mutation-validation.json": "dceb990b3ca9a889425d05200a14148e21518a48a9b413097047c7d32602d282",
+    "results/tables/q3-mutation-validation.md": "032b76afeb6d59854e77aae1b48c6b0283f92ad616b189d7d114dda3a777d125",
+    "results/tables/q3-provenance-ledger.json": "a000ca08972d0f8e511d8bedce00a6a0d86b2da31d19cfefaf61c920ca53cb08",
+    "results/tables/q3-provenance-ledger.md": "27b0e820fef5b3b8222b6c17b53f91838499849fd31be02f903312e7ee442799",
+    "results/tables/q3-quality-cost-sensitivity.json": "04333ea4667e6db4f664055f75793ac5b95dcfa05f8f66e5a30b65fed0fd36e2",
+    "results/tables/q3-quality-cost-sensitivity.md": "a1bf9b1159deab4b041c65f7134ce7c4127bc4ab6fbc36ba72d846b9d26ab4d0",
+    "results/tables/q3-regime-thresholds.json": "bb7f7f9b3a7421cc562775368515e4540df5748a55c92b0921b941d784394e75",
+    "results/tables/q3-regime-thresholds.md": "a8c10d2be794842a996e439bea14df71dce9f1aec68addf7e71c1b9655ac56af",
+    "results/tables/q3-source-receipt.json": "6397b0b2297d2ced82b9b80b42c10bc428c7d97cfe143fc3b76dff703a193d09",
+    "results/tables/q3-source-receipt.md": "b71e01422c085859acd0103296223b34e4e9cc540ea39cd5a754c6f977caa9aa"
+  },
+  "authorized_inputs": [
+    {
+      "identity": {
+        "sha256": "89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7"
+      },
+      "key": "canonical_problem_statement_docx",
+      "kind": "organizer_source",
+      "path": "docs_local/problem-f/source/problem_statement.docx"
+    },
+    {
+      "identity": {
+        "sha256": "ee24622cb3a6334f08d72c9ea373be26d5e5585bb266367c5f66d77499112ffc"
+      },
+      "key": "c7_model_architecture_metadata",
+      "kind": "organizer_source",
+      "path": "data_local/problem-f/raw/real_attachments/C_efficiency_evolution/model_architecture_metadata.csv"
+    },
+    {
+      "identity": {
+        "sha256": "34e81dabf46302eebaac8551fa18d2e72acd0833b1cf0276690bee897f1323db"
+      },
+      "key": "organizer_source_manifest",
+      "kind": "organizer_source",
+      "path": "data_local/problem-f/raw/real_attachments/source_manifest.json"
+    },
+    {
+      "identity": {
+        "sha256": "5d9bb98d3661cfecafe19e51bbf22187828b67784949ce50bfc519441d82d88b"
+      },
+      "key": "intake_sha256_manifest",
+      "kind": "intake_receipt",
+      "path": "data_local/problem-f/raw/attachment_sha256_manifest.tsv"
+    },
+    {
+      "identity": {
+        "sha256": "b8ec99ca38f2e466b427fd1a7d88858048924cc590bbe881a966d141eb9bdeb8"
+      },
+      "key": "accepted_if1",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/q1-if1-domain-quality.json"
+    },
+    {
+      "identity": {
+        "sha256": "9f2a83da45633858822c8416b5fa70a9537a06b07ac9056e50d871492b16ff91"
+      },
+      "key": "accepted_if2",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/q1-if2-mixture-response.json"
+    },
+    {
+      "identity": {
+        "sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514"
+      },
+      "key": "accepted_if3",
+      "kind": "accepted_interface",
+      "path": "data_local/problem-f/interfaces/IF3_classic.json"
+    },
+    {
+      "identity": {
+        "accepted_commit": "b18967c76395ab7d9a336f957e74cd6b4e8d3a99",
+        "blob_content_sha256": "636481ae810a449b814a7817d3559174745eb70abd0bec03bfbd857e707ce133",
+        "git_blob_id": "d32cdfd87f5fea9ac56f68aef0f9fc8d574c2020"
+      },
+      "key": "accepted_q2_loo_evidence",
+      "kind": "tracked_upstream_artifact",
+      "path": "results/tables/q2-uncertainty-robustness.md"
+    }
+  ],
+  "authorized_inputs_unchanged": true,
+  "environment_pins": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "python": "3.11.16",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "generators": [
+    "scripts/q3_source_receipt.py",
+    "scripts/q3_allocate.py",
+    "scripts/q3_context_sensitivity.py",
+    "scripts/q3_regime_analysis.py",
+    "scripts/q3_quality_cost_sensitivity.py",
+    "scripts/q3_loo_robustness.py",
+    "scripts/q3_provenance_ledger.py",
+    "scripts/q3_mutation_validation.py"
+  ],
+  "guard_denials": 0,
+  "inputs_opened_by_generator": {
+    "q3_allocate.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_context_sensitivity.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_loo_robustness.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_mutation_validation.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_provenance_ledger.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_quality_cost_sensitivity.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_regime_analysis.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ],
+    "q3_source_receipt.py": [
+      "accepted_if1",
+      "accepted_if2",
+      "accepted_if3",
+      "c7_model_architecture_metadata",
+      "canonical_problem_statement_docx",
+      "intake_sha256_manifest",
+      "organizer_source_manifest"
+    ]
+  },
+  "inputs_opened_identical_across_passes": true,
+  "interfaces_unchanged": true,
+  "lf_only": true,
+  "only_allowlisted_inputs_read": true,
+  "pdf_opens": 0,
+  "purpose": "T-010 deterministic two-pass regeneration receipt under the Q3 input guard",
+  "runtime": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "python": "3.11.16",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "runtime_matches_pins": true,
+  "schema_version": "q3-reproduction-v3",
+  "seed_policy": "Q3 generators draw no random numbers; the IF3 bootstrap seed is provenance only.",
+  "two_passes_byte_identical": true
+}
