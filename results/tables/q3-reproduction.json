@@ -1,0 +1,53 @@
+{
+  "accepted_classic_if3_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+  "artifact_sha256": {
+    "results/tables/q3-allocation.json": "8fe91f80c9807a5eb794cbadc505e4c8412880e1c12e95d162016f855fe918d0",
+    "results/tables/q3-allocation.md": "32ffa2d65a9296353c240180f94ad4b8b0393c043efd7bffee81d1915826f457",
+    "results/tables/q3-context-sensitivity.json": "971d263e91be6fa420ed48acee3838dd48efa54c5d3cfea9227a259e6c0fb9ba",
+    "results/tables/q3-context-sensitivity.md": "234fbb81e45850e26a8890a5845b1938562f18dbb6295ebe19ea4418b72acffd",
+    "results/tables/q3-quality-cost-sensitivity.json": "8b4925c1af81aab8f3f67c64f59b92d8b5cc36dff0ba2e43300fa26e66998f20",
+    "results/tables/q3-quality-cost-sensitivity.md": "7e2e09eb35b1c8f7c32577bc6ae89095f0c84e8c9b1bd8678b651706810e940c",
+    "results/tables/q3-source-receipt.json": "8bcc8c5de7be4ee23e7a36313ae5a817206a95cfbf28038293e6caf2b2b2d4ce",
+    "results/tables/q3-source-receipt.md": "5a2d8c7635a812490acbc09536738206e5429962dceed072fe3fb3dd4ad3a8ff"
+  },
+  "generators": [
+    "scripts/q3_source_receipt.py",
+    "scripts/q3_allocate.py",
+    "scripts/q3_context_sensitivity.py",
+    "scripts/q3_quality_cost_sensitivity.py"
+  ],
+  "interface_verification": {
+    "IF1": {
+      "content_size_mtime_unchanged": true,
+      "status": "PRESENT"
+    },
+    "IF2": {
+      "content_size_mtime_unchanged": true,
+      "status": "PRESENT"
+    },
+    "IF3": {
+      "accepted_sha256": "720efea859d3be3b39ac2ee1976f8adaf7a31b8b5b1a71eb72e8ee8f987c8514",
+      "content_size_mtime_unchanged": true,
+      "status": "PRESENT"
+    }
+  },
+  "interfaces_unchanged": true,
+  "lf_only": true,
+  "purpose": "T-010 deterministic baseline-only Q3 regeneration receipt",
+  "runtime": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "python": "3.11.16",
+    "pyyaml": "6.0.3",
+    "scipy": "1.17.1"
+  },
+  "schema_version": "q3-reproduction-v1",
+  "seed_policy": "Q3 generators draw no random values. The accepted IF3 bootstrap seed is retained as descriptive uncertainty provenance only; no allocation uncertainty resampling runs.",
+  "source_input_file_count": 1977,
+  "source_input_verification": {
+    "content_size_mtime_unchanged": true,
+    "file_count": 1977
+  },
+  "source_inputs_unchanged": true,
+  "two_passes_byte_identical": true
+}
