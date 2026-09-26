@@ -64,9 +64,11 @@ has since changed; the full comparison is in `paper/TEMPLATE_DECISION_2026.md`.
   class row with the official row when all four local images are present, and
   with **no row** otherwise, logging a warning. Rendered at 300 dpi, the row's
   logo positions agree with the official cover within 0.7 mm and its widths
-  within 1.4 mm. `scripts/build_paper.ps1 -Submission` refuses to build without
-  the row, without real cover identity, without SimSun and SimHei embedded, with
-  non-empty PDF title/author metadata, or with an undefined reference.
+  within 1.4 mm. `scripts/build_paper.ps1 -Submission` exits non-zero (the PDF
+  is still written, for inspection only) when the row is missing or its images
+  do not match their pinned hashes, when real cover identity is absent, when
+  SimSun or SimHei is not embedded, when the PDF title/author metadata are not
+  empty, or when a reference is undefined.
 
 Retained ambiguity 1 below is therefore resolved for a local submission build.
 A clean public clone still builds without the row, and says so.

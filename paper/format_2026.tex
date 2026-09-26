@@ -73,7 +73,8 @@
 %   - all four local files present -> the official row is drawn;
 %   - any file missing (for example in a clean public clone) -> NO row at all,
 %     never a stale or partial one, and a loud warning is written to the log.
-%     scripts/build_paper.ps1 -Submission refuses to build without the row.
+%     scripts/build_paper.ps1 -Submission then exits non-zero (the PDF is
+%     still written, for inspection only).
 %
 % Widths are the image-frame widths that reproduce the official cover: the
 % visible-ink extents of the rendered row were measured against the official
