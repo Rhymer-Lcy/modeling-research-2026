@@ -9,6 +9,10 @@
 % Build with scripts/build_paper.ps1, which sets the search paths required to
 % locate the document class under paper/template/.
 
+% Numeric citations are sorted and runs are compressed ([2-5]). The class loads
+% natbib itself, so the option is passed before the class.
+\PassOptionsToPackage{sort&compress}{natbib}
+
 \documentclass{gmcmthesis}
 
 % 2026 manuscript-format compatibility layer. Must be loaded after the document
@@ -21,6 +25,24 @@
 \usepackage{subfig}
 \usepackage{siunitx}
 \hypersetup{hidelinks}
+
+% In-text citations: superscript numbers in square brackets, placed by \cite
+% and never typed by hand. The official 2026 rule asks for bracketed numbers;
+% superscripting them is a house style that keeps the brackets.
+\setcitestyle{super,square,comma}
+
+% Equations, figures and tables are numbered within sections (5.1, 5.2, ...).
+\numberwithin{equation}{section}
+\numberwithin{figure}{section}
+\numberwithin{table}{section}
+
+% The class puts a thin kern (\thinskip) into section numbers; it has no
+% meaning in a PDF bookmark, so drop it there instead of warning about it.
+\pdfstringdefDisableCommands{\let\thinskip\empty}
+
+% Avoid single lines stranded at the top or bottom of a page.
+\clubpenalty=10000
+\widowpenalty=10000
 
 % The document class binds its decorative CJK family to LiSu, which is not part
 % of every installation; the class author's own note recommends substituting a
@@ -42,6 +64,10 @@
 % team.tex is git-ignored and holds real values when supplied locally.
 % team.example.tex is tracked and holds placeholders, so a clean clone builds.
 \IfFileExists{team.tex}{\input{team.tex}}{\input{team.example.tex}}
+
+% Paper title. It is not identity, so it is tracked here and set after the
+% identity file, which therefore cannot override it.
+\title{\makecell{大语言模型的数据质量、标度律、\\算力配置与能力演进建模}}
 
 \begin{document}
 
