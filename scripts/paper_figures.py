@@ -486,7 +486,7 @@ def figure_q3_allocation(data: dict, q3: dict) -> Path:
     handles += [Line2D([], [], color="none", marker="o", markerfacecolor=INK2, markeredgecolor="white",
                        markersize=4.5, label="代表性预算下的解"),
                 Line2D([], [], color="none", marker="o", markerfacecolor="white", markeredgecolor=INK2,
-                       markersize=4.5, label="区间转换点")]
+                       markersize=4.5, label="结构性转移点")]
     fig.legend(handles=handles, loc="upper center", ncol=4, bbox_to_anchor=(0.5, 1.13),
                handletextpad=0.3, columnspacing=1.0)
     return save(fig, "paper-q3-allocation.pdf")
@@ -516,7 +516,7 @@ def figure_q3_regimes(data: dict, q3: dict) -> Path:
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     handles = [Patch(facecolor=f, hatch=h, edgecolor=INK2, linewidth=0.4, label=l) for f, h, l in REGIME_STYLE.values()]
-    handles.append(Line2D([], [], color=INK, linewidth=0.9, label="区间转换点"))
+    handles.append(Line2D([], [], color=INK, linewidth=0.9, label="结构性转移点"))
     handles.append(Line2D([], [], color=INK2, linewidth=0.7, linestyle=(0, (1, 2)), label="代表性预算"))
     ax.legend(handles=handles, loc="upper center", ncol=3, bbox_to_anchor=(0.5, 1.33), handletextpad=0.4,
               columnspacing=1.0)
@@ -526,6 +526,14 @@ def figure_q3_regimes(data: dict, q3: dict) -> Path:
 FAMILY_LABEL = {"exponential": "指数型", "power": "幂函数型", "logarithmic": "对数渐近型"}
 FAMILY_STYLE = {"exponential": (CATEGORICAL[0], "-"), "power": (CATEGORICAL[1], (0, (5, 2))),
                 "logarithmic": (CATEGORICAL[2], (0, (1.2, 1.4)))}
+
+
+def q_label(q: float) -> str:
+    """Crossing label in the body's notation: 0.366, or 5.03 x 10^-4 below 0.01."""
+    if q >= 0.01:
+        return f"$Q = {q:.3g}$"
+    mantissa, exponent = f"{q:.2e}".split("e")
+    return f"$Q = {mantissa}" + r"\times 10^{" + str(int(exponent)) + "}$"
 
 
 def figure_q3_quality(data: dict, quality: dict) -> Path:
@@ -541,7 +549,7 @@ def figure_q3_quality(data: dict, quality: dict) -> Path:
     for x in quality["crossings"]:
         ax.scatter([x["q"]], [x["g"]], s=26, facecolor="white", edgecolor=INK, linewidth=0.9, zorder=4)
         offset = (-62, -3) if x["q"] > 0.9 else (5, -11)
-        ax.annotate(f"\U0001D444 = {x['q']:.3g}", (x["q"], x["g"]), xytext=offset, textcoords="offset points",
+        ax.annotate(q_label(x["q"]), (x["q"], x["g"]), xytext=offset, textcoords="offset points",
                     fontsize=8, color=INK)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -575,16 +583,16 @@ def figure_q4(data: dict) -> Path:
     dense = [r for r in shown if not r["sparse"]]
     sparse = [r for r in shown if r["sparse"]]
     ax.scatter([month_mid(r["month"]) for r in dense], [r["p90"] for r in dense], marker="o", s=22,
-               facecolor=CATEGORICAL[0], edgecolor="white", linewidth=0.6, zorder=3, label="月度第 90 百分位（样本充足）")
+               facecolor=CATEGORICAL[0], edgecolor="white", linewidth=0.6, zorder=3, label="月度第 90 百分位数（样本充足）")
     ax.scatter([month_mid(r["month"]) for r in sparse], [r["p90"] for r in sparse], marker="o", s=20,
-               facecolor="white", edgecolor=CATEGORICAL[0], linewidth=0.9, zorder=3, label="月度第 90 百分位（稀疏月份）")
+               facecolor="white", edgecolor=CATEGORICAL[0], linewidth=0.9, zorder=3, label="月度第 90 百分位数（稀疏月份）")
     t0 = decimal_year(q4["anchor"])
 
     def line(t: float) -> float:
         return q4["level"] + q4["trend"] * (t - t0)
 
     ax.plot([first_dense, t0], [line(first_dense), line(t0)], color=INK, linewidth=1.3, zorder=2,
-            label="前沿趋势（条件第 90 分位数回归）")
+            label="前沿趋势（条件第 90 百分位数回归）")
     h24 = q4["headline"][24]
     t24 = decimal_year(h24["date"])
     ax.plot([t0, t24], [line(t0), line(t24)], color=INK, linewidth=1.3, linestyle=(0, (4, 2)), zorder=2,

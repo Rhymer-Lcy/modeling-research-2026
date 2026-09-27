@@ -10,10 +10,10 @@ reproducible.
 | Figure | Inputs | Output SHA-256 |
 | --- | --- | --- |
 | `results/figures/paper-q1-transfer.pdf` | `results/tables/q1-mixture-validation.md` | `b7938490b8958948a030c52aecea696621f48c6fadea8e99e32bb725c3998103` |
-| `results/figures/paper-q3-allocation.pdf` | `results/tables/q3-context-sensitivity.json`<br>`results/tables/q3-regime-thresholds.json` | `09b9d244f0f2974244cc8c4c78e846a8ac7eeb097a3d77cd31fcb4ee16e4f103` |
-| `results/figures/paper-q3-regimes.pdf` | `results/tables/q3-context-sensitivity.json`<br>`results/tables/q3-regime-thresholds.json` | `2dc5c53e7dd511ff849d1d8b7fbe80e1be73f2ca17c4a7355af696daf93ecc0f` |
-| `results/figures/paper-q3-quality-cost.pdf` | `results/tables/q3-quality-cost-sensitivity.json` | `e799377c0f8f99d1a78f9b94e4b37b59605fc96699c5158d67a4b1b69588c348` |
-| `results/figures/paper-q4-frontier.pdf` | `results/tables/q4-frontier-forecast.md` | `2dfa83923f3a194c8123008968f62330a7678adca24a4c3d0878c815d7ab39ae` |
+| `results/figures/paper-q3-allocation.pdf` | `results/tables/q3-context-sensitivity.json`<br>`results/tables/q3-regime-thresholds.json` | `e0b546d32a1f0ce82d8a1d6d1aa0438e53495bb3ec37edeb36260fb8a037853a` |
+| `results/figures/paper-q3-regimes.pdf` | `results/tables/q3-context-sensitivity.json`<br>`results/tables/q3-regime-thresholds.json` | `8016b151b542c92ab1858892b9bbcb8e2c6b63d81c305bc47c5b0b4460d70857` |
+| `results/figures/paper-q3-quality-cost.pdf` | `results/tables/q3-quality-cost-sensitivity.json` | `05bc91f05dc3b07ff64cb9f4663b86ef93699280b82379b5b9fce2bc4fd06cc2` |
+| `results/figures/paper-q4-frontier.pdf` | `results/tables/q4-frontier-forecast.md` | `39ff28fe9a2baf49b5d293d2bd424cf2b0961b5191543df8b2c6db30b23e9c12` |
 
 | Input | SHA-256 (LF) |
 | --- | --- |
