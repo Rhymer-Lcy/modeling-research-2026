@@ -4,11 +4,116 @@
 | --- | --- |
 | Task | T-012 |
 | Owner | M1 |
-| Status | `wip` in `TASKS.md`. **Stage B (v4) final-integration candidate complete; awaiting final independent audit.** |
-| Specification | `worklog/specs/T-012.md` v4 (L3), archived prospectively on this branch (`0b295eb`); v1-v3 unchanged |
-| Timestamp | 2026-09-27T05:08:27+08:00 (Stage B) |
-| Base | `main` `648b7b4` (T-010 accepted head `fe1dd7c` plus the T-010 closeout), merged normally into this branch as `826f438` |
+| Status | `wip` in `TASKS.md`. **v5 final audit corrections applied to the Stage-B candidate; ready for the last PDF review.** |
+| Specification | `worklog/specs/T-012.md` v5 (L2, `243f65c`), archived before any correction; v1-v4 unchanged |
+| Timestamp | 2026-09-27T11:14:46+08:00 (v5) |
+| Base | branch head `1d505fc` (Stage-B candidate); `main` `648b7b4` unchanged |
 | Branch / PR | `docs/m1-T012-manuscript-stage-a` / PR #18 (Draft) |
+
+## v5 final audit corrections
+
+Editorial and presentation pass only. No experiment, fit, literature search or
+headline number; every accepted boundary (rejected quality law, classic IF3,
+Q3 inequality allocation in the box, exogenous context, baseline Q0, blocked
+nonbaseline quality, raw-g as cost comparison, model-conditional transitions,
+LOO robustness ranges, parity identity, Q4 no-slope bridge and score route,
+all interval distinctions) is unchanged.
+
+**Abstract.** Title, abstract and keywords now fit on the abstract page (it
+previously ran onto a second, mostly blank page), by content reduction only:
+typography, spacing and geometry are untouched. Removed from the abstract: the
+five-class enumeration, the 1.54 storage-precision ratio, the Q3 constraint
+equation, the N*/D* values, the two transition-budget ranges, the 30000 parity
+detail, the 3.8e-4 LOO spread, the three crossing coordinates, the Q1 conflict
+rate. Kept: the Q1 score extremes and R^2 0.725 with the failed transfer; B5
+7.52% and B4 8.07% with the rejection; the three Q3 regimes at 4096 with
+utilization 0.0245, two transitions per context moving upward, the blocked
+quality lane; Q4 1,385 models, 10.9%, 65.7%, 50.89 [40.27, 61.52], 60.80,
+47.64 and 44.39 as sensitivity. Title and keywords unchanged.
+
+**Evidence-resolved values.**
+- **3.24e-5 vs 3.26e-5: both kept, different quantities.**
+  `results/tables/q2-classic-fit.md` prints 3.237e-05 as the median absolute
+  relative error of the *published* constants evaluated on B1 (generator
+  diagnostic, Section 6.3) and 3.26e-05 as the *refitted* law's in-sample
+  median absolute relative error on B1 ("not a validation statistic").
+  Section 9.3 now names each baseline explicitly.
+- **10.34 vs 10.35: 10.34 kept, marked as computed from unrounded values.**
+  `results/tables/q4-frontier-forecast.md` states "width 10.34 points";
+  `scripts/q4_evolution_run.py` computes it as `pred_hi - pred_lo` on the
+  unrounded endpoints. The printed endpoints [45.72, 56.07] are rounded.
+- **C1 Average identity** was already corrected to the accepted 1.42e-14 in
+  Stage B.
+
+**Terminology and prose.** 平均绝对相对误差 / 中位绝对相对误差 throughout
+(the Q1 validation, extrapolation and Q2 validation/closure artifacts all
+compute absolute relative errors); 第 90 百分位数 and 条件第 90 百分位数回归
+throughout, in Figure 8.1 too; 结构性转移点 replaces 区间转换点 in Figures
+7.1/7.2 and the text; the two grammar defects (Assumption 2, Section 4.1)
+fixed; Assumption 9 now states the assumption only; formal bootstrap wording in
+Section 10.2; "问题二发布了…" and "只发布了" replaced; run-in labels 问题一：…
+in Sections 9.2/9.3; one repeated caveat about the parity point shortened;
+pointer to Appendix A at the end of Section 10.3; counts 1,176, 1,029, 21,413,
+1,000 given separators (context lengths, seed and parity value are parameter
+values and keep none).
+
+**Data roles.** A16 (6 of 17 domains mapped, used only for Section 5.5, no
+imputation, no extrapolation evidence) after the A4-A15 text; C5 (43 anchors),
+C6 (75, containing C5 consistently; diagnosis only, no transferable slope) and
+C7 (source of the observed context grid) in Section 4.4. **B3:** the accepted
+T-008 artifacts and review package document no B3 table or disposition, so
+none is invented; Section 1.2 now says B2 is the semi-synthetic control and B4,
+B5 the out-of-family and literature validation. Hard-coded section numbers in
+new text are `\ref`s.
+
+**Tables and figures.** Table 4.1: B4 rows labelled 剔除 B1 同族 / 全体,
+B2 purpose shortened, B6/B7 containment moved to a note, widths adjusted so no
+cell fragments. Table 5.1: C4（语料域）. Table 6.1: E bootstrap interval shown
+as [1.68970, 1.68990] (the accepted bounds 1.6897, 1.6899 at five decimals).
+Table 7.1: 上角点（预算有剩余）. Table 7.2: single-line headers with units,
+caption 各观测上下文长度下的结构性转移点与高预算利用率, note defining the two
+transitions. Table 8.1: caption scoped to the trend rows, interval type and the
+A/BC groups in a note, footnote specific to the A group. Table 8.2: note
+separating prediction intervals, transfer-share sensitivity ranges and
+date-clock point sensitivities. Table 9.1: note defining the dash. Figure 7.3:
+first crossing labelled Q = 5.03 × 10^-4. Appendix tables A.1/A.2 are set in
+place so each caption stays with its table (content unchanged). Reference list
+set ragged-right so the field boundary after "et al.," no longer stretches;
+style, order and metadata unchanged (official 2026 pattern, no type marks).
+
+**Not adopted (review items absent from the candidate or out of scope).**
+Corrupted quotations not present in the text; highlight removal (none exists);
+page-size repair (all 26 pages are A4); table of contents; AI-use section;
+GB/T 7714 type marks; a new title; new Figure 7.1 markers (a grayscale render
+confirmed the five contexts remain distinguishable by lightness and shape);
+Table A.2 redesign; an invented B3 role or numeric correction.
+
+**Cover.** The local, git-ignored identity file carries the fixture
+placeholders (FIXTUREUNIVERSITY, FIXTUREID0001, FIXTUREALPHA, FIXTUREBETA,
+FIXTUREGAMMA) for the user's final manual replacement; no real identity is in
+any file.
+
+### v5 validation actually run
+
+- `scripts/paper_figures.py` twice: byte-identical; only Figures 7.1-7.3 and
+  8.1 changed (Figure 5.1 byte-identical); receipt regenerated.
+  `scripts/paper_figures_selftest.py`: 10/10 planted errors rejected.
+- Build (`-Clean` and `-Submission` with the fixture identity file): exit 0,
+  26 pages, all A4, 0 overfull boxes, 0 undefined references or citations,
+  0 missing glyphs, 0 bookmark warnings; annotations: links only; metadata
+  empty; fixture strings on page 1 only; `SUBMISSION CHECKS: all passed`.
+- Every final page rendered and inspected; pages built without the identity
+  file were shown pixel-identical to the submission build except the cover.
+- Traceability: 420 numbers traced to accepted artifacts, 31 abstract and
+  synthesis numbers found in the body, 35 Q3 table cells matched to JSON; the
+  audit killed 5 of 5 planted errors. Visible-text scan: 0 hits.
+- Targeted searches: 区间转换点, 文档自助, 整月块自助, 问题二发布了,
+  按散文语料的经验按, 并以把缺失指标, 中位相对误差, 平均相对误差, B2--B5,
+  人工智能工具: all 0.
+- `git diff --check` clean; PreCommit before every commit; PrePush before the
+  push.
+
+---
 
 ## Stage B (T-012 v4)
 
