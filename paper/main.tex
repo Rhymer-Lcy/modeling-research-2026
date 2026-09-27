@@ -40,6 +40,12 @@
 % meaning in a PDF bookmark, so drop it there instead of warning about it.
 \pdfstringdefDisableCommands{\let\thinskip\empty}
 
+% In the reference list, each field boundary is a comma followed by \newblock,
+% i.e. two stretchable spaces in a row, which a justified line can widen into a
+% visible gap after "et al.,". Set the list ragged-right so no inter-word space
+% stretches, and keep sentence punctuation from widening the space after it.
+\AtBeginEnvironment{thebibliography}{\frenchspacing\raggedright}
+
 % Avoid single lines stranded at the top or bottom of a page.
 \clubpenalty=10000
 \widowpenalty=10000
