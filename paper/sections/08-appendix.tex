@@ -40,9 +40,12 @@ NumPy 2.4.6、SciPy 1.17.1、pandas 3.0.6、PyYAML 6.0.3，作图另用 matplotl
 \texttt{environment.yml} 中固定的版本一致。面板构建程序生成的各表由问题四的复现入口核对不变。
 作图程序在绘图前逐项核对所画数值与结果表一致，并附有植入错误的自检程序。
 
-\begin{table}[htbp]
+% The appendix tables are set in place rather than floated: as floats they were
+% pushed onto a page of their own, far from the text that introduces them.
+\begin{center}
+  \begin{minipage}{\textwidth}
   \centering
-  \caption{复现入口}
+  \captionof{table}{复现入口}
   \label{tab:repro}
   \begin{tabular}{ll}
     \toprule
@@ -57,16 +60,18 @@ NumPy 2.4.6、SciPy 1.17.1、pandas 3.0.6、PyYAML 6.0.3，作图另用 matplotl
     正文图的自检 & \texttt{scripts/paper\_figures\_selftest.py} \\
     \bottomrule
   \end{tabular}
-\end{table}
+  \end{minipage}
+\end{center}
 
 \subsection{正文图表与结果文件的对应}
 
 正文中的数值均取自 \texttt{results/tables/} 下的结果文件，主要对应关系见表\ref{tab:artifacts}。
 五幅图的输入与输出的 SHA-256 记录在 \texttt{results/tables/paper-figures.md} 中。
 
-\begin{table}[htbp]
+\begin{center}
+  \begin{minipage}{\textwidth}
   \centering
-  \caption{正文图表与结果文件的对应}
+  \captionof{table}{正文图表与结果文件的对应}
   \label{tab:artifacts}
   \begin{tabular}{>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{12.2cm}}
     \toprule
@@ -83,4 +88,5 @@ NumPy 2.4.6、SciPy 1.17.1、pandas 3.0.6、PyYAML 6.0.3，作图另用 matplotl
     表\ref{tab:q4-forecast}，图\ref{fig:q4-frontier} & \texttt{q4-frontier-forecast.md}，\texttt{q4-forecast-robustness.md} \\
     \bottomrule
   \end{tabular}
-\end{table}
+  \end{minipage}
+\end{center}

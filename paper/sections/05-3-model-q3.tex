@@ -33,8 +33,8 @@ $\kappa ND\le C$。
 在已花费的算力中，训练与注意力开销的占比分别为 $6/\kappa$ 与 $\eta L_{\mathrm{ctx}}/\kappa$，
 只取决于上下文长度而与预算无关：$L_{\mathrm{ctx}}=4096$ 时为 88.0\% 与 12.0\%，
 $L_{\mathrm{ctx}}=131072$ 时为 18.6\% 与 81.4\%。二者在 $L_{\mathrm{ctx}}=6/\eta=30000$ 时相等。
-这只是一个成本恒等式：30000 不是最优上下文长度，不是区间转换点，也不是优化得到的临界值，
-它本身也不是 C7 中出现的取值（观测值 8192 与 32768 位于其两侧）。
+这只是一个成本恒等式，不对应最优或临界的上下文长度，也不是结构性转移点；30000 本身也不是
+C7 中出现的取值（观测值 8192 与 32768 位于其两侧）。
 
 \subsection{优化模型与可行域}
 
@@ -100,7 +100,7 @@ $\mathrm{d}\ln N^*/\mathrm{d}\ln C$ 与 $\mathrm{d}\ln D^*/\mathrm{d}\ln C$ 的�
     \midrule
     $10^{19}$ & $2.152\times10^{8}$ & $6.814\times10^{9}$ & 3.0114 & 内点最优 & 0 & 1 \\
     $10^{22}$ & $4.890\times10^{9}$ & $2.999\times10^{11}$ & 2.1475 & 数据量取上界 & 0 & 1 \\
-    $10^{24}$ & $1.197\times10^{10}$ & $2.999\times10^{11}$ & 2.0934 & 上角点，有剩余 & $9.755\times10^{23}$ & 0.0245 \\
+    $10^{24}$ & $1.197\times10^{10}$ & $2.999\times10^{11}$ & 2.0934 & \makecell{上角点\\（预算有剩余）} & $9.755\times10^{23}$ & 0.0245 \\
     \bottomrule
     \multicolumn{7}{l}{\footnotesize 注：预算与算力单位为 FLOPs，$N^*$ 单位为个，$D^*$ 单位为 Token；三行的质量开销均为 0。}
   \end{tabular}
@@ -110,7 +110,7 @@ $\mathrm{d}\ln N^*/\mathrm{d}\ln C$ 与 $\mathrm{d}\ln D^*/\mathrm{d}\ln C$ 的�
   \centering
   \includegraphics[width=\textwidth]{paper-q3-allocation}
   \caption{最优参数量与数据量随算力预算的变化（五个观测上下文长度；实心标记为代表性预算下的解，
-           空心标记为区间转换点）}
+           空心标记为结构性转移点）}
   \label{fig:q3-allocation}
 \end{figure}
 
@@ -142,18 +142,20 @@ $C_{\mathrm{box}}$，最优解到达上角点，此后预算出现剩余，弹�
   \centering
   \includegraphics[width=\textwidth]{paper-q3-regimes}
   \caption{各观测上下文长度下最优解所处区间随预算的变化（上下文长度各占一行，行间不插值；
-           竖实线为区间转换点，竖点线为三个代表性预算）}
+           竖实线为结构性转移点，竖点线为三个代表性预算）}
   \label{fig:q3-regimes}
 \end{figure}
 
 \begin{table}[htbp]
   \centering
-  \caption{各观测上下文长度下的结构性转移点（单位：FLOPs）}
+  \caption{各观测上下文长度下的结构性转移点与高预算利用率}
   \label{tab:q3-transitions}
-  \begin{tabular}{ccccc}
+  \begin{tabular}{>{\centering\arraybackslash}p{2.1cm}>{\centering\arraybackslash}p{1.6cm}%
+                  >{\centering\arraybackslash}p{3.2cm}>{\centering\arraybackslash}p{3.8cm}%
+                  >{\centering\arraybackslash}p{3.3cm}}
     \toprule
-    \makecell{$L_{\mathrm{ctx}}$\\（Token）} & $\kappa$ & \makecell{内点最优 $\to$\\数据量取上界} &
-    \makecell{数据量取上界 $\to$ 预算有剩余\\（即 $C_{\mathrm{box}}$）} & \makecell{$10^{24}$ FLOPs\\时的利用率} \\
+    $L_{\mathrm{ctx}}$（Token） & $\kappa$ & 第一转移点预算（FLOPs） &
+    第二转移点预算 $C_{\mathrm{box}}$（FLOPs） & $10^{24}$ FLOPs 时的利用率 \\
     \midrule
     2048 & 6.4096 & $9.326\times10^{21}$ & $2.300\times10^{22}$ & 0.0230 \\
     4096 & 6.8192 & $9.922\times10^{21}$ & $2.447\times10^{22}$ & 0.0245 \\
@@ -161,6 +163,7 @@ $C_{\mathrm{box}}$，最优解到达上角点，此后预算出现剩余，弹�
     32768 & 12.5536 & $1.827\times10^{22}$ & $4.505\times10^{22}$ & 0.0450 \\
     131072 & 32.2144 & $4.687\times10^{22}$ & $1.156\times10^{23}$ & 0.1156 \\
     \bottomrule
+    \multicolumn{5}{>{\raggedright\arraybackslash}p{15.2cm}}{\footnotesize 注：第一转移点处最优解由内点最优转为数据量取上界 $D^*=D_{\max}$；第二转移点处最优解到达有效域上角点，此后预算有剩余。} \\
   \end{tabular}
 \end{table}
 
@@ -178,7 +181,7 @@ $1.068\times10^{8}$（131072），$D^*$ 由 $7.050\times10^{9}$ 降至 $2.908\ti
 
 \subsection{参数估计的稳健性}
 
-问题二发布了 8 组“删去一条训练轨迹”后重新拟合的参数（6 位有效数字）。把每组参数代入同一有效域
+问题二的删一轨迹分析得到 8 组重新拟合的参数（6 位有效数字）。把每组参数代入同一有效域
 与同一优化问题重新求解，得到最优配置的删一稳健性范围。$N^*$、$D^*$ 不受边界约束时，其相对范围为
 $1.6\times10^{-4}$ 至 $3.8\times10^{-4}$，在发布精度下可以分辨；受边界约束时二者由边界确定，不随
 参数变化。预测损失的相对范围为 $3.1\times10^{-6}$ 至 $1.8\times10^{-5}$，与把一组参数按 6 位有效数字
@@ -186,7 +189,7 @@ $1.6\times10^{-4}$ 至 $3.8\times10^{-4}$，在发布精度下可以分辨；受
 的相对范围为 $7.0\times10^{-4}$，没有一个范围包含代表性预算，名义拟合与 8 组删一拟合把每个代表性
 预算都判入同一区间。
 
-这些是删一稳健性范围，不是置信区间、自助法区间或后验区间。问题二只发布了各参数的边际自助法区间，
+这些是删一稳健性范围，不是置信区间、自助法区间或后验区间。问题二只给出了各参数的边际自助法区间，
 没有联合抽样，本文不从边际区间合成联合抽样，也不把剖面诊断转换为配置的界限。还需注意，问题二的
 主拟合数据与已发表公式逐点一致，这些范围描述的是估计对删去单条轨迹的敏感性，不代表真实模型的
 规模规律被确定到同样的精度。
