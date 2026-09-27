@@ -73,6 +73,23 @@ has since changed; the full comparison is in `paper/TEMPLATE_DECISION_2026.md`.
 Retained ambiguity 1 below is therefore resolved for a local submission build.
 A clean public clone still builds without the row, and says so.
 
+## Author decisions that deviate from the official material (2026-09-27)
+
+Two presentation choices were made by the authors after the final audit. Both
+are implemented in `paper/format_2026.tex` (sections 2 and 5), fail loudly if
+the pinned class changes, and are recorded here because they depart from the
+official material; the matrix rows above describe the earlier behaviour.
+
+| Item | Official material | Now | Supersedes |
+| --- | --- | --- | --- |
+| Page numbering | The specification starts numbering on the abstract page at Arabic 1 | The cover and the abstract page carry no printed number; Arabic 1 is the first body page. PDF page labels are i, ii, then 1, 2, ... | Row 3 (and the "rendered page 2 shows 1" evidence in rows 1 and 3) |
+| Label colons | The Word template prints a colon after 题目, 摘要 and 关键词 | No colon after 题目 or 摘要; the colon after 关键词 is kept | Nothing in the textual specification |
+
+The page-numbering choice contradicts an explicit rule of the textual
+specification, which is the top of the authority order above. It is the
+authors' decision and is kept visible so that it can be reverted by removing
+the marked block in `paper/format_2026.tex` section 2.
+
 ## Findings that required judgement
 
 ### A. The cover logo row was stale, and carried a hidden stale text layer

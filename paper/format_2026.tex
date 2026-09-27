@@ -37,9 +37,14 @@
 %
 % \ps@plain is redefined rather than patched because the requirement is
 % absolute: no header, page number centred in the foot, on every page that is
-% numbered at all. The identity cover keeps the class's \thispagestyle{empty},
-% so it stays unnumbered, and the abstract page keeps \thispagestyle{plain} and
-% therefore becomes page 1 in the footer centre.
+% numbered at all.
+%
+% AUTHOR DECISION (T-012, 2026-09-27), a recorded deviation: page numbering
+% starts on the first body page at Arabic 1, and neither the identity cover
+% nor the abstract page carries a number. The official specification instead
+% starts numbering on the abstract page (see paper/FORMAT_2026.md, row 3).
+% The cover and abstract are numbered i and ii internally, so hyperlink
+% anchors and PDF page labels stay unique, but no number is printed on them.
 % ---------------------------------------------------------------------------
 \renewcommand{\ps@plain}{%
   \renewcommand{\@oddhead}{}%
@@ -47,9 +52,24 @@
   \renewcommand{\@oddfoot}{\hfil\normalfont\normalsize\thepage\hfil}%
   \renewcommand{\@evenfoot}{\@oddfoot}%
 }
-% Assert the default style at the start of the document so that a page style
-% selected by the class during \maketitle cannot leave the body on \headings.
-\AtBeginDocument{\pagestyle{plain}}
+% Front matter: no printed number, and no running header either.
+\AtBeginDocument{\pagestyle{empty}\pagenumbering{roman}}
+% Body: Arabic numbering from 1, centred in the footer. The class ends the
+% abstract with \newpage, so this runs on the first body page.
+\AfterEndEnvironment{abstract}{\pagenumbering{arabic}\pagestyle{plain}}
+\@ifundefined{makenametitle}{%
+  \ClassError{format2026}{gmcmthesis macro \string\makenametitle\space not found}{%
+    The pinned document class changed. Re-audit paper/FORMAT_2026.md.}%
+}{%
+  \patchcmd{\makenametitle}{\thispagestyle{plain}}{\thispagestyle{empty}}%
+    {\typeout{format2026: abstract page left unnumbered}}%
+    {\ClassError{format2026}{could not unnumber the abstract page}{%
+       The pinned document class changed. Re-audit paper/FORMAT_2026.md.}}%
+  \patchcmd{\makenametitle}{\setcounter{page}{1}}{}%
+    {\typeout{format2026: abstract page counter reset removed}}%
+    {\ClassError{format2026}{could not remove the abstract page counter reset}{%
+       The pinned document class changed. Re-audit paper/FORMAT_2026.md.}}%
+}
 
 % ---------------------------------------------------------------------------
 % 3. Replace the stale cover logo row with the official 2026 row, or nothing.
@@ -165,5 +185,19 @@
 % cover fields or the paper title into the document properties.
 % ---------------------------------------------------------------------------
 \AtBeginDocument{\hypersetup{pdfauthor={},pdftitle={},pdfsubject={},pdfkeywords={}}}
+
+% ---------------------------------------------------------------------------
+% 5. No colon after the 题目 and 摘要 labels.
+%
+% AUTHOR DECISION (T-012, 2026-09-27), a recorded deviation: the official Word
+% template prints a colon after 题目, 摘要 and 关键词; by the authors' decision
+% the colons after 题目 and 摘要 are dropped, and the one after 关键词 is kept.
+% The textual specification says nothing about these labels.
+% ---------------------------------------------------------------------------
+\renewcommand*{\gmcm@cap@abstractname}{摘\quad 要}
+\patchcmd{\makenametitle}{题\quad 目: }{题\quad 目}%
+  {\typeout{format2026: colon after the title label removed}}%
+  {\ClassError{format2026}{could not remove the colon after the title label}{%
+     The pinned document class changed. Re-audit paper/FORMAT_2026.md.}}
 
 \makeatother
