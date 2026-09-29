@@ -33,6 +33,7 @@
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | done | 2026-09-28 |
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
 | T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | done | 2026-09-25 |
+| T-016 | M2 | Q1 receipt regeneration check on the T-007 machine | 无仓库路径：只读执行，不修改任何跟踪文件；产出均在仓库外（见下方说明） | wip | 2026-09-29 |
 
 ## Problem-F dependency graph
 
@@ -66,3 +67,30 @@ T-010 + T-011 -> T-012
   这是执行层面的暂缓，不是新增的科学依赖。
 - 每个科学任务在其 `Paths` 里都列出了自己的 `reviews/T-0xx/`：评审包由该任务
   **当前的负责人**所有，与代码路径同一套归属规则，不另立一套。
+- **T-016 是提交附件整改的核验任务，不在上面这张科学依赖图里，也不重新打开
+  T-007。** T-007 保持 `done`，其已接受结果仍是基线。T-016 只回答一个问题：在
+  T-007 原机（bound2）的数值环境上，用冻结提交附件（SHA-256
+  `f12ab02d0591b4cb6f762dee3f78c6bf9e3094001168eda78b809c29ebfade9c`）中的问题一
+  实现和规范题目 DOCX（35,514 字节，SHA-256
+  `89f1b27c497c03ebf03335f5c9a738fa8a7f3525409bceb1ff8676794cf3b6a7`），能否在
+  逐字节保持已接受问题一数值基线与 IF2 身份的前提下，重新生成更正了 DOCX 身份的
+  两份回执。
+  - 负责人 M2，状态 `wip`。
+  - 范围：在本地 scratch 中新解压一次冻结提交附件；核验 DOCX 身份；只运行
+    `python scripts/q1_reproduce.py`；把再生的问题一产物与冻结附件基线逐项比对；
+    当且仅当全部通过条件成立，才把再生的 `results/tables/q1-input-audit.md` 与
+    `results/tables/q1-reproduction.md` 作为仓库外交接载荷交给 M1。
+  - 允许的产出：本地 scratch 实验目录；不进入跟踪文件的日志与比对证据；通过时
+    的上述两份文件，交接载荷只含这两份。
+  - 禁止：修改 M2 的跟踪仓库；改动科学代码或配置；在 M2 仓库提交再生的问题一
+    产物；推送；重开问题一研究；改动已接受的数值结果；改动 IF1 或 IF2；手工编辑
+    或合成生成的回执；运行问题二、三、四或论文图流程；看到结果后再调整 BLAS 或
+    线程设置。
+  - 通过条件：bound2 逐字节复现冻结的问题一数值与科学基线；IF1、IF2 不变；DOCX
+    身份为上面的规范值；两份回执中只有已裁定的行不同，即 `q1-input-audit.md` 的
+    DOCX SHA-256 行，以及 `q1-reproduction.md` 中 `q1-input-audit.md` 的哈希行和
+    DOCX 核对表述行（打包版脚本改由入库记录核对 DOCX，因此该句改写）。
+  - 失败条件：任何已接受的问题一数值或科学产物不同；IF1 或 IF2 不同；两份回执中
+    出现任何其他不同的行。失败时 M2 停止并报告，不授权任何整改。
+  - 收尾：M2 报告“SAFE FOR M1 P1/P2 REMEDIATION: YES / NO”后，任务交回 M1
+    处置，M2 再次退出。
