@@ -119,3 +119,5 @@ T-010 + T-011 -> T-012
     SHA-256 `acb6c3d6820288cd8852ef2aff62c5217e0361f16c2db16c22fa3eecca2b13a0`。整改前的两个附件
     （SHA-256 `f12ab02d0591b4cb6f762dee3f78c6bf9e3094001168eda78b809c29ebfade9c` 与
     `ef0c67b2a618137723175957cc8d10d3b8787cd90780248864e540ab4c0fb38b`）作为审计基线保留。
+  - 归档整理（2026-09-30）：本地归档中最终附件改名为 `submission/final/submission_attachment.zip`，
+    字节与 SHA-256 不变；两个审计基线移入 `submission/baselines/`（均在 `docs_local/archive/` 下）。
