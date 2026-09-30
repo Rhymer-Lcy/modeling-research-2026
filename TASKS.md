@@ -34,7 +34,7 @@
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
 | T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | done | 2026-09-25 |
 | T-016 | M2 | Q1 receipt regeneration check on the T-007 machine | 无仓库路径：只读执行，不修改任何跟踪文件；产出均在仓库外（见下方说明） | done | 2026-09-30 |
-| T-017 | M1 | final submission-attachment coherence remediation and acceptance | results/tables/q1-input-audit.md · results/tables/q1-reproduction.md · src/paths.py（经 PR）· docs_local/archive/（本地，不跟踪） | wip | 2026-09-30 |
+| T-017 | M1 | final submission-attachment coherence remediation and acceptance | results/tables/q1-input-audit.md · results/tables/q1-reproduction.md · src/paths.py（经 PR）· docs_local/archive/（本地，不跟踪） | done | 2026-09-30 |
 
 ## Problem-F dependency graph
 
@@ -114,3 +114,8 @@ T-010 + T-011 -> T-012
     审校的可选措辞建议；大范围的溯源措辞清理；只为文风改动与哈希耦合的溯源
     内容。
   - 冻结附件在整改期间保持不变，新候选使用新的文件名。
+  - 结果（2026-09-30）：M2 的最终人工复核结论为 PASS，T-017 关闭为 `done`。最终提交附件为
+    `submission_attachment.candidate2.zip`（本地归档），947,427 字节，138 个成员，清单 137 条，
+    SHA-256 `acb6c3d6820288cd8852ef2aff62c5217e0361f16c2db16c22fa3eecca2b13a0`。整改前的两个附件
+    （SHA-256 `f12ab02d0591b4cb6f762dee3f78c6bf9e3094001168eda78b809c29ebfade9c` 与
+    `ef0c67b2a618137723175957cc8d10d3b8787cd90780248864e540ab4c0fb38b`）作为审计基线保留。
