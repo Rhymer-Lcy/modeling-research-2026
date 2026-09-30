@@ -39,7 +39,7 @@ SCRATCH: Path = REPO_ROOT / "scratch"
 # Problem F
 # --------------------------------------------------------------------------
 # The organizer's package is local-only and is never redistributed here. It is
-# migrated into the layout below by the archive-intake task, and the raw tree is
+# supplied separately and placed into the layout below, and the raw tree is
 # treated as READ-ONLY: derived material is written elsewhere and never
 # overwrites an input. Attachment subdirectory names are the organizer's own and
 # are deliberately left unchanged.
@@ -77,8 +77,9 @@ def require(path: Path) -> Path:
     if not path.exists():
         raise RawDataMissing(
             f"Required local input is missing: {path.relative_to(REPO_ROOT)}\n"
-            "Problem-F inputs are local-only and are not distributed with this "
-            "repository. Run the archive-intake task first."
+            "Required competition inputs are not included with this code. Follow "
+            "README.md to place the external inputs before running the "
+            "reproduction scripts."
         )
     return path
 
