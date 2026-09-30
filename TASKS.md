@@ -34,6 +34,7 @@
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
 | T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | done | 2026-09-25 |
 | T-016 | M2 | Q1 receipt regeneration check on the T-007 machine | 无仓库路径：只读执行，不修改任何跟踪文件；产出均在仓库外（见下方说明） | done | 2026-09-30 |
+| T-017 | M1 | final submission-attachment coherence remediation and acceptance | results/tables/q1-input-audit.md · results/tables/q1-reproduction.md · src/paths.py（经 PR）· docs_local/archive/（本地，不跟踪） | wip | 2026-09-30 |
 
 ## Problem-F dependency graph
 
@@ -101,3 +102,15 @@ T-010 + T-011 -> T-012
     `results/tables/q1-reproduction.md` SHA-256
     `4d9818e60fb4ccdfd8430b15c8ca2103140e328a24423fe51c031026d4c9bd78`。
     核验回执留在仓库外，不进入版本库；两份文件的安装由后续的整改任务完成。
+- **T-017 是提交附件的最终整改与验收任务，不在上面这张科学依赖图里，不改任何
+  已接受的科学结论。** 负责人 M1。以冻结提交附件（SHA-256
+  `f12ab02d0591b4cb6f762dee3f78c6bf9e3094001168eda78b809c29ebfade9c`）为基础，按
+  白名单增量构建新的候选附件：安装 T-016 接受的两份问题一回执；加入四个已裁定
+  缺失的脚本，字节取自冻结的复现附件；修正 `src/paths.py` 中两处面向使用者的
+  提示文字；安装英文 README；重新生成 MANIFEST；在一次性解压目录中做 Windows
+  全量验收，并做引用闭包、路径泄漏与一致性审计；把正当的跟踪文件修改同步到
+  版本库。
+  - 不包括：科学模型重设计；改动已接受的科学结论；改动论文图，包括不采纳中文
+    审校的可选措辞建议；大范围的溯源措辞清理；只为文风改动与哈希耦合的溯源
+    内容。
+  - 冻结附件在整改期间保持不变，新候选使用新的文件名。
