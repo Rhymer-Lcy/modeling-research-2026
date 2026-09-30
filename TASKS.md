@@ -33,7 +33,7 @@
 | T-013 | M1 | collaboration review and prompt-spec workflow | reviews/README.md · reviews/HANDOVER_TEMPLATE.md · worklog/specs/ · README.md · AGENTS.md · TASKS.md · worklog/M1.md | done | 2026-09-28 |
 | T-014 | M1 | 2026 manuscript format intake and LaTeX conformance | docs_local/gmcm-2026/ · paper/main.tex · paper/format_2026.tex · paper/FORMAT_2026.md · paper/references.bib · paper/sections/05-4-model-q4.tex · reviews/T-014/ · worklog/M1.md | done | 2026-09-23 |
 | T-015 | M1 | reproducible Python environment stabilization | environment.yml · reviews/T-015/ · worklog/M1.md | done | 2026-09-25 |
-| T-016 | M2 | Q1 receipt regeneration check on the T-007 machine | 无仓库路径：只读执行，不修改任何跟踪文件；产出均在仓库外（见下方说明） | wip | 2026-09-29 |
+| T-016 | M2 | Q1 receipt regeneration check on the T-007 machine | 无仓库路径：只读执行，不修改任何跟踪文件；产出均在仓库外（见下方说明） | done | 2026-09-30 |
 
 ## Problem-F dependency graph
 
@@ -94,3 +94,10 @@ T-010 + T-011 -> T-012
     出现任何其他不同的行。失败时 M2 停止并报告，不授权任何整改。
   - 收尾：M2 报告“SAFE FOR M1 P1/P2 REMEDIATION: YES / NO”后，任务交回 M1
     处置，M2 再次退出。
+  - 结果（2026-09-30）：M2 报告“SAFE FOR M1 P1/P2 REMEDIATION: YES”，M1 用冻结
+    提交附件独立复核一致，T-016 关闭为 `done`，M2 退出。接受的仓库外交接载荷：
+    `results/tables/q1-input-audit.md` SHA-256
+    `fc04e165b7225520510557c606d3256396a3a644ab8a378f883b238eca9297a1`，
+    `results/tables/q1-reproduction.md` SHA-256
+    `4d9818e60fb4ccdfd8430b15c8ca2103140e328a24423fe51c031026d4c9bd78`。
+    核验回执留在仓库外，不进入版本库；两份文件的安装由后续的整改任务完成。
